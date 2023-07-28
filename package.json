@@ -1,6 +1,6 @@
 {
-  "name": "@gravity-ui/package-example",
-  "version": "0.0.1",
+  "name": "@gravity-ui/gateway",
+  "version": "1.0.0",
   "description": "",
   "license": "MIT",
   "main": "dist/index.js",
@@ -9,12 +9,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gravity-ui/package-example.git"
+    "url": "git+https://github.com/gravity-ui/gateway.git"
   },
   "bugs": {
-    "url": "https://github.com/gravity-ui/package-example/issues"
+    "url": "https://github.com/gravity-ui/gateway/issues"
   },
-  "homepage": "https://github.com/gravity-ui/package-example#readme",
+  "homepage": "https://github.com/gravity-ui/gateway#readme",
   "scripts": {
     "prepare": "husky install",
     "lint:js": "eslint --ext .js,.jsx,.ts,.tsx .",
@@ -23,7 +23,6 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "build": "tsc",
-    "start": "TS_NODE_PROJECT=.storybook/tsconfig.json start-storybook",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {},
@@ -34,9 +33,6 @@
     "@gravity-ui/prettier-config": "^1.0.0",
     "@gravity-ui/stylelint-config": "^1.0.0",
     "@gravity-ui/tsconfig": "^1.0.0",
-    "@storybook/addon-essentials": "^6.0.0",
-    "@storybook/preset-scss": "^1.0.0",
-    "@storybook/react": "^6.0.0",
     "@types/jest": "^28.0.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
