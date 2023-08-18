@@ -1,11 +1,9 @@
 module.exports = {
-    verbose: true,
-    moduleFileExtensions: ['js', 'json', 'ts', 'tsx'],
-    rootDir: '.',
+    roots: ['<rootDir>/lib'],
+    moduleDirectories: ['node_modules'],
+    moduleFileExtensions: ['js', 'ts', 'json'],
+    testMatch: ['<rootDir>/lib/**/?(*.)test.ts'],
     transform: {
-        '^.+\\.tsx?$': 'ts-jest',
+        '^.+\\.(ts|tsx)$': ['ts-jest', {tsconfig: '<rootDir>/tsconfig.json'}],
     },
-    transformIgnorePatterns: ['node_modules/(?!(@gravity-ui)/)'],
-    coverageDirectory: './coverage',
-    collectCoverageFrom: ['src/**/*.{ts,tsx}', '!**/__stories__/**/*', '!**/*/*.stories.{ts,tsx}'],
 };

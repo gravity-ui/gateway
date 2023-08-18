@@ -1,9 +1,23 @@
-# IDE settings
-.idea
+lib-cov
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+results
+
+npm-debug.log
+
+.idea/
+.DS_Store
+.env
 .vscode
 
-# Dependencies
 node_modules
 
-# Artifacts
-dist
+build
+build-integration
