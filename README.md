@@ -1,6 +1,6 @@
 # @gravity-ui/gateway &middot; [![npm package](https://img.shields.io/npm/v/@gravity-ui/gateway)](https://www.npmjs.com/package/@gravity-ui/gateway) [![CI](https://img.shields.io/github/actions/workflow/status/gravity-ui/gateway/.github/workflows/ci.yml?label=CI&logo=github)](https://github.com/gravity-ui/gateway/actions/workflows/ci.yml?query=branch:main)
 
-Express controller for working with REST/GRPC APIs 
+Express controller for working with REST/GRPC APIs
 
 ## Install
 
@@ -17,9 +17,9 @@ import getGatewayControllers from '@gravity-ui/gateway';
 import Schema from '<schemas package>';
 
 const config = {
-    installation: 'external',
-    env: 'production',
-    includeProtoRoots: ['...']
+  installation: 'external',
+  env: 'production',
+  includeProtoRoots: ['...'],
 };
 
 const {controller: gatewayController} = getGatewayControllers({root: Schema}, config);
@@ -44,74 +44,84 @@ import {AxiosRequestConfig} from 'axios';
 import {IncomingHttpHeaders} from 'http';
 
 interface OnUnknownActionData {
-    service?: string;
-    action?: string;
+  service?: string;
+  action?: string;
 }
 
 interface Stats {
-    service: string;
-    action: string;
-    restStatus: number;
-    grpcStatus?: number;
-    requestId: string;
-    requestTime: number;
-    requestMethod: string;
-    requestUrl: string;
-    timestamp: number;
+  service: string;
+  action: string;
+  restStatus: number;
+  grpcStatus?: number;
+  requestId: string;
+  requestTime: number;
+  requestMethod: string;
+  requestUrl: string;
+  timestamp: number;
 }
 
 type SendStats = (
-    stats: Stats,
-    headers: IncomingHttpHeaders,
-    ctx: CoreContext,
-    meta: {debugHeaders: Headers}
+  stats: Stats,
+  headers: IncomingHttpHeaders,
+  ctx: CoreContext,
+  meta: {debugHeaders: Headers},
 ) => void;
 
-type ProxyHeadersFunction = (headers: IncomingHttpHeaders, type: ControllerType) => IncomingHttpHeaders;
+type ProxyHeadersFunction = (
+  headers: IncomingHttpHeaders,
+  type: ControllerType,
+) => IncomingHttpHeaders;
 type ProxyHeaders = string[] | ProxyHeadersFunction;
 
 interface GatewayConfig {
-    // Gateway Installation (external/internal/...). If the configuration is not provided, it is determined from process.env.APP_INSTALLATION.
-    installation?: string;
-    // Gateway Environment (production/testing/...). If the configuration is not provided, it is determined from process.env.APP_ENV.
-    env?: string;
-    // Additional gRPC client options.
-    grpcOptions?: object;
-    // Additional Axios client options.
-    axiosConfig?: AxiosRequestConfig;
-    // List of actions that need to be connected from the schema. By default, all actions are connected.
-    actions?: string[];
-    // Called when an unknown service or action is provided.
-    onUnknownAction?: (req: Request, res: Response, data: OnUnknownActionData) => any;
-    // Called before the request is executed.
-    onBeforeAction?: (req: Request, res: Response, scope: string, service: string, action: string, config?: ApiServiceActionConfig) => any
-    // Called upon successful completion of the request.
-    onRequestSuccess?: (req: Request, res: Response, data: any) => any;
-    // Called in case of unsuccessful request execution.
-    onRequestFailed?: (req: Request, res: Response, error: any) => any;
-    // List of paths to the necessary proto files for the gateway.
-    includeProtoRoots?: string[];
-    // Configuration of the path to the certificate in gRPC.
-    // Set to null to use system certificates by default.
-    caCertificatePath?: string | null;
-    // Telemetry sending configuration.
-    sendStats?: SendStats;
-    // Configuration of headers sent to the API.
-    proxyHeaders?: ProxyHeaders;
-    // When passing a boolean value, it enables/disables debug headers in the response to the request.
-    // For unary requests to gRPC backends, debug headers will include information from the trailing metadata returned by the backend.
-    withDebugHeaders?: boolean;
-    // Validation schema for parameters used when no schema is present in the action. Documentation: https://ajv.js.org/json-schema.html#json-data-type
-    // You can use DEFAULT_VALIDATION_SCHEMA from lib/constants.ts.
-    validationSchema?: object;
-    // Enables encoding of REST path arguments.
-    encodePathArgs?: boolean;
-    // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is false).
-    grpcRecreateService?: boolean;
+  // Gateway Installation (external/internal/...). If the configuration is not provided, it is determined from process.env.APP_INSTALLATION.
+  installation?: string;
+  // Gateway Environment (production/testing/...). If the configuration is not provided, it is determined from process.env.APP_ENV.
+  env?: string;
+  // Additional gRPC client options.
+  grpcOptions?: object;
+  // Additional Axios client options.
+  axiosConfig?: AxiosRequestConfig;
+  // List of actions that need to be connected from the schema. By default, all actions are connected.
+  actions?: string[];
+  // Called when an unknown service or action is provided.
+  onUnknownAction?: (req: Request, res: Response, data: OnUnknownActionData) => any;
+  // Called before the request is executed.
+  onBeforeAction?: (
+    req: Request,
+    res: Response,
+    scope: string,
+    service: string,
+    action: string,
+    config?: ApiServiceActionConfig,
+  ) => any;
+  // Called upon successful completion of the request.
+  onRequestSuccess?: (req: Request, res: Response, data: any) => any;
+  // Called in case of unsuccessful request execution.
+  onRequestFailed?: (req: Request, res: Response, error: any) => any;
+  // List of paths to the necessary proto files for the gateway.
+  includeProtoRoots?: string[];
+  // Configuration of the path to the certificate in gRPC.
+  // Set to null to use system certificates by default.
+  caCertificatePath?: string | null;
+  // Telemetry sending configuration.
+  sendStats?: SendStats;
+  // Configuration of headers sent to the API.
+  proxyHeaders?: ProxyHeaders;
+  // When passing a boolean value, it enables/disables debug headers in the response to the request.
+  // For unary requests to gRPC backends, debug headers will include information from the trailing metadata returned by the backend.
+  withDebugHeaders?: boolean;
+  // Validation schema for parameters used when no schema is present in the action. Documentation: https://ajv.js.org/json-schema.html#json-data-type
+  // You can use DEFAULT_VALIDATION_SCHEMA from lib/constants.ts.
+  validationSchema?: object;
+  // Enables encoding of REST path arguments.
+  encodePathArgs?: boolean;
+  // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is false).
+  grpcRecreateService?: boolean;
 }
 ```
 
-### Использование в NodeJS
+### Usage in Node.js
 
 Upon gateway initialization, in addition to exporting the controller, it also exports an `api` object, which represents the core for executing requests to the backend.
 
@@ -120,11 +130,11 @@ import getGatewayControllers from '@gravity-ui/gateway';
 import Schema from '<schemas package>';
 
 const config = {
-    installation: 'external',
-    env: 'production',
-    includeProtoRoots: ['...'],
-    timeout: 25000, // default 25 seconds
-    caCertificatePath: '...',
+  installation: 'external',
+  env: 'production',
+  includeProtoRoots: ['...'],
+  timeout: 25000, // default 25 seconds
+  caCertificatePath: '...',
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: Schema}, config);
@@ -140,13 +150,13 @@ gatewayApi[service][action](actionConfig);
 
 ```typescript
 interface ApiActionConfig<Context, TRequestData> {
-    requestId: string;
-    headers: Headers;
-    args: TRequestData;
-    ctx: Context;
-    timeout?: number;
-    callback?: (response: TResponseData) => void;
-    authArgs?: Record<string, unknown>;
+  requestId: string;
+  headers: Headers;
+  args: TRequestData;
+  ctx: Context;
+  timeout?: number;
+  callback?: (response: TResponseData) => void;
+  authArgs?: Record<string, unknown>;
 }
 ```
 
@@ -156,7 +166,7 @@ Each schema belongs to its own namespace. Service and action names between schem
 The scope name is the key in the first parameter of the object containing the schemas.
 
 ```javascript
-const schemasByScopes = {scope1: schema1, scope2: schema2}
+const schemasByScopes = {scope1: schema1, scope2: schema2};
 ```
 
 Example with two scope namespaces: `root` and `anotherScope`.
@@ -192,8 +202,6 @@ The controller for the expresskit will also expect the `:scope` parameter.
 
 If the scope parameter is not specified, the default scope is assumed to be `root`.
 
-
-
 ### Connecting a Specific Set of Actions
 
 When initializing the `gateway`, there is an option to explicitly specify the actions that need to be connected from the schemas. To do this, provide a list of available client-side actions in the `actions` field in the config. If `actions` are not provided, all actions from the schemas are connected by default.
@@ -204,10 +212,10 @@ import rootSchema from '<schemas package>';
 import localSchema from '../shared/schemas';
 
 const config = {
-    installation: 'external',
-    env: 'production',
-    includeProtoRoots: ['...'],
-    actions: ['local.*', 'root.serviceA.*', 'root.serviceB.get'], // List of actions to be connected from the schemas. By default, all actions are connected.
+  installation: 'external',
+  env: 'production',
+  includeProtoRoots: ['...'],
+  actions: ['local.*', 'root.serviceA.*', 'root.serviceB.get'], // List of actions to be connected from the schemas. By default, all actions are connected.
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: rootSchema, local: localSchema}, config);
@@ -215,7 +223,7 @@ const {api: gatewayApi} = getGatewayControllers({root: rootSchema, local: localS
 
 The following combinations are available for specifying connected actions:
 
-- `<scope>.*`  - all actions from the scope scope are connected (for example, `local.*`)
+- `<scope>.*` - all actions from the scope scope are connected (for example, `local.*`)
 - `<scope>.<service>.*` - all actions from the service service are connected (for example, `root.serviceA.*`)
 - `<scope>.<service>.action` - only the specified action is connected (for example, `root.serviceB.get`)
 
@@ -236,11 +244,11 @@ To use reflection, you need to:
 - Install the `grpc-reflection-js` package as a peer dependency.
 - Apply patches to the `protobufjs` library. You can do this in the following ways:
 
-    a) Add `npx gateway-reflection-patch` to the `postinstall` script in your project and execute it. This assumes that protobufjs is located in the root of node_modules.
+  a) Add `npx gateway-reflection-patch` to the `postinstall` script in your project and execute it. This assumes that protobufjs is located in the root of node_modules.
 
-    b) Copy the patch from the library's patches folder to your project's root, install [patch-package](https://www.npmjs.com/package/patch-package), and add the `patch-package` command to the `postinstall` script. In this case, you need to keep an eye on updates to the patches in the gateway when updating it.
+  b) Copy the patch from the library's patches folder to your project's root, install [patch-package](https://www.npmjs.com/package/patch-package), and add the `patch-package` command to the `postinstall` script. In this case, you need to keep an eye on updates to the patches in the gateway when updating it.
 
-    If you encounter a "cannot run in wd [...]" error during Docker build, you can add unsafe-perm = true to your .npmrc file as described here.
+  If you encounter a "cannot run in wd [...]" error during Docker build, you can add unsafe-perm = true to your .npmrc file as described here.
 
 - In the `action` configuration, replace the `protoPath` option with the `reflection` option and set its value to the appropriate `GrpcReflection` enum value. For reflection to work, the endpoint must support it.
 
@@ -260,7 +268,7 @@ This function is experimental. Fixes have been applied to `protobufjs` using [pa
 - Fix for duplicated field [PR 1784](https://github.com/protobufjs/protobuf.js/pull/1784)
 - Conversion of parameter names to camelCase [PR 1073](https://github.com/protobufjs/protobuf.js/pull/1073)
 - Fix for handling Map [PR 1478](https://github.com/protobufjs/protobuf.js/pull/1478)
-grpc-reflection-js has also been patched to support custom options.
+  grpc-reflection-js has also been patched to support custom options.
 
 For development, you need to apply the patch locally using the command `npx patch-package`.
 
