@@ -1,16 +1,10 @@
 {
-  "extends": "@gravity-ui/tsconfig",
+  "extends": "@gravity-ui/tsconfig/tsconfig",
   "compilerOptions": {
     "declaration": true,
     "allowJs": false,
     "outDir": "../build-integration"
   },
-  "include": [
-    "server/**/*.ts",
-    "client/**/*.ts",
-  ],
-  "exclude": [
-    "lib/**/*.test.ts",
-    "node_modules",
-  ]
+  "include": ["server/**/*.ts", "client/**/*.ts"],
+  "exclude": ["lib/**/*.test.ts", "node_modules"]
 }
