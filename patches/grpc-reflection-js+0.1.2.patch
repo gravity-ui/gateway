@@ -1,0 +1,87 @@
+diff --git a/node_modules/grpc-reflection-js/build/src/client.d.ts b/node_modules/grpc-reflection-js/build/src/client.d.ts
+index e8acad8..9919874 100644
+--- a/node_modules/grpc-reflection-js/build/src/client.d.ts
++++ b/node_modules/grpc-reflection-js/build/src/client.d.ts
+@@ -3,7 +3,7 @@ import * as services from './reflection_grpc_pb';
+ import { Root } from 'protobufjs';
+ export declare class Client {
+     grpcClient: services.IServerReflectionClient;
+-    constructor(url: string, credentials: ChannelCredentials, options?: object);
++    constructor(url: string, credentials: ChannelCredentials, options?: object, descriptorExtensionProto?: string[]);
+     listServices(): Promise<string[] | void[]>;
+     fileContainingSymbol(symbol: string): Promise<Root>;
+     fileByFilename(filename: string): Promise<Root>;
+diff --git a/node_modules/grpc-reflection-js/build/src/client.js b/node_modules/grpc-reflection-js/build/src/client.js
+index d21ff4d..0f10f0b 100644
+--- a/node_modules/grpc-reflection-js/build/src/client.js
++++ b/node_modules/grpc-reflection-js/build/src/client.js
+@@ -26,11 +26,17 @@ exports.Client = void 0;
+ const descriptor_1 = require("./descriptor");
+ const services = __importStar(require("./reflection_grpc_pb"));
+ const reflection_pb_1 = require("./reflection_pb");
+-const descriptor_2 = require("protobufjs/ext/descriptor");
++const pb = require("protobufjs");
+ const lodash_set_1 = __importDefault(require("lodash.set"));
+ class Client {
+-    constructor(url, credentials, options) {
++    constructor(url, credentials, options, descriptorExtensionProto) {
+         this.grpcClient = new services.ServerReflectionClient(url, credentials, options);
++
++        const descriptorRoot = pb.Root.fromJSON(require("protobufjs/google/protobuf/descriptor.json"));
++        if (descriptorExtensionProto) {
++            descriptorExtensionProto.forEach((proto) => descriptorRoot.loadSync(proto));
++        }
++        this.descriptor = descriptorRoot.lookup(".google.protobuf");
+     }
+     listServices() {
+         return new Promise((resolve, reject) => {
+@@ -74,15 +80,15 @@ class Client {
+         });
+     }
+     async resolveFileDescriptorSet(fileDescriptorProtoBytes) {
+-        const fileDescriptorSet = descriptor_2.FileDescriptorSet.create();
++        const fileDescriptorSet = this.descriptor.FileDescriptorSet.create();
+         const fileDescriptorProtos = await this.resolveDescriptorRecursive(fileDescriptorProtoBytes);
+         lodash_set_1.default(fileDescriptorSet, 'file', Array.from(fileDescriptorProtos.values()));
+-        return descriptor_1.getDescriptorRootFromDescriptorSet(fileDescriptorSet);
++        return descriptor_1.getDescriptorRootFromDescriptorSet(fileDescriptorSet, this.descriptor);
+     }
+     async resolveDescriptorRecursive(fileDescriptorProtoBytes) {
+         let fileDescriptorProtos = new Map();
+         for (const descriptorByte of fileDescriptorProtoBytes) {
+-            const fileDescriptorProto = descriptor_2.FileDescriptorProto.decode(descriptorByte);
++            const fileDescriptorProto = this.descriptor.FileDescriptorProto.decode(descriptorByte);
+             if (fileDescriptorProto.dependency) {
+                 const dependencies = fileDescriptorProto.dependency;
+                 for (const dep of dependencies) {
+diff --git a/node_modules/grpc-reflection-js/build/src/descriptor.js b/node_modules/grpc-reflection-js/build/src/descriptor.js
+index a00a919..c680d3b 100644
+--- a/node_modules/grpc-reflection-js/build/src/descriptor.js
++++ b/node_modules/grpc-reflection-js/build/src/descriptor.js
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getDescriptorRootFromDescriptorSet = exports.getDescriptorRoot = void 0;
+ const protobuf = require('protobufjs');
+-const Descriptor = require('protobufjs/ext/descriptor');
++const Descriptor_1 = require('protobufjs/ext/descriptor');
+ const set = require('lodash.set');
+ /**
+  * @typedef {import('protobufjs').Root} Root
+@@ -15,7 +15,7 @@ const set = require('lodash.set');
+  * @return {Root} Protobuf.js Root object
+  */
+ // eslint-disable-next-line node/no-unsupported-features/es-syntax
+-function getDescriptorRoot(file_descriptor_protos) {
++function getDescriptorRoot(file_descriptor_protos, Descriptor = Descriptor_1) {
+     const descriptorSet = Descriptor.FileDescriptorSet.create();
+     file_descriptor_protos.forEach((descriptorByte, i) => {
+         const descriptor = Descriptor.FileDescriptorProto.decode(descriptorByte);
+@@ -30,7 +30,7 @@ exports.getDescriptorRoot = getDescriptorRoot;
+  * @return {Root} Protobuf.js Root object
+  */
+ // eslint-disable-next-line node/no-unsupported-features/es-syntax
+-function getDescriptorRootFromDescriptorSet(file_descriptor_set) {
++function getDescriptorRootFromDescriptorSet(file_descriptor_set, Descriptor = Descriptor_1) {
+     return protobuf.Root.fromDescriptor(file_descriptor_set);
+ }
+ exports.getDescriptorRootFromDescriptorSet = getDescriptorRootFromDescriptorSet;

@@ -2,18 +2,9 @@
   "extends": "@gravity-ui/tsconfig/tsconfig",
   "compilerOptions": {
     "declaration": true,
-    "resolveJsonModule": true,
-    "outDir": "dist",
-    "module": "esnext",
-    "jsx": "react"
+    "allowJs": false,
+    "outDir": "build"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "**/__tests__",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-  ]
+  "include": ["lib/**/*.ts"],
+  "exclude": ["node_modules", "lib/**/*.test.ts"]
 }

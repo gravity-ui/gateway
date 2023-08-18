@@ -1,0 +1,106 @@
+syntax = 'proto3';
+
+package v1;
+
+service MetaService {
+
+  rpc GetEntityUnary(GetEntityRequest) returns (GetEntityResponse) {}
+
+  rpc GetLongEntityUnary(GetLongEntityRequest) returns (GetLongEntityResponse) {}
+
+  rpc MethodWithError(MethodWithErrorRequest) returns (MethodWithErrorResponse) {}
+
+  rpc Unimplemented(MethodWithErrorRequest) returns (MethodWithErrorResponse) {}
+
+  rpc MethodWithDeadline(MethodWithDeadlineRequest) returns (MethodWithDeadlineResponse) {}
+
+  rpc GetEntityListServerStream(GetEntityListServerStreamRequest) returns (stream GetEntityResponse) {}
+
+  rpc GetEntityListServerStreamWithError(GetEntityListServerStreamRequest) returns (stream GetEntityResponse) {}
+
+  rpc GetEntityListClientStream(stream Item) returns (ItemsList) {}
+
+  rpc GetEntityListClientStreamWithError(stream Item) returns (ItemsList) {}
+
+  rpc GetEntityListDuplexStream(stream Item) returns (stream ProcessedItem) {}
+
+  rpc GetEntityTestOptions(GetEntityTestOptionsRequest) returns (GetEntityTestOptionsResponse) {}
+}
+
+service Meta2Service {
+  rpc GetEntityUnary(GetEntityRequest) returns (GetEntityResponse) {}
+}
+
+service Meta3Service {
+  rpc GetEntityUnary(GetEntityRequest) returns (GetEntityResponse) {}
+}
+
+service TimeoutService {
+  rpc GetDataWithTimeout(GetDataWithTimeoutRequest) returns (GetDataWithTimeoutResponse) {}
+}
+
+message GetEntityRequest {
+  string query = 1;
+}
+
+message GetEntityResponse {
+  string result = 1;
+}
+
+message GetLongEntityRequest {
+    string query = 1;
+}
+
+message GetLongEntityResponse {
+    string result = 1;
+}
+
+message MethodWithErrorRequest {}
+
+message MethodWithErrorResponse {}
+
+message MethodWithDeadlineRequest {}
+
+message MethodWithDeadlineResponse {}
+
+message GetEntityListServerStreamRequest {
+  int32 from = 1;
+  int32 to = 2;
+}
+
+message Item {
+  string id = 1;
+}
+
+message ItemsList {
+  repeated string items = 1;
+}
+
+message ProcessedItem {
+  string id = 1;
+  string hash = 2;
+}
+
+message GetEntityTestOptionsRequest {
+  string query_case = 1;
+}
+
+message GetEntityTestOptionsResponse {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_OK = 1;
+  }
+
+  string test_case_result = 1;
+  Status status = 2;
+}
+
+message GetDataWithTimeoutRequest {
+  string id = 1;
+  int32 timeout = 2;
+  bool throw_error = 3;
+}
+
+message GetDataWithTimeoutResponse {
+  string result = 1;
+}
