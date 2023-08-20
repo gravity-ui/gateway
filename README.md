@@ -274,4 +274,4 @@ For development, you need to apply the patch locally using the command `npx patc
 
 **ChannelCredentials Type Mismatch Error**
 
-This error can occur due to duplicate installations of the` @grpc/grpc-js` library. It's recommended to ensure that all versions of this library are aligned and consistent to avoid this issue.
+This error can occur due to duplicate installations of the `@grpc/grpc-js` library. It's recommended to ensure that all versions of this library are aligned and consistent to avoid this issue.
