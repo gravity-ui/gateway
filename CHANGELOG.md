@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/gravity-ui/gateway/compare/v1.0.1...v1.0.2) (2023-08-20)
+
+
+### Bug Fixes
+
+* rename patch name ([944a973](https://github.com/gravity-ui/gateway/commit/944a9738cd539f8494ed59bced24f2aaae9d21ff))
+
 ## [1.0.1](https://github.com/gravity-ui/gateway/compare/v1.0.0...v1.0.1) (2023-08-20)
 
 
