@@ -22,7 +22,7 @@ class CoreContext {
     }
 }
 
-class ErrorConctructor extends Error {
+class ErrorConstructor extends Error {
     static wrap(error: Error) {
         return error;
     }
@@ -53,7 +53,7 @@ const config = {
     env: 'testing',
     installation: 'external',
     caCertificatePath: null,
-    ErrorConctructor,
+    ErrorConstructor,
     getAuthArgs: () => ({}),
     getAuthHeaders: () => undefined,
     withDebugHeaders: false,

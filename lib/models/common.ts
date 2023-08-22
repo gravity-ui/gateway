@@ -435,5 +435,5 @@ export interface GatewayConfig<
     encodePathArgs?: boolean;
     getAuthArgs: (req: Req, res: Res) => Record<string, unknown> | undefined;
     getAuthHeaders: GetAuthHeaders;
-    ErrorConctructor: AppErrorConstructor;
+    ErrorConstructor: AppErrorConstructor;
 }

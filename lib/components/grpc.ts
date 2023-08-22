@@ -233,7 +233,7 @@ function decodeResponse<Context extends GatewayContext>(
     packageRoot: protobufjs.Root,
     ctx: Context,
     encodedFields: string[] = [],
-    ErrorConctructor: AppErrorConstructor,
+    ErrorConstructor: AppErrorConstructor,
 ) {
     const systemFields = ['metadata', 'response', 'error.details'];
 
@@ -256,7 +256,7 @@ function decodeResponse<Context extends GatewayContext>(
                 );
             }
         } catch (error) {
-            handleError(ErrorConctructor, error, ctx, 'Message decoding failed', {fieldName});
+            handleError(ErrorConstructor, error, ctx, 'Message decoding failed', {fieldName});
         }
     });
 }
@@ -598,24 +598,24 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     ctx,
     packageRoot,
     args,
-    ErrorConctructor,
+    ErrorConstructor,
 }: {
     config: ApiServiceGrpcActionConfig<Context, any, any>;
     response: T;
     ctx: Context;
     packageRoot: protobufjs.Root;
     args: R;
-    ErrorConctructor: AppErrorConstructor;
+    ErrorConstructor: AppErrorConstructor;
 }) {
     // Handle operation's runtime protocol buffers
     if (response) {
         const encodedFields = config.encodedFields;
         if (Array.isArray(response)) {
             response.forEach((responseItem) =>
-                decodeResponse(responseItem, packageRoot, ctx, encodedFields, ErrorConctructor),
+                decodeResponse(responseItem, packageRoot, ctx, encodedFields, ErrorConstructor),
             );
         } else if (typeof response === 'object') {
-            decodeResponse(response, packageRoot, ctx, encodedFields, ErrorConctructor);
+            decodeResponse(response, packageRoot, ctx, encodedFields, ErrorConstructor);
         }
     }
 
@@ -629,7 +629,7 @@ async function getResponseData<T, R, Context extends GatewayContext>({
 
             ctx.log('Transformed response data');
         } catch (error) {
-            handleError(ErrorConctructor, error, ctx, 'Transform response data failed');
+            handleError(ErrorConstructor, error, ctx, 'Transform response data failed');
         }
     }
     return responseData;
@@ -642,7 +642,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     serviceKey: string,
     actionName: string,
     options: GatewayApiOptions<Context>,
-    ErrorConctructor: AppErrorConstructor,
+    ErrorConstructor: AppErrorConstructor,
 ) {
     const serviceName = options?.serviceName || serviceKey;
 
@@ -800,7 +800,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
             });
             ctx.logError(
                 'Request failed',
-                ErrorConctructor.wrap(grpcError.getAppError(ErrorConctructor)),
+                ErrorConstructor.wrap(grpcError.getAppError(ErrorConstructor)),
                 {
                     serviceName,
                     actionName,
@@ -817,7 +817,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
             try {
                 params = await config.params(args, headers, {ctx});
             } catch (error) {
-                handleError(ErrorConctructor, error, ctx, 'Getting config params failed');
+                handleError(ErrorConstructor, error, ctx, 'Getting config params failed');
             }
         }
 
@@ -825,7 +825,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
         try {
             service = await getService(args);
         } catch (error) {
-            handleError(ErrorConctructor, error, ctx, 'getService failed');
+            handleError(ErrorConstructor, error, ctx, 'getService failed');
             throw error;
         }
 
@@ -1030,7 +1030,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                         service = await getService(args);
                                     } catch (error) {
                                         handleError(
-                                            ErrorConctructor,
+                                            ErrorConstructor,
                                             error,
                                             ctx,
                                             'getService failed',
@@ -1060,7 +1060,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     config,
                                     args,
                                     packageRoot: root,
-                                    ErrorConctructor,
+                                    ErrorConstructor,
                                 });
 
                                 Object.assign(

@@ -1,6 +1,6 @@
 import getGatewayControllers from '../../lib';
 
-import {ErrorConctructor, createCoreContext} from './create-core-context';
+import {ErrorConstructor, createCoreContext} from './create-core-context';
 import {schema} from './schema/meta';
 
 export function gatewayCall(request: any) {
@@ -10,7 +10,7 @@ export function gatewayCall(request: any) {
             installation: 'external',
             env: 'production',
             caCertificatePath: null,
-            ErrorConctructor,
+            ErrorConstructor,
             getAuthArgs: () => ({}),
             getAuthHeaders: () => undefined,
             proxyHeaders: [],

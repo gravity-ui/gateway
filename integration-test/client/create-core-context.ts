@@ -69,7 +69,7 @@ export function createCoreContext(stats: () => void) {
     });
 }
 
-export class ErrorConctructor extends Error {
+export class ErrorConstructor extends Error {
     static wrap(error: Error) {
         return error;
     }
