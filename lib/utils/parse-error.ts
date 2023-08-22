@@ -250,8 +250,8 @@ export class GrpcError extends Error {
         return this.rawError;
     }
 
-    getAppError(ErrorConctructor: AppErrorConstructor) {
-        return new ErrorConctructor(this.parsedError.message, {
+    getAppError(ErrorConstructor: AppErrorConstructor) {
+        return new ErrorConstructor(this.parsedError.message, {
             code: this.parsedError.code,
             details: this.parsedError.details,
             debug: this.parsedError.debug,

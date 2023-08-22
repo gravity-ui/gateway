@@ -27,7 +27,7 @@ export function createMixedAction<
     serviceName: string,
     actionName: string,
     extra: {config: GatewayConfig<Context, Req, Res>; grpcContext: GrpcContext},
-    ErrorConctructor: AppErrorConstructor,
+    ErrorConstructor: AppErrorConstructor,
 ) {
     return async (actionConfig: ApiActionConfig<Context, any>) => {
         const {args, ...context} = actionConfig;
@@ -57,7 +57,7 @@ export function createMixedAction<
             };
         } catch (e) {
             if (e instanceof Object && 'error' in e) {
-                handleError(ErrorConctructor, e, ctx, 'Request failed', {
+                handleError(ErrorConstructor, e, ctx, 'Request failed', {
                     actionName,
                     serviceName,
                 });
@@ -66,7 +66,7 @@ export function createMixedAction<
             }
             if (e instanceof Error) {
                 const parsedError = parseMixedError(e);
-                ctx.logError('Request failed', ErrorConctructor.wrap(e), {
+                ctx.logError('Request failed', ErrorConstructor.wrap(e), {
                     actionName,
                     serviceName,
                     parsedError,

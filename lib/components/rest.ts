@@ -39,13 +39,13 @@ import {encodePathParams, getPathArgsProxy, validateArgs} from '../utils/validat
 function getRestResponseSize<Context extends GatewayContext>(
     data: unknown,
     ctx: Context,
-    ErrorConctructor: AppErrorConstructor,
+    ErrorConstructor: AppErrorConstructor,
 ) {
     let responseSize = 0;
     try {
         responseSize = ECMA_STRING_SIZE * JSON.stringify(data)?.length;
     } catch (error) {
-        handleError(ErrorConctructor, error, ctx, 'Calculate response size failed');
+        handleError(ErrorConstructor, error, ctx, 'Calculate response size failed');
     }
 
     return responseSize;
@@ -67,7 +67,7 @@ export default function createRestAction<Context extends GatewayContext>(
     serviceKey: string,
     actionName: string,
     options: GatewayApiOptions<Context>,
-    ErrorConctructor: AppErrorConstructor,
+    ErrorConstructor: AppErrorConstructor,
 ) {
     const timeout = config?.timeout ?? options?.timeout;
     const defaultAxiosClient = getAxiosClient(timeout, config?.retries, options?.axiosConfig);
@@ -202,7 +202,7 @@ export default function createRestAction<Context extends GatewayContext>(
             try {
                 params = await config.params(args, actionHeaders, {ctx});
             } catch (error) {
-                handleError(ErrorConctructor, error, ctx, 'Getting config params failed');
+                handleError(ErrorConstructor, error, ctx, 'Getting config params failed');
             }
         }
 
@@ -228,7 +228,7 @@ export default function createRestAction<Context extends GatewayContext>(
                 requestBody = encodedRequestBody;
             }
         } catch (error) {
-            handleError(ErrorConctructor, error, ctx, 'Stringify request body failed');
+            handleError(ErrorConstructor, error, ctx, 'Stringify request body failed');
         }
 
         Object.assign(debugHeaders, {
@@ -303,7 +303,7 @@ export default function createRestAction<Context extends GatewayContext>(
 
                     ctx.log('Transformed response data');
                 } catch (error) {
-                    handleError(ErrorConctructor, error, ctx, 'Transform response data failed');
+                    handleError(ErrorConstructor, error, ctx, 'Transform response data failed');
                 }
             }
 
@@ -311,7 +311,7 @@ export default function createRestAction<Context extends GatewayContext>(
                 options.sendStats(
                     {
                         ...requestData,
-                        responseSize: getRestResponseSize(response?.data, ctx, ErrorConctructor),
+                        responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
                         restStatus: 200,
                     } as Stats,
                     redactSensitiveHeaders(parentCtx, headers),
@@ -352,7 +352,7 @@ export default function createRestAction<Context extends GatewayContext>(
 
                     ctx.log('Transformed response error');
                 } catch (error) {
-                    handleError(ErrorConctructor, error, ctx, 'Transform response error failed');
+                    handleError(ErrorConstructor, error, ctx, 'Transform response error failed');
                 }
             }
 
@@ -360,7 +360,7 @@ export default function createRestAction<Context extends GatewayContext>(
                 try {
                     parsedError = parseRestError(error, lang);
                 } catch (error) {
-                    handleError(ErrorConctructor, error, ctx, 'Error parse rest error');
+                    handleError(ErrorConstructor, error, ctx, 'Error parse rest error');
                 }
             }
 
@@ -373,7 +373,7 @@ export default function createRestAction<Context extends GatewayContext>(
                         responseSize: getRestResponseSize(
                             (error as any)?.response?.data,
                             ctx,
-                            ErrorConctructor,
+                            ErrorConstructor,
                         ),
                         restStatus: responseStatus,
                     } as Stats,

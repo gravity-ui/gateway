@@ -17,7 +17,7 @@ import * as grpcReflection from 'grpc-reflection-js';
 
 import getGatewayControllers from '../../lib';
 
-import {ErrorConctructor, createCoreContext} from './create-core-context';
+import {ErrorConstructor, createCoreContext} from './create-core-context';
 import {schema} from './schema/meta';
 
 function getControllers() {
@@ -28,7 +28,7 @@ function getControllers() {
             env: 'production',
             caCertificatePath: null,
             grpcRecreateService: true,
-            ErrorConctructor,
+            ErrorConstructor,
             getAuthArgs: () => ({}),
             getAuthHeaders: () => undefined,
             proxyHeaders: [],

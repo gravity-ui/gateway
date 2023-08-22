@@ -57,7 +57,7 @@ function createApiAction<
 ) {
     const serviceSchema = schema[serviceKey];
     if (!serviceSchema) {
-        throw new config.ErrorConctructor(
+        throw new config.ErrorConstructor(
             `Gateway config error. Service "${serviceKey}" have been not found.`,
             {
                 code: 'SERVICE_NOT_FOUND',
@@ -67,7 +67,7 @@ function createApiAction<
 
     const action = serviceSchema.actions[actionName];
     if (!action) {
-        throw new config.ErrorConctructor(
+        throw new config.ErrorConstructor(
             `Gateway config error. Action "${serviceKey}.${actionName}" have been not found.`,
             {
                 code: 'ACTION_NOT_FOUND',
@@ -88,7 +88,7 @@ function createApiAction<
             resultServiceName,
             actionName,
             {config, grpcContext},
-            config.ErrorConctructor,
+            config.ErrorConstructor,
         );
     }
 
@@ -109,7 +109,7 @@ function createApiAction<
                 encodePathArgs: config.encodePathArgs,
                 getAuthHeaders: config.getAuthHeaders,
             },
-            config.ErrorConctructor,
+            config.ErrorConstructor,
         );
     }
 
@@ -128,7 +128,7 @@ function createApiAction<
             grpcRecreateService: config.grpcRecreateService,
             getAuthHeaders: config.getAuthHeaders,
         },
-        config.ErrorConctructor,
+        config.ErrorConstructor,
     );
 }
 
@@ -147,13 +147,13 @@ function generateGatewayApi<
     const {installation, env} = config;
 
     if (!installation) {
-        throw new config.ErrorConctructor('Gateway config error', {
+        throw new config.ErrorConstructor('Gateway config error', {
             code: 'EMPTY_GATEWAY_INSTALLATION',
         });
     }
 
     if (!env) {
-        throw new config.ErrorConctructor('Gateway config error', {code: 'EMPTY_GATEWAY_ENV'});
+        throw new config.ErrorConstructor('Gateway config error', {code: 'EMPTY_GATEWAY_ENV'});
     }
 
     return Object.keys(schema).reduce((api, serviceKey) => {
@@ -265,7 +265,7 @@ function generateGatewayApiController<
                     await onBeforeAction(req, res, scope, service, action, actionConfig);
                 } catch (error) {
                     handleError(
-                        config.ErrorConctructor,
+                        config.ErrorConstructor,
                         error,
                         req.ctx,
                         'Before action handler error',

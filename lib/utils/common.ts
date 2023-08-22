@@ -54,14 +54,14 @@ export function getHeadersFromMetadata(metadata: Record<string, grpc.MetadataVal
 }
 
 export function handleError<Context extends GatewayContext>(
-    ErrorConctructor: AppErrorConstructor,
+    ErrorConstructor: AppErrorConstructor,
     error: unknown,
     ctx: Context,
     message: string,
     extra?: Dict,
 ) {
     if (error instanceof Error) {
-        ctx.logError(message, ErrorConctructor.wrap(error), extra);
+        ctx.logError(message, ErrorConstructor.wrap(error), extra);
     } else {
         ctx.logError(message, JSON.stringify(error), extra);
     }
