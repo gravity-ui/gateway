@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/gravity-ui/gateway/compare/v1.0.3...v1.0.4) (2023-08-22)
+
+
+### Bug Fixes
+
+* add types in package.json ([6bfba01](https://github.com/gravity-ui/gateway/commit/6bfba01d7389c7cb0cd763a804131b625a753a76))
+
 ## [1.0.3](https://github.com/gravity-ui/gateway/compare/v1.0.2...v1.0.3) (2023-08-22)
 
 
