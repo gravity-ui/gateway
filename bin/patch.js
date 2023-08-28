@@ -7,7 +7,7 @@ copyFileSync(
     'patches/grpc-reflection-js+0.1.2.patch',
 );
 copyFileSync(
-    'node_modules/@gravity-ui/gateway/patches/protobufjs+6.11.4.patch',
-    'patches/protobufjs+6.11.4.patch',
+    'node_modules/@gravity-ui/gateway/patches/protobufjs+6.11.3.patch',
+    'patches/protobufjs+6.11.3.patch',
 );
 execSync('npx patch-package', {stdio: 'inherit'});
