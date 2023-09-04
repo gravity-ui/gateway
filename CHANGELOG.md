@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/gravity-ui/gateway/compare/v1.0.5...v1.1.0) (2023-09-04)
+
+
+### Features
+
+* improve logging and processing errors ([#15](https://github.com/gravity-ui/gateway/issues/15)) ([80d4170](https://github.com/gravity-ui/gateway/commit/80d417082748b047809ac223fdc4f73eca0a78e3))
+
 ## [1.0.5](https://github.com/gravity-ui/gateway/compare/v1.0.4...v1.0.5) (2023-08-28)
 
 
