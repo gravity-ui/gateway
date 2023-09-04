@@ -66,17 +66,21 @@ export function createMixedAction<
             }
             if (e instanceof Error) {
                 const parsedError = parseMixedError(e);
-                ctx.logError('Request failed', ErrorConstructor.wrap(e), {
+                handleError(ErrorConstructor, e, ctx, 'Request failed', {
                     actionName,
                     serviceName,
                     parsedError,
                 });
+
                 throw {
                     error: parsedError,
                 };
             }
+
+            handleError(ErrorConstructor, e, ctx, 'Request failed');
+
             throw {
-                error: JSON.stringify(e),
+                error: e,
             };
         } finally {
             ctx.end();
