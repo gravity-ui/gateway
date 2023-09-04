@@ -62,7 +62,9 @@ export function handleError<Context extends GatewayContext>(
 ) {
     if (error instanceof Error) {
         ctx.logError(message, ErrorConstructor.wrap(error), extra);
+    } else if (typeof error === 'string') {
+        ctx.logError(message, {error}, extra);
     } else {
-        ctx.logError(message, JSON.stringify(error), extra);
+        ctx.logError(message, error, extra);
     }
 }
