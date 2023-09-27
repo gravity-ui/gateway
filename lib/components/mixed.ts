@@ -69,7 +69,6 @@ export function createMixedAction<
                 handleError(ErrorConstructor, e, ctx, 'Request failed', {
                     actionName,
                     serviceName,
-                    parsedError,
                 });
 
                 throw {
