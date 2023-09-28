@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/gravity-ui/gateway/compare/v1.1.0...v1.1.1) (2023-09-28)
+
+
+### Bug Fixes
+
+* tune doc ([a24e5f8](https://github.com/gravity-ui/gateway/commit/a24e5f8cdc32d753bd7be4c172415bd97a87878b))
+
 ## [1.1.0](https://github.com/gravity-ui/gateway/compare/v1.0.5...v1.1.0) (2023-09-04)
 
 
