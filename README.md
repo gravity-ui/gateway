@@ -31,7 +31,7 @@ Next, the controller described above should be connected to a route of the follo
 
 ```javascript
 {
-    'POST   /<prefix>/:scope/:service/:action': {target: '<controller>', afterAuth: ['blackbox', 'credentials']}
+    'POST   /<prefix>/:scope/:service/:action': {target: '<controller>', afterAuth: ['credentials']}
 }
 ```
 
