@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/gravity-ui/gateway/compare/v1.1.1...v1.2.0) (2023-10-09)
+
+
+### Features
+
+* pass an endpoint timeout to Axios config ([#19](https://github.com/gravity-ui/gateway/issues/19)) ([523bf2e](https://github.com/gravity-ui/gateway/commit/523bf2e7acfdeaec3c30eaade196df3a1bc19e3d))
+
 ## [1.1.1](https://github.com/gravity-ui/gateway/compare/v1.1.0...v1.1.1) (2023-09-28)
 
 
