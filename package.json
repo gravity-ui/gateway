@@ -37,7 +37,7 @@
     "test-integration-no-server": "jest --colors --config=jest.config-integration.js"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.8.12",
+    "@grpc/grpc-js": "^1.9.2",
     "@grpc/proto-loader": "^0.6.13",
     "ajv": "^8.12.0",
     "axios": "^1.3.5",
