@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/gravity-ui/gateway/compare/v1.2.1...v1.2.2) (2023-11-06)
+
+
+### Bug Fixes
+
+* update grpc-js package ([#24](https://github.com/gravity-ui/gateway/issues/24)) ([c8ac84e](https://github.com/gravity-ui/gateway/commit/c8ac84eb7ab2ecf0acae37b2d80ba1fa2663c289))
+
 ## [1.2.1](https://github.com/gravity-ui/gateway/compare/v1.2.0...v1.2.1) (2023-10-19)
 
 
