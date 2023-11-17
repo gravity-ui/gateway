@@ -265,7 +265,6 @@ The cache key for reflections consists of `protoKey` and `endpoint`. Therefore, 
 
 This function is experimental. Fixes have been applied to `protobufjs` using [patch-package](https://github.com/ds300/patch-package) based on the following PRs:
 
-- Fix for duplicated field [PR 1784](https://github.com/protobufjs/protobuf.js/pull/1784)
 - Conversion of parameter names to camelCase [PR 1073](https://github.com/protobufjs/protobuf.js/pull/1073)
 - Fix for handling Map [PR 1478](https://github.com/protobufjs/protobuf.js/pull/1478)
   grpc-reflection-js has also been patched to support custom options.

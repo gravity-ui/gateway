@@ -18,6 +18,7 @@ function getCachedClient(
             actionEndpoint,
             credentials,
             undefined,
+            undefined,
             descriptorExtensionProto,
         );
         reflectionClientsMap[actionEndpoint] = client;
