@@ -105,17 +105,3 @@ index 6aafd2a..b8e9f58 100644
      return out.length ? $protobuf.util.toObject(out) : undefined;
  }
  
-diff --git a/node_modules/protobufjs/src/root.js b/node_modules/protobufjs/src/root.js
-index df6f11f..98303aa 100644
---- a/node_modules/protobufjs/src/root.js
-+++ b/node_modules/protobufjs/src/root.js
-@@ -273,6 +273,9 @@ function tryHandleExtension(root, field) {
-     var extendedType = field.parent.lookup(field.extend);
-     if (extendedType) {
-         var sisterField = new Field(field.fullName, field.id, field.type, field.rule, undefined, field.options);
-+        if (extendedType.get(sisterField.name)) {
-+            return true;
-+        }
-         sisterField.declaringField = field;
-         field.extensionField = sisterField;
-         extendedType.add(sisterField);
