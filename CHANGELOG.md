@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/gravity-ui/gateway/compare/v1.3.0...v1.3.1) (2023-11-22)
+
+
+### Bug Fixes
+
+* auto remove old patches ([#28](https://github.com/gravity-ui/gateway/issues/28)) ([3ad36da](https://github.com/gravity-ui/gateway/commit/3ad36dacc9ccf9b3c4e5a15c885768a449441ea3))
+
 ## [1.3.0](https://github.com/gravity-ui/gateway/compare/v1.2.2...v1.3.0) (2023-11-21)
 
 
