@@ -170,6 +170,7 @@ export interface ApiServiceRestActionConfig<
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
     path: (args: TParams) => string;
     paramsSerializer?: AxiosRequestConfig['paramsSerializer'];
+    responseType?: AxiosRequestConfig['responseType'];
     maxRedirects?: number;
 }
 
