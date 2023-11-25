@@ -288,6 +288,12 @@ export default function createRestAction<Context extends GatewayContext>(
             });
         }
 
+        if (config.responseType) {
+            Object.assign(requestConfig, {
+                responseType: config.responseType,
+            });
+        }
+
         try {
             const response = await axiosClient.request(requestConfig);
 
