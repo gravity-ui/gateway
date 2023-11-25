@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/gravity-ui/gateway/compare/v1.3.1...v1.4.0) (2023-11-25)
+
+
+### Features
+
+* add ability to set responseType in ApiServiceRestActionConfig ([#30](https://github.com/gravity-ui/gateway/issues/30)) ([58bc7a4](https://github.com/gravity-ui/gateway/commit/58bc7a46efb7a88a1506149264f486af2dc96f7b))
+
 ## [1.3.1](https://github.com/gravity-ui/gateway/compare/v1.3.0...v1.3.1) (2023-11-22)
 
 
