@@ -3,23 +3,44 @@ import type {Client as GrpcReflectionClient} from 'grpc-reflection-js';
 import _ from 'lodash';
 import * as protobufjs from 'protobufjs';
 
+import {patchProtoPathResolver} from './proto-path-resolver';
+
 const reflectionClientsMap: Record<string, GrpcReflectionClient> = {};
 const reflectionRootPromiseMap: Record<string, Record<string, Promise<protobufjs.Root>>> = {};
+
+type DescriptorExtensionProto =
+    | string[]
+    | {
+          includeProtoRoots: string[];
+          filenames: string[];
+      };
 
 function getCachedClient(
     actionEndpoint: string,
     credentials: ChannelCredentials,
-    descriptorExtensionProto?: string[],
+    descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
     let client = reflectionClientsMap[actionEndpoint];
     if (!client) {
         const grpcReflection = require('grpc-reflection-js');
+        let descriptorRoot: protobufjs.Root | undefined;
+
+        if (descriptorExtensionProto) {
+            descriptorRoot = protobufjs.Root.fromJSON(require('protobufjs/ext/descriptor'));
+            if (Array.isArray(descriptorExtensionProto)) {
+                descriptorRoot.loadSync(descriptorExtensionProto);
+            } else {
+                patchProtoPathResolver(descriptorRoot, descriptorExtensionProto.includeProtoRoots);
+                descriptorRoot.loadSync(descriptorExtensionProto.filenames);
+            }
+        }
+
         client = new grpcReflection.Client(
             actionEndpoint,
             credentials,
             undefined,
             undefined,
-            descriptorExtensionProto,
+            descriptorRoot,
         );
         reflectionClientsMap[actionEndpoint] = client;
     }
@@ -40,7 +61,7 @@ export async function getCachedReflectionRoot(
     actionEndpoint: string,
     protoKey: string,
     credentials: ChannelCredentials,
-    descriptorExtensionProto?: string[],
+    descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
     const client = getCachedClient(actionEndpoint, credentials, descriptorExtensionProto);
 
