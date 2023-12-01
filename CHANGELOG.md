@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/gravity-ui/gateway/compare/v1.4.0...v1.5.0) (2023-12-01)
+
+
+### Features
+
+* allow specifying includeProtoRoots for extension proto ([#32](https://github.com/gravity-ui/gateway/issues/32)) ([134abf7](https://github.com/gravity-ui/gateway/commit/134abf7915375a0cb9b1cee9a7501a6f6ff35ffc))
+
 ## [1.4.0](https://github.com/gravity-ui/gateway/compare/v1.3.1...v1.4.0) (2023-11-25)
 
 
