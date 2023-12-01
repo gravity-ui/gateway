@@ -58,6 +58,7 @@ import {
 } from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
+import {patchProtoPathResolver} from '../utils/proto-path-resolver';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
 import {validateArgs} from '../utils/validate';
 
@@ -187,31 +188,10 @@ export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
     root.loadSync('google/protobuf/struct.proto');
     root.loadSync('google/protobuf/wrappers.proto');
 
-    addIncludePathResolver(root, includeGrpcPaths);
+    grpcLoaderOptions.includeDirs = [...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])];
+    patchProtoPathResolver(root, grpcLoaderOptions.includeDirs);
 
     return root;
-}
-
-function addIncludePathResolver(root: protobufjs.Root, includeGrpcPaths?: string[]) {
-    grpcLoaderOptions.includeDirs = [...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])];
-    const {includeDirs} = grpcLoaderOptions;
-    const originalResolvePath = root.resolvePath;
-    root.resolvePath = function (origin, target) {
-        if (target in protobufjs.common || path.isAbsolute(target)) {
-            return target;
-        }
-        for (let i = 0; i < includeDirs.length; i++) {
-            const directory = includeDirs[i];
-            const fullPath = path.join(directory, target);
-            try {
-                fs.accessSync(fullPath, fs.constants.R_OK);
-                return fullPath;
-            } catch (err) {
-                continue;
-            }
-        }
-        return originalResolvePath(origin, target);
-    };
 }
 
 export function getCredentialsMap(caCertificatePath?: string | null): CredentialsMap {
