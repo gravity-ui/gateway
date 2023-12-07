@@ -18,6 +18,7 @@ type DescriptorExtensionProto =
 function getCachedClient(
     actionEndpoint: string,
     credentials: ChannelCredentials,
+    grpcOptions?: object,
     descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
     let client = reflectionClientsMap[actionEndpoint];
@@ -38,7 +39,7 @@ function getCachedClient(
         client = new grpcReflection.Client(
             actionEndpoint,
             credentials,
-            undefined,
+            grpcOptions,
             undefined,
             descriptorRoot,
         );
@@ -52,6 +53,7 @@ function getCachedClient(
  * @param actionEndpoint
  * @param protoKey
  * @param credentials
+ * @param grpcOptions
  * @param descriptorExtensionProto
  * @returns Promise<protobufjs.Root>.
  * use toDescriptor for use with protoLoader.
@@ -61,9 +63,15 @@ export async function getCachedReflectionRoot(
     actionEndpoint: string,
     protoKey: string,
     credentials: ChannelCredentials,
+    grpcOptions?: object,
     descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
-    const client = getCachedClient(actionEndpoint, credentials, descriptorExtensionProto);
+    const client = getCachedClient(
+        actionEndpoint,
+        credentials,
+        grpcOptions,
+        descriptorExtensionProto,
+    );
 
     let cachedRootPromise = _.get(reflectionRootPromiseMap, [actionEndpoint, protoKey]);
     if (!cachedRootPromise) {
@@ -78,6 +86,7 @@ export async function getCachedReflectionRoot(
  * @param actionEndpoint
  * @param protoKey
  * @param credentials
+ * @param grpcOptions
  * @param addToCache
  * @returns Promise<protobufjs.Root>.
  * use toDescriptor for use with protoLoader.
@@ -87,9 +96,10 @@ export async function getReflectionRoot(
     actionEndpoint: string,
     protoKey: string,
     credentials: ChannelCredentials,
+    grpcOptions?: object,
     addToCache?: boolean,
 ) {
-    const client = getCachedClient(actionEndpoint, credentials);
+    const client = getCachedClient(actionEndpoint, credentials, grpcOptions);
     const loadedRoot = await client.fileContainingSymbol(protoKey);
     if (addToCache) {
         _.set(reflectionRootPromiseMap, [actionEndpoint, protoKey], Promise.resolve(loadedRoot));
