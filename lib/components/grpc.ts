@@ -463,6 +463,9 @@ function getServiceInstanceReflectCached(
 
     const service = getServiceInstanceReflect(config, endpointData, grpcOptions, credentials);
     _.set(reflectionServiceInstancesMap, cacheKey, service);
+    service.catch(() => {
+        _.set(reflectionServiceInstancesMap, cacheKey, undefined);
+    });
     return service;
 }
 

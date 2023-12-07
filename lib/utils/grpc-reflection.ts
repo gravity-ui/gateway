@@ -85,6 +85,9 @@ export async function getCachedReflectionRoot(
     if (!cachedRootPromise) {
         cachedRootPromise = client.fileContainingSymbol(protoKey);
         _.set(reflectionRootPromiseMap, [actionEndpoint, protoKey], cachedRootPromise);
+        cachedRootPromise.catch(() => {
+            _.set(reflectionRootPromiseMap, [actionEndpoint, protoKey], undefined);
+        });
     }
     const loadedRoot = await cachedRootPromise;
     return loadedRoot;
