@@ -480,16 +480,32 @@ async function getServiceInstanceReflect(
     const isInsecure = config.insecure || endpointInsecure;
     const creds = isInsecure ? credentials.insecure : credentials.secure;
 
+    const endpointGrpcOptions = isExtendedGrpcActionEndpoint(endpointData)
+        ? endpointData.grpcOptions || {}
+        : {};
+
+    const combinedGrpcOptions = {
+        ...DEFAULT_GRPC_OPTIONS,
+        ...grpcOptions,
+        ...endpointGrpcOptions,
+    };
+
     let loadedRoot: protobufjs.Root;
     if (config.reflection === GrpcReflection.OnEveryRequest || isRefreshCache) {
         loadedRoot = await getReflectionRoot(
             actionEndpoint,
             config.protoKey,
             creds,
+            combinedGrpcOptions,
             isRefreshCache,
         );
     } else {
-        loadedRoot = await getCachedReflectionRoot(actionEndpoint, config.protoKey, creds);
+        loadedRoot = await getCachedReflectionRoot(
+            actionEndpoint,
+            config.protoKey,
+            creds,
+            combinedGrpcOptions,
+        );
     }
 
     const descriptor = loadedRoot.toDescriptor('proto3');
@@ -503,15 +519,11 @@ async function getServiceInstanceReflect(
 
     const Service = _.get(packageObject, config.protoKey) as typeof grpc.Client;
 
-    const endpointGrpcOptions = isExtendedGrpcActionEndpoint(endpointData)
-        ? endpointData.grpcOptions || {}
-        : {};
-
-    const serviceInstance = new Service(actionEndpoint, creds, {
-        ...DEFAULT_GRPC_OPTIONS,
-        ...grpcOptions,
-        ...endpointGrpcOptions,
-    }) as unknown as ServiceClient;
+    const serviceInstance = new Service(
+        actionEndpoint,
+        creds,
+        combinedGrpcOptions,
+    ) as unknown as ServiceClient;
 
     return serviceInstance;
 }
