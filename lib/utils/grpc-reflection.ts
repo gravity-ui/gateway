@@ -5,8 +5,12 @@ import * as protobufjs from 'protobufjs';
 
 import {patchProtoPathResolver} from './proto-path-resolver';
 
-const reflectionClientsMap: Record<string, GrpcReflectionClient> = {};
-const reflectionRootPromiseMap: Record<string, Record<string, Promise<protobufjs.Root>>> = {};
+type ClientWithCache = {
+    client: GrpcReflectionClient;
+    reflectionRootPromiseMap: Record<string, Record<string, Promise<protobufjs.Root>>>;
+};
+
+const reflectionClientsMap: Record<string, ClientWithCache> = {};
 
 type DescriptorExtensionProto =
     | string[]
@@ -21,8 +25,10 @@ function getCachedClient(
     grpcOptions?: object,
     descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
-    let client = reflectionClientsMap[actionEndpoint];
-    if (!client) {
+    const cacheKey = JSON.stringify({actionEndpoint, grpcOptions, descriptorExtensionProto});
+    let clientWithCache = reflectionClientsMap[cacheKey];
+
+    if (!clientWithCache) {
         const grpcReflection = require('grpc-reflection-js');
         let descriptorRoot: protobufjs.Root | undefined;
 
@@ -36,17 +42,19 @@ function getCachedClient(
             }
         }
 
-        client = new grpcReflection.Client(
+        const client = new grpcReflection.Client(
             actionEndpoint,
             credentials,
             grpcOptions,
             undefined,
             descriptorRoot,
         );
-        reflectionClientsMap[actionEndpoint] = client;
+
+        clientWithCache = {client, reflectionRootPromiseMap: {}};
+        reflectionClientsMap[cacheKey] = clientWithCache;
     }
 
-    return client;
+    return clientWithCache;
 }
 
 /**
@@ -66,7 +74,7 @@ export async function getCachedReflectionRoot(
     grpcOptions?: object,
     descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
-    const client = getCachedClient(
+    const {client, reflectionRootPromiseMap} = getCachedClient(
         actionEndpoint,
         credentials,
         grpcOptions,
@@ -99,7 +107,11 @@ export async function getReflectionRoot(
     grpcOptions?: object,
     addToCache?: boolean,
 ) {
-    const client = getCachedClient(actionEndpoint, credentials, grpcOptions);
+    const {client, reflectionRootPromiseMap} = getCachedClient(
+        actionEndpoint,
+        credentials,
+        grpcOptions,
+    );
     const loadedRoot = await client.fileContainingSymbol(protoKey);
     if (addToCache) {
         _.set(reflectionRootPromiseMap, [actionEndpoint, protoKey], Promise.resolve(loadedRoot));
