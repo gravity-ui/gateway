@@ -422,18 +422,29 @@ async function refreshCache(
         isRefresh: true,
     });
 
-    const res = await getServiceInstanceReflect(
-        config,
-        endpointData,
-        grpcOptions,
-        credentials,
-        true,
-    );
-    _.set(reflectionServiceInstancesMap, [config.protoKey, actionEndpoint], Promise.resolve(res));
-    _.set(reflectionCacheStatusMap, [config.protoKey, actionEndpoint], {
-        time: Date.now() / 1000,
-        isRefresh: false,
-    });
+    try {
+        const res = await getServiceInstanceReflect(
+            config,
+            endpointData,
+            grpcOptions,
+            credentials,
+            true,
+        );
+        _.set(
+            reflectionServiceInstancesMap,
+            [config.protoKey, actionEndpoint],
+            Promise.resolve(res),
+        );
+        _.set(reflectionCacheStatusMap, [config.protoKey, actionEndpoint], {
+            time: Date.now() / 1000,
+            isRefresh: false,
+        });
+    } catch (e) {
+        _.set(reflectionCacheStatusMap, [config.protoKey, actionEndpoint], {
+            ...cacheStatus,
+            isRefresh: false,
+        });
+    }
 }
 
 function getServiceInstanceReflectCached(
