@@ -10,7 +10,7 @@ type ClientWithCache = {
     reflectionRootPromiseMap: Record<string, Record<string, Promise<protobufjs.Root>>>;
 };
 
-const reflectionClientsMap: Record<string, ClientWithCache> = {};
+const reflectionClientsMap: Record<string, Record<string, ClientWithCache>> = {};
 
 type DescriptorExtensionProto =
     | string[]
@@ -25,8 +25,8 @@ function getCachedClient(
     grpcOptions?: object,
     descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
-    const cacheKey = JSON.stringify({actionEndpoint, grpcOptions, descriptorExtensionProto});
-    let clientWithCache = reflectionClientsMap[cacheKey];
+    const cacheKey = [actionEndpoint, JSON.stringify([grpcOptions, descriptorExtensionProto])];
+    let clientWithCache = _.get(reflectionClientsMap, cacheKey);
 
     if (!clientWithCache) {
         const grpcReflection = require('grpc-reflection-js');
@@ -51,7 +51,7 @@ function getCachedClient(
         );
 
         clientWithCache = {client, reflectionRootPromiseMap: {}};
-        reflectionClientsMap[cacheKey] = clientWithCache;
+        _.set(reflectionClientsMap, cacheKey, clientWithCache);
     }
 
     return clientWithCache;
@@ -80,13 +80,13 @@ export async function getCachedReflectionRoot(
         grpcOptions,
         descriptorExtensionProto,
     );
-
-    let cachedRootPromise = _.get(reflectionRootPromiseMap, [actionEndpoint, protoKey]);
+    const cacheKey = [actionEndpoint, protoKey];
+    let cachedRootPromise = _.get(reflectionRootPromiseMap, cacheKey);
     if (!cachedRootPromise) {
         cachedRootPromise = client.fileContainingSymbol(protoKey);
-        _.set(reflectionRootPromiseMap, [actionEndpoint, protoKey], cachedRootPromise);
+        _.set(reflectionRootPromiseMap, cacheKey, cachedRootPromise);
         cachedRootPromise.catch(() => {
-            _.set(reflectionRootPromiseMap, [actionEndpoint, protoKey], undefined);
+            _.set(reflectionRootPromiseMap, cacheKey, undefined);
         });
     }
     const loadedRoot = await cachedRootPromise;
