@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.5.1](https://github.com/gravity-ui/gateway/compare/v1.5.0...v1.5.1) (2023-12-11)
+
+
+### Bug Fixes
+
+* catch background refresh errors ([b4f8157](https://github.com/gravity-ui/gateway/commit/b4f8157eb157f36c66c1758f85caeb7bf1f197e4))
+* consider more params when caching reflection client ([c60bcc8](https://github.com/gravity-ui/gateway/commit/c60bcc81d634c3fae4ecefef3255385d66241aac))
+* optimize cache keys ([4dd1e39](https://github.com/gravity-ui/gateway/commit/4dd1e39d20842ddf3ea7b5ba87c0eba29eb35c4b))
+* remove failed reflection requests from cache ([665da2e](https://github.com/gravity-ui/gateway/commit/665da2e5847be5bb314e479b3938feae6e19c862))
+* share grpc-options with reflection client ([8b8165e](https://github.com/gravity-ui/gateway/commit/8b8165e38912d81d6eb0316b6a1598b57419610c))
+
 ## [1.5.0](https://github.com/gravity-ui/gateway/compare/v1.4.0...v1.5.0) (2023-12-01)
 
 
