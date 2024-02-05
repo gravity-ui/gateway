@@ -113,6 +113,8 @@ function createApiAction<
         );
     }
 
+    const grpcRecreateService = config.grpcRecreateService ?? true;
+
     return createGrpcAction(
         grpcContext,
         endpointsConfig,
@@ -125,7 +127,7 @@ function createApiAction<
             sendStats: config.sendStats,
             proxyHeaders: config.proxyHeaders,
             grpcOptions: config.grpcOptions,
-            grpcRecreateService: config.grpcRecreateService,
+            grpcRecreateService,
             getAuthHeaders: config.getAuthHeaders,
         },
         config.ErrorConstructor,
