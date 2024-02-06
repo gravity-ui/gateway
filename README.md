@@ -116,7 +116,7 @@ interface GatewayConfig {
   validationSchema?: object;
   // Enables encoding of REST path arguments.
   encodePathArgs?: boolean;
-  // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is false).
+  // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is true).
   grpcRecreateService?: boolean;
 }
 ```
