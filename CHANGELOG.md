@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/gravity-ui/gateway/compare/v1.5.1...v1.6.0) (2024-02-06)
+
+
+### Features
+
+* enable option grpcRecreateService by default ([#36](https://github.com/gravity-ui/gateway/issues/36)) ([1682c4e](https://github.com/gravity-ui/gateway/commit/1682c4e5b934f87bc52d9b245797afcaa1ac20d4))
+
 ## [1.5.1](https://github.com/gravity-ui/gateway/compare/v1.5.0...v1.5.1) (2023-12-11)
 
 
