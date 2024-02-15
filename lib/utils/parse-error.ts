@@ -16,10 +16,8 @@ export function parseMixedError(e: Error & {code?: string}) {
         status: 500,
         message: String(e.message || DEFAULT_GATEWAY_MESSAGE),
         code: String(e.code || DEFAULT_GATEWAY_CODE),
-        details: {
-            originalError: e,
-        },
         debug: {
+            originalError: e,
             stack: e.stack,
         },
     };
