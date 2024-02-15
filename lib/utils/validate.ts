@@ -33,6 +33,8 @@ export function getPathArgsProxy<TParams extends {}>(
     args: TParams,
     encodePathArgs?: boolean,
 ): TParams {
+    const encodePathArgsVal = encodePathArgs ?? true;
+
     if (!args) {
         return args;
     }
@@ -51,7 +53,7 @@ export function getPathArgsProxy<TParams extends {}>(
 
             if (typeof value === 'string') {
                 const pathParam = getPathParam(value);
-                return encodePathArgs ? encodeURIComponent(pathParam) : pathParam;
+                return encodePathArgsVal ? encodeURIComponent(pathParam) : pathParam;
             }
 
             return value; // TODO return error INVALID_PARAMS
