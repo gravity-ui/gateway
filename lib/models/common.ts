@@ -86,6 +86,9 @@ export type ProxyHeadersFunction = (
 ) => IncomingHttpHeaders;
 export type ProxyHeaders = string[] | ProxyHeadersFunction;
 
+export type ProxyResponseHeadersFunction = (headers: Headers, type: ControllerType) => Headers;
+export type ProxyResponseHeaders = string[] | ProxyResponseHeadersFunction;
+
 export type GetAuthHeadersParams<AuthArgs = Record<string, unknown>> = {
     actionType: 'rest' | 'grpc';
     serviceName: string;
@@ -158,6 +161,7 @@ export interface ApiServiceBaseActionConfig<
     retries?: number;
     idempotency?: boolean;
     proxyHeaders?: ProxyHeaders;
+    proxyResponseHeaders?: ProxyResponseHeaders;
     metadata?: Record<string, string | number | boolean>;
 }
 
@@ -321,6 +325,7 @@ export interface GatewayActionHeaders {
 
 export interface GatewayActionUnaryResponse<TAction> extends GatewayActionHeaders {
     responseData: ApiActionResponseType<TAction>;
+    responseHeaders?: Headers;
 }
 
 export interface GatewayActionClientStreamResponse<TAction> extends GatewayActionHeaders {

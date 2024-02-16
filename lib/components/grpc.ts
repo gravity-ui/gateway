@@ -1068,10 +1068,36 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     packageRoot: root,
                                     ErrorConstructor,
                                 });
+                                const responseHeaders: Headers = {};
+
+                                if (config.proxyResponseHeaders) {
+                                    const proxyResponseHeaders = [];
+                                    const headersFromMetadata =
+                                        getHeadersFromMetadata(trailingMetadata);
+
+                                    if (typeof config.proxyResponseHeaders === 'function') {
+                                        Object.assign(
+                                            responseHeaders,
+                                            config.proxyResponseHeaders(
+                                                headersFromMetadata,
+                                                'grpc',
+                                            ),
+                                        );
+                                    } else if (Array.isArray(config.proxyResponseHeaders)) {
+                                        proxyResponseHeaders.push(...config.proxyResponseHeaders);
+                                    }
+
+                                    for (const headerName of proxyResponseHeaders) {
+                                        if (responseHeaders[headerName] === undefined) {
+                                            responseHeaders[headerName] =
+                                                headersFromMetadata[headerName];
+                                        }
+                                    }
+                                }
 
                                 Object.assign(
                                     debugHeaders,
-                                    getHeadersFromMetadata(trailingMetadata),
+                                    getHeadersFromMetadata(trailingMetadata, 'x-metadata-'),
                                 );
 
                                 sendStats(200, {
@@ -1085,7 +1111,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 });
                                 ctx.end();
 
-                                return resolve({responseData, debugHeaders});
+                                return resolve({responseData, responseHeaders, debugHeaders});
                             },
                         );
 

@@ -276,7 +276,7 @@ function generateGatewayApiController<
                 }
             }
 
-            const {responseData, debugHeaders} = await apiAction({
+            const {responseData, responseHeaders, debugHeaders} = await apiAction({
                 requestId: req.id,
                 headers: req.headers,
                 ctx: req.ctx,
@@ -286,6 +286,10 @@ function generateGatewayApiController<
 
             if (withDebugHeaders) {
                 res.set(debugHeaders);
+            }
+
+            if (responseHeaders) {
+                res.set(responseHeaders);
             }
 
             if (onRequestSuccess) {
