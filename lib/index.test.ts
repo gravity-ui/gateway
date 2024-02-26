@@ -330,6 +330,7 @@ describe('getGatewayControllers', () => {
             const res: any = {
                 status: jest.fn((_) => res),
                 send: jest.fn(),
+                set: jest.fn(),
             };
             await controller(req, res);
             expect(res.status.mock.calls[0][0]).toBe(404);
@@ -365,6 +366,7 @@ describe('getGatewayControllers', () => {
             const res: any = {
                 status: jest.fn((_) => res),
                 send: jest.fn(),
+                set: jest.fn(),
             };
 
             await controller(
@@ -393,6 +395,7 @@ describe('getGatewayControllers', () => {
             const res: any = {
                 status: jest.fn((_) => res),
                 send: jest.fn(),
+                set: jest.fn(),
             };
 
             await controller(
@@ -449,6 +452,7 @@ describe('getGatewayControllers', () => {
             const res: any = {
                 status: jest.fn((_) => res),
                 send: jest.fn(),
+                set: jest.fn(),
             };
 
             await controller1(
@@ -746,6 +750,7 @@ describe('getGatewayControllers', () => {
             const res: any = {
                 status: jest.fn((_) => res),
                 send: jest.fn(),
+                set: jest.fn(),
                 locals: {
                     token: '777',
                 },

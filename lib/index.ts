@@ -288,7 +288,7 @@ function generateGatewayApiController<
                 res.set(debugHeaders);
             }
 
-            if (responseHeaders && Object.keys(responseHeaders).length) {
+            if (responseHeaders) {
                 res.set(responseHeaders);
             }
 
