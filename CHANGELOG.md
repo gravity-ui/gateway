@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/gravity-ui/gateway/compare/v2.0.0...v2.1.0) (2024-02-27)
+
+
+### Features
+
+* add ability to return response headers ([#41](https://github.com/gravity-ui/gateway/issues/41)) ([b6578a7](https://github.com/gravity-ui/gateway/commit/b6578a7dd54fd9cc2d9dbe874677094e21773646))
+
 ## [2.0.0](https://github.com/gravity-ui/gateway/compare/v1.6.0...v2.0.0) (2024-02-15)
 
 
