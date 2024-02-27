@@ -44,11 +44,12 @@ export function sanitizeDebugHeaders(debugHeaders: Headers) {
     return _.omit(debugHeaders, ['x-api-request-body']);
 }
 
-export function getHeadersFromMetadata(metadata: Record<string, grpc.MetadataValue[]>) {
+export function getHeadersFromMetadata(
+    metadata: Record<string, grpc.MetadataValue[]>,
+    prefix = '',
+) {
     return Object.entries(metadata).reduce((headers, [key, values]) => {
-        headers[`x-metadata-${key}`] = values
-            .filter((value) => typeof value === 'string')
-            .join(' ');
+        headers[`${prefix}${key}`] = values.filter((value) => typeof value === 'string').join(' ');
         return headers;
     }, {} as Record<string, string>);
 }

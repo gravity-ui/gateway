@@ -75,7 +75,7 @@ export default function createRestAction<Context extends GatewayContext>(
     /* eslint-disable complexity */
     return async function action(
         actionConfig: ApiActionConfig<Context, any>,
-    ): Promise<{responseData: unknown; debugHeaders: Headers}> {
+    ): Promise<{responseData: unknown; responseHeaders?: Headers; debugHeaders: Headers}> {
         const {args, requestId, headers: requestHeaders, ctx: parentCtx, authArgs} = actionConfig;
         const debugHeaders: Headers = {};
         const lang = requestHeaders[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
@@ -296,6 +296,7 @@ export default function createRestAction<Context extends GatewayContext>(
 
         try {
             const response = await axiosClient.request(requestConfig);
+            const responseHeaders: Headers = {};
 
             const endRequestTime = Date.now();
             requestData.requestTime = endRequestTime - startRequestTime;
@@ -311,6 +312,25 @@ export default function createRestAction<Context extends GatewayContext>(
                     ctx.log('Transformed response data');
                 } catch (error) {
                     handleError(ErrorConstructor, error, ctx, 'Transform response data failed');
+                }
+            }
+
+            if (config.proxyResponseHeaders) {
+                const proxyResponseHeaders = [];
+
+                if (typeof config.proxyResponseHeaders === 'function') {
+                    Object.assign(
+                        responseHeaders,
+                        config.proxyResponseHeaders({...response.headers}, 'rest'),
+                    );
+                } else if (Array.isArray(config.proxyResponseHeaders)) {
+                    proxyResponseHeaders.push(...config.proxyResponseHeaders);
+                }
+
+                for (const headerName of proxyResponseHeaders) {
+                    if (responseHeaders[headerName] === undefined) {
+                        responseHeaders[headerName] = response.headers[headerName];
+                    }
                 }
             }
 
@@ -335,7 +355,7 @@ export default function createRestAction<Context extends GatewayContext>(
             ctx.log('Request completed', {debugHeaders: sanitizeDebugHeaders(debugHeaders)});
             ctx.end();
 
-            return {responseData: response.data, debugHeaders};
+            return {responseData: response.data, responseHeaders, debugHeaders};
         } catch (error) {
             let parsedError;
 
