@@ -114,10 +114,12 @@ interface GatewayConfig {
   // Validation schema for parameters used when no schema is present in the action. Documentation: https://ajv.js.org/json-schema.html#json-data-type
   // You can use DEFAULT_VALIDATION_SCHEMA from lib/constants.ts.
   validationSchema?: object;
-  // Enables encoding of REST path arguments.
+  // Enables encoding of REST path arguments (default is true).
   encodePathArgs?: boolean;
   // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is true).
   grpcRecreateService?: boolean;
+  // Enable verification of response contentType header. Actual only for REST actions. This value can be set / redefined the in action confg.
+  expectedResponseContentType?: AxiosResponse['headers']['Content-Type'];
 }
 ```
 
