@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/gravity-ui/gateway/compare/v2.1.0...v2.2.0) (2024-03-25)
+
+
+### Features
+
+* add ability to validate response content type in rest actions ([#43](https://github.com/gravity-ui/gateway/issues/43)) ([5233ee5](https://github.com/gravity-ui/gateway/commit/5233ee5f149bd887e842dc0a54e31d19d7032686))
+
 ## [2.1.0](https://github.com/gravity-ui/gateway/compare/v2.0.0...v2.1.0) (2024-02-27)
 
 
