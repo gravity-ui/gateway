@@ -110,6 +110,7 @@ export interface GatewayApiOptions<Context extends GatewayContext> {
     proxyHeaders?: ProxyHeaders;
     validationSchema?: object;
     encodePathArgs?: boolean;
+    expectedResponseContentType?: AxiosResponse['headers']['Content-Type'];
     getAuthHeaders: GetAuthHeaders;
 }
 
@@ -175,6 +176,7 @@ export interface ApiServiceRestActionConfig<
     path: (args: TParams) => string;
     paramsSerializer?: AxiosRequestConfig['paramsSerializer'];
     responseType?: AxiosRequestConfig['responseType'];
+    expectedResponseContentType?: AxiosResponse['headers']['Content-Type'];
     maxRedirects?: number;
 }
 

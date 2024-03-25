@@ -301,6 +301,35 @@ export default function createRestAction<Context extends GatewayContext>(
             const endRequestTime = Date.now();
             requestData.requestTime = endRequestTime - startRequestTime;
 
+            const actualResponseContentType = response.headers?.['Content-Type'];
+            const expectedResponseContentType =
+                config.expectedResponseContentType || options.expectedResponseContentType;
+
+            if (
+                actualResponseContentType &&
+                expectedResponseContentType &&
+                actualResponseContentType !== expectedResponseContentType
+            ) {
+                ctx.log('Invalid response content type', {
+                    expectedResponseContentType,
+                    actualResponseContentType,
+                });
+                ctx.end();
+
+                return Promise.reject({
+                    error: {
+                        status: 415,
+                        message: 'Response content type validation failed',
+                        code: 'INVALID_RESPONSE_CONTENT_TYPE',
+                        details: {
+                            title: 'Invalid response content type',
+                            description: `Expected to get ${expectedResponseContentType} but got ${actualResponseContentType}`,
+                        },
+                    },
+                    debugHeaders,
+                });
+            }
+
             if (config.transformResponseData) {
                 try {
                     response.data = await config.transformResponseData(response.data, {
