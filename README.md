@@ -72,6 +72,7 @@ type ProxyHeadersFunction = (
   type: ControllerType,
 ) => IncomingHttpHeaders;
 type ProxyHeaders = string[] | ProxyHeadersFunction;
+type ResponseContentType = AxiosResponse['headers']['Content-Type'];
 
 interface GatewayConfig {
   // Gateway Installation (external/internal/...). If the configuration is not provided, it is determined from process.env.APP_INSTALLATION.
@@ -119,7 +120,7 @@ interface GatewayConfig {
   // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is true).
   grpcRecreateService?: boolean;
   // Enable verification of response contentType header. Actual only for REST actions. This value can be set / redefined the in action confg.
-  expectedResponseContentType?: AxiosResponse['headers']['Content-Type'];
+  expectedResponseContentType?: ResponseContentType | ResponseContentType[];
 }
 ```
 
