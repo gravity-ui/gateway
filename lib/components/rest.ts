@@ -305,29 +305,38 @@ export default function createRestAction<Context extends GatewayContext>(
             const expectedResponseContentType =
                 config.expectedResponseContentType || options.expectedResponseContentType;
 
-            if (
-                actualResponseContentType &&
-                expectedResponseContentType &&
-                actualResponseContentType !== expectedResponseContentType
-            ) {
-                ctx.log('Invalid response content type', {
-                    expectedResponseContentType,
-                    actualResponseContentType,
-                });
-                ctx.end();
+            if (actualResponseContentType && expectedResponseContentType) {
+                let isInvalidResponseContentType;
 
-                return Promise.reject({
-                    error: {
-                        status: 415,
-                        message: 'Response content type validation failed',
-                        code: 'INVALID_RESPONSE_CONTENT_TYPE',
-                        details: {
-                            title: 'Invalid response content type',
-                            description: `Expected to get ${expectedResponseContentType} but got ${actualResponseContentType}`,
+                if (Array.isArray(expectedResponseContentType)) {
+                    isInvalidResponseContentType = !expectedResponseContentType.includes(
+                        String(actualResponseContentType),
+                    );
+                } else {
+                    isInvalidResponseContentType =
+                        expectedResponseContentType !== actualResponseContentType;
+                }
+
+                if (isInvalidResponseContentType) {
+                    ctx.log('Invalid response content type', {
+                        expectedResponseContentType,
+                        actualResponseContentType,
+                    });
+                    ctx.end();
+
+                    return Promise.reject({
+                        error: {
+                            status: 415,
+                            message: 'Response content type validation failed',
+                            code: 'INVALID_RESPONSE_CONTENT_TYPE',
+                            details: {
+                                title: 'Invalid response content type',
+                                description: `Expected to get ${expectedResponseContentType} but got ${actualResponseContentType}`,
+                            },
                         },
-                    },
-                    debugHeaders,
-                });
+                        debugHeaders,
+                    });
+                }
             }
 
             if (config.transformResponseData) {
