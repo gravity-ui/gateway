@@ -306,18 +306,18 @@ export default function createRestAction<Context extends GatewayContext>(
                 config.expectedResponseContentType || options.expectedResponseContentType;
 
             if (actualResponseContentType && expectedResponseContentType) {
-                let invalidResponseContentType;
+                let isInvalidResponseContentType;
 
                 if (Array.isArray(expectedResponseContentType)) {
-                    invalidResponseContentType = !expectedResponseContentType.includes(
+                    isInvalidResponseContentType = !expectedResponseContentType.includes(
                         String(actualResponseContentType),
                     );
                 } else {
-                    invalidResponseContentType =
+                    isInvalidResponseContentType =
                         expectedResponseContentType !== actualResponseContentType;
                 }
 
-                if (invalidResponseContentType) {
+                if (isInvalidResponseContentType) {
                     ctx.log('Invalid response content type', {
                         expectedResponseContentType,
                         actualResponseContentType,
