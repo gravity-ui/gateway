@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/gravity-ui/gateway/compare/v2.2.0...v2.3.0) (2024-03-26)
+
+
+### Features
+
+* add ability to specify an array in expectedResponseContentType ([#48](https://github.com/gravity-ui/gateway/issues/48)) ([10580bd](https://github.com/gravity-ui/gateway/commit/10580bd1c09a6d4d48eeea83c7097ad13be651d2))
+
 ## [2.2.0](https://github.com/gravity-ui/gateway/compare/v2.1.0...v2.2.0) (2024-03-25)
 
 
