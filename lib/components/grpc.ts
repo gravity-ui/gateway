@@ -771,8 +771,19 @@ export default function createGrpcAction<Context extends GatewayContext>(
             'x-request-id': requestId,
             'x-gateway-version': VERSION,
         };
+
         if ('protoPath' in config) {
             debugHeaders['x-api-request-protopath'] = config.protoPath;
+        }
+
+        if (typeof options.proxyDebugHeaders === 'function') {
+            Object.assign(debugHeaders, options.proxyDebugHeaders({...headers}, 'grpc'));
+        } else if (Array.isArray(options.proxyDebugHeaders)) {
+            for (const headerName of options.proxyDebugHeaders) {
+                if (headers[headerName] !== undefined) {
+                    debugHeaders[`x-gateway-${headerName}`] = headers[headerName];
+                }
+            }
         }
 
         ctx.log('Initiating request', {debugHeaders: sanitizeDebugHeaders(debugHeaders)});

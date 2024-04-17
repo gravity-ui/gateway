@@ -90,7 +90,7 @@ export type ProxyResponseHeadersFunction = (headers: Headers, type: ControllerTy
 export type ProxyResponseHeaders = string[] | ProxyResponseHeadersFunction;
 
 export type GetAuthHeadersParams<AuthArgs = Record<string, unknown>> = {
-    actionType: 'rest' | 'grpc';
+    actionType: ControllerType;
     serviceName: string;
     requestHeaders: Headers;
     authArgs: AuthArgs | undefined;
@@ -110,6 +110,7 @@ export interface GatewayApiOptions<Context extends GatewayContext> {
     grpcRecreateService?: boolean;
     axiosConfig?: AxiosRequestConfig;
     proxyHeaders?: ProxyHeaders;
+    proxyDebugHeaders?: ProxyHeaders;
     validationSchema?: object;
     encodePathArgs?: boolean;
     expectedResponseContentType?: ResponseContentType | ResponseContentType[];
@@ -440,7 +441,8 @@ export interface GatewayConfig<
     includeProtoRoots?: string[];
     caCertificatePath: string | null;
     proxyHeaders: ProxyHeaders;
-    withDebugHeaders: boolean | ((req: Req, res: Res) => boolean);
+    proxyDebugHeaders?: ProxyHeaders;
+    withDebugHeaders?: boolean | ((req: Req, res: Res) => boolean);
     validationSchema?: object;
     encodePathArgs?: boolean;
     getAuthArgs: (req: Req, res: Res) => Record<string, unknown> | undefined;

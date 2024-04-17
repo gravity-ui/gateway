@@ -244,6 +244,16 @@ export default function createRestAction<Context extends GatewayContext>(
             debugHeaders['x-api-content-type'] = headers['content-type'];
         }
 
+        if (typeof options.proxyDebugHeaders === 'function') {
+            Object.assign(debugHeaders, options.proxyDebugHeaders({...requestHeaders}, 'rest'));
+        } else if (Array.isArray(options.proxyDebugHeaders)) {
+            for (const headerName of options.proxyDebugHeaders) {
+                if (headers[headerName] !== undefined) {
+                    debugHeaders[`x-gateway-${headerName}`] = headers[headerName];
+                }
+            }
+        }
+
         const startRequestTime = Date.now();
 
         let axiosClient = defaultAxiosClient;
