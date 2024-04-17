@@ -776,10 +776,6 @@ export default function createGrpcAction<Context extends GatewayContext>(
             debugHeaders['x-api-request-protopath'] = config.protoPath;
         }
 
-        if (headers['uber-trace-id']) {
-            debugHeaders['x-uber-trace-id'] = headers['uber-trace-id'];
-        }
-
         if (typeof options.proxyDebugHeaders === 'function') {
             Object.assign(debugHeaders, options.proxyDebugHeaders({...headers}, 'grpc'));
         } else if (Array.isArray(options.proxyDebugHeaders)) {

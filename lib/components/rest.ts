@@ -244,10 +244,6 @@ export default function createRestAction<Context extends GatewayContext>(
             debugHeaders['x-api-content-type'] = headers['content-type'];
         }
 
-        if (headers['uber-trace-id']) {
-            debugHeaders['x-uber-trace-id'] = headers['uber-trace-id'];
-        }
-
         if (typeof options.proxyDebugHeaders === 'function') {
             Object.assign(debugHeaders, options.proxyDebugHeaders({...requestHeaders}, 'rest'));
         } else if (Array.isArray(options.proxyDebugHeaders)) {
