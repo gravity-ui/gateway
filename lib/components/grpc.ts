@@ -785,7 +785,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
         } else if (Array.isArray(options.proxyDebugHeaders)) {
             for (const headerName of options.proxyDebugHeaders) {
                 if (headers[headerName] !== undefined) {
-                    debugHeaders[`x-${headerName}`] = headers[headerName];
+                    debugHeaders[`x-gateway-${headerName}`] = headers[headerName];
                 }
             }
         }
