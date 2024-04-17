@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/gravity-ui/gateway/compare/v2.3.0...v2.4.0) (2024-04-17)
+
+
+### Features
+
+* add ability to customize debugHeaders via option proxyDebugHeaders ([#52](https://github.com/gravity-ui/gateway/issues/52)) ([d68411e](https://github.com/gravity-ui/gateway/commit/d68411e607cc5569110ee4a2b3ed86297273a055))
+
 ## [2.3.0](https://github.com/gravity-ui/gateway/compare/v2.2.0...v2.3.0) (2024-03-26)
 
 
