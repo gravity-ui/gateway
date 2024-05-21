@@ -6,8 +6,10 @@ import _ from 'lodash';
 import {v4 as uuidv4} from 'uuid';
 
 import {
+    AXIOS_RETRY_NAMESPACE,
     DEFAULT_LANG_HEADER,
     DEFAULT_PROXY_HEADERS,
+    DEFAULT_TIMEOUT,
     ECMA_STRING_SIZE,
     Lang,
     VERSION,
@@ -258,9 +260,10 @@ export default function createRestAction<Context extends GatewayContext>(
 
         let axiosClient = defaultAxiosClient;
 
+        const customActionTimeout =
+            actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig.timeout ?? timeout;
+
         if (actionConfig.timeout || endpointAxiosConfig) {
-            const customActionTimeout =
-                actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig.timeout ?? timeout;
             const customActionAxiosConfig = {
                 ...(options?.axiosConfig || {}),
                 ...(endpointAxiosConfig || {}),
@@ -270,6 +273,10 @@ export default function createRestAction<Context extends GatewayContext>(
                 config?.retries,
                 customActionAxiosConfig,
             );
+        }
+
+        if (config.timeoutHeader) {
+            headers[config.timeoutHeader] = customActionTimeout ?? DEFAULT_TIMEOUT;
         }
 
         ctx.log('Starting request', {debugHeaders: sanitizeDebugHeaders(debugHeaders)});
@@ -301,6 +308,21 @@ export default function createRestAction<Context extends GatewayContext>(
         if (config.responseType) {
             Object.assign(requestConfig, {
                 responseType: config.responseType,
+            });
+        }
+
+        if (config.retryHeader) {
+            axiosClient.interceptors.request.use((requestConfig) => {
+                requestConfig.headers.set(
+                    config.retryHeader,
+                    // according this issue https://github.com/softonic/axios-retry/issues/167
+                    // 'axios-retry' doesn`t define retryCount field in exported type
+                    // however in this issue https://github.com/softonic/axios-retry/issues/75#issuecomment-502151719
+                    // people use it
+                    // @ts-ignore
+                    requestConfig[AXIOS_RETRY_NAMESPACE]?.retryCount || 0,
+                );
+                return requestConfig;
             });
         }
 

@@ -83,3 +83,5 @@ export const DEFAULT_VALIDATION_SCHEMA = {
         ],
     },
 };
+
+export const AXIOS_RETRY_NAMESPACE = 'axios-retry';
