@@ -46,6 +46,7 @@ export function createMixedAction<
                 headers: actionConfig.headers,
                 lang: actionConfig.headers[DEFAULT_LANG_HEADER] || Lang.Ru,
                 ctx,
+                locals: actionConfig.locals,
                 ...extra,
             });
 

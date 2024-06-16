@@ -3,7 +3,7 @@ import {IncomingHttpHeaders} from 'http';
 import {ClientDuplexStream, ClientReadableStream, ClientWritableStream} from '@grpc/grpc-js';
 import {HandlerType} from '@grpc/grpc-js/build/src/server-call';
 import {AxiosRequestConfig, AxiosResponse} from 'axios';
-import type {Request, Response} from 'express';
+import type {Locals, Request, Response} from 'express';
 
 import type {GrpcContext} from '../components/grpc';
 import {Lang} from '../constants';
@@ -40,6 +40,7 @@ export interface ApiActionConfig<
     timeout?: number;
     callback?: (response: TResponseData) => void;
     authArgs?: Record<string, unknown>;
+    locals?: Locals;
 }
 
 export interface GRPCActionData {
@@ -240,6 +241,7 @@ export interface ApiServiceMixedExtra<
     ctx: Context;
     config: GatewayConfig<Context, Req, Res>;
     grpcContext: GrpcContext;
+    locals?: Locals;
 }
 
 export type ApiServiceMixedActionConfig<

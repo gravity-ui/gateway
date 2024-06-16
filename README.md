@@ -160,6 +160,7 @@ interface ApiActionConfig<Context, TRequestData> {
   timeout?: number;
   callback?: (response: TResponseData) => void;
   authArgs?: Record<string, unknown>;
+  locals?: Locals;
 }
 ```
 

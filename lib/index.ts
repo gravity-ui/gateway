@@ -284,6 +284,7 @@ function generateGatewayApiController<
                 ctx: req.ctx,
                 args,
                 authArgs: config.getAuthArgs(req, res),
+                locals: res.locals,
             });
 
             if (withDebugHeaders) {
