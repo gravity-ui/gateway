@@ -275,9 +275,7 @@ export default function createRestAction<Context extends GatewayContext>(
             );
         }
 
-        if (config.timeoutHeader) {
-            headers[config.timeoutHeader] = customActionTimeout ?? DEFAULT_TIMEOUT;
-        }
+        headers['x-request-timeout'] = customActionTimeout ?? DEFAULT_TIMEOUT;
 
         ctx.log('Starting request', {debugHeaders: sanitizeDebugHeaders(debugHeaders)});
 
@@ -311,20 +309,18 @@ export default function createRestAction<Context extends GatewayContext>(
             });
         }
 
-        if (config.retryHeader) {
-            axiosClient.interceptors.request.use((requestConfig) => {
-                requestConfig.headers.set(
-                    config.retryHeader,
-                    // according this issue https://github.com/softonic/axios-retry/issues/167
-                    // 'axios-retry' doesn`t define retryCount field in exported type
-                    // however in this issue https://github.com/softonic/axios-retry/issues/75#issuecomment-502151719
-                    // people use it
-                    // @ts-ignore
-                    requestConfig[AXIOS_RETRY_NAMESPACE]?.retryCount || 0,
-                );
-                return requestConfig;
-            });
-        }
+        axiosClient.interceptors.request.use((requestConfig) => {
+            requestConfig.headers.set(
+                'x-request-attempt',
+                // according this issue https://github.com/softonic/axios-retry/issues/167
+                // 'axios-retry' doesn`t define retryCount field in exported type
+                // however in this issue https://github.com/softonic/axios-retry/issues/75#issuecomment-502151719
+                // people use it
+                // @ts-ignore
+                requestConfig[AXIOS_RETRY_NAMESPACE]?.retryCount || 0,
+            );
+            return requestConfig;
+        });
 
         try {
             const response = await axiosClient.request(requestConfig);
