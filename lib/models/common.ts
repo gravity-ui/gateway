@@ -181,8 +181,6 @@ export interface ApiServiceRestActionConfig<
     responseType?: AxiosRequestConfig['responseType'];
     expectedResponseContentType?: ResponseContentType | ResponseContentType[];
     maxRedirects?: number;
-    timeoutHeader?: string;
-    retryHeader?: string;
 }
 
 export interface ApiServiceBaseGrpcActionConfig<
