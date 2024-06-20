@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/gravity-ui/gateway/compare/v2.4.0...v2.5.0) (2024-06-20)
+
+
+### Features
+
+* added ability to specify headers for timeout and retries count ([#54](https://github.com/gravity-ui/gateway/issues/54)) ([ee6d407](https://github.com/gravity-ui/gateway/commit/ee6d4070208eeed654b2cf391a00fb2c172ddb09))
+
 ## [2.4.0](https://github.com/gravity-ui/gateway/compare/v2.3.0...v2.4.0) (2024-04-17)
 
 
