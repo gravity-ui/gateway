@@ -78,7 +78,14 @@ export default function createRestAction<Context extends GatewayContext>(
     return async function action(
         actionConfig: ApiActionConfig<Context, any>,
     ): Promise<{responseData: unknown; responseHeaders?: Headers; debugHeaders: Headers}> {
-        const {args, requestId, headers: requestHeaders, ctx: parentCtx, authArgs} = actionConfig;
+        const {
+            args,
+            requestId,
+            headers: requestHeaders,
+            ctx: parentCtx,
+            authArgs,
+            userId,
+        } = actionConfig;
         const debugHeaders: Headers = {};
         const lang = requestHeaders[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
         const serviceName = options?.serviceName || serviceKey;
@@ -286,6 +293,7 @@ export default function createRestAction<Context extends GatewayContext>(
             requestId,
             requestMethod: config.method,
             requestUrl: actionURL,
+            traceId: ctx.getTraceId?.() || '',
         };
 
         const requestConfig: AxiosRequestConfig = {
@@ -406,16 +414,27 @@ export default function createRestAction<Context extends GatewayContext>(
                         ...requestData,
                         responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
                         restStatus: 200,
+                        userId,
                     } as Stats,
                     redactSensitiveHeaders(parentCtx, headers),
                     parentCtx,
                     {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
                 );
             } else {
-                ctx.stats({
+                const commonStats = {
                     ...requestData,
                     responseStatus: 200,
-                });
+                    responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
+                };
+
+                if (userId) {
+                    ctx.stats({
+                        ...commonStats,
+                        userId,
+                    });
+                } else {
+                    ctx.stats(commonStats);
+                }
             }
 
             ctx.log('Request completed', {debugHeaders: sanitizeDebugHeaders(debugHeaders)});
@@ -469,16 +488,31 @@ export default function createRestAction<Context extends GatewayContext>(
                             ErrorConstructor,
                         ),
                         restStatus: responseStatus,
+                        userId,
                     } as Stats,
                     redactSensitiveHeaders(parentCtx, headers),
                     parentCtx,
                     {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
                 );
             } else {
-                ctx.stats({
+                const commonStats = {
                     ...requestData,
-                    responseStatus,
-                });
+                    responseStatus: 200,
+                    responseSize: getRestResponseSize(
+                        (error as any)?.response?.data,
+                        ctx,
+                        ErrorConstructor,
+                    ),
+                };
+
+                if (userId) {
+                    ctx.stats({
+                        ...commonStats,
+                        userId,
+                    });
+                } else {
+                    ctx.stats(commonStats);
+                }
             }
 
             ctx.logError('Request failed', error, {

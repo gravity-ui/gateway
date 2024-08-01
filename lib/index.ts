@@ -195,6 +195,7 @@ function generateGatewayApiController<
 ) {
     // eslint-disable-next-line complexity
     return async function gateway(req: Req, res: Res) {
+        const {userId} = res.locals || {};
         const {service, action, scope = 'root'} = req.params;
 
         const withDebugHeaders =
@@ -284,6 +285,7 @@ function generateGatewayApiController<
                 ctx: req.ctx,
                 args,
                 authArgs: config.getAuthArgs(req, res),
+                userId,
             });
 
             if (withDebugHeaders) {
