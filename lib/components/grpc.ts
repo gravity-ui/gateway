@@ -741,7 +741,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     }
 
     return async function action(actionConfig: ApiActionConfig<Context, any, any>) {
-        const {args, requestId, headers, ctx: parentCtx} = actionConfig;
+        const {args, requestId, headers, ctx: parentCtx, userId} = actionConfig;
         const {action} = config;
         const lang = headers[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
 
@@ -801,7 +801,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 );
             } else {
                 ctx.stats({
-                    ...requestData,
+                    ...data,
                     responseStatus: status,
                 });
             }
@@ -814,6 +814,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 ...requestData,
                 responseSize: grpcError.getRawError()?.metadata,
                 grpcStatus: grpcError.getGatewayError().code,
+                traceId: ctx.getTraceId?.(),
+                userId,
             });
             ctx.logError(
                 'Request failed',
@@ -1115,6 +1117,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     ...requestData,
                                     responseSize: sizeof(response),
                                     grpcStatus: 0,
+                                    traceId: ctx.getTraceId?.(),
+                                    userId,
                                 });
 
                                 ctx.log('Request completed', {
