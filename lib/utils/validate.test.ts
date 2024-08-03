@@ -21,13 +21,13 @@ describe('validate: getPathArgsProxy', () => {
 
         expect(pathArgsProxy.fieldA).toBe(123);
         expect(pathArgsProxy.fieldB).toBe('abc');
-        expect(pathArgsProxy.fieldC).toBe('');
+        expect(pathArgsProxy.fieldC).toBe('INVALID_PARAM_VALUE');
         expect(pathArgsProxy.fieldD.fieldE).toBe(2);
         expect(pathArgsProxy.fieldD.fieldF).toBe('long-long_field');
         expect(pathArgsProxy.fieldD.fieldG[0].arrField).toBe(123);
         expect(pathArgsProxy.fieldD.fieldG[1].arrField).toBe(null);
-        expect(pathArgsProxy.fieldD.fieldG[2].arrField).toBe('');
-        expect(pathArgsProxy.fieldD.fieldH).toBe('');
+        expect(pathArgsProxy.fieldD.fieldG[2].arrField).toBe('INVALID_PARAM_VALUE');
+        expect(pathArgsProxy.fieldD.fieldH).toBe('INVALID_PARAM_VALUE');
         expect(pathArgsProxy.fieldD.fieldI).toBe(true);
         expect(pathArgsProxy.fieldJ).toBe(false);
         expect(pathArgsProxy.fieldK[0]).toBe('a');
