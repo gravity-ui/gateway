@@ -124,6 +124,11 @@ interface GatewayConfig {
 }
 ```
 
+#### validationSchema
+
+By default, for path params in rest actions used the following regexp: `/^((?!(\.\.|\?|#|\\|\/)).)*$/i`.
+If the parameter value does not pass validation, the `GATEWAY_INVALID_PARAM_VALUE` value is returned.
+
 ### Usage in Node.js
 
 Upon gateway initialization, in addition to exporting the controller, it also exports an `api` object, which represents the core for executing requests to the backend.
