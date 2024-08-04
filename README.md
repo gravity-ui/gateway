@@ -127,7 +127,7 @@ interface GatewayConfig {
 #### validationSchema
 
 By default, for path params in rest actions used the following regexp: `/^((?!(\.\.|\?|#|\\|\/)).)*$/i`.
-If the parameter value does not pass validation, the `INVALID_PARAM_VALUE` value is returned.
+If the parameter value does not pass validation, the `GATEWAY_INVALID_PARAM_VALUE` value is returned.
 
 ### Usage in Node.js
 

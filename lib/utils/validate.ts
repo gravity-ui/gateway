@@ -26,7 +26,7 @@ export function encodePathParams<TParams extends {}>(params: TParams) {
 }
 
 export function getPathParam(value: string) {
-    return /^((?!(\.\.|\?|#|\\|\/)).)*$/i.test(value) ? value : 'INVALID_PARAM_VALUE';
+    return /^((?!(\.\.|\?|#|\\|\/)).)*$/i.test(value) ? value : 'GATEWAY_INVALID_PARAM_VALUE';
 }
 
 export function getPathArgsProxy<TParams extends {}>(
