@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/gravity-ui/gateway/compare/v2.5.0...v2.5.1) (2024-08-04)
+
+
+### Bug Fixes
+
+* param error is returned more explicitly instead of an empty value ([#61](https://github.com/gravity-ui/gateway/issues/61)) ([8f95601](https://github.com/gravity-ui/gateway/commit/8f95601363a3908962e532995a8d661028bea116))
+
 ## [2.5.0](https://github.com/gravity-ui/gateway/compare/v2.4.0...v2.5.0) (2024-06-20)
 
 
