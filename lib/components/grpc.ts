@@ -745,6 +745,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
             requestId: actionConfig.requestId,
             requestMethod: action,
             requestUrl: config.protoKey,
+            traceId: ctx.getTraceId?.() || '',
+            userId: userId || '',
         };
 
         const debugHeaders: Headers = {
@@ -784,7 +786,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 );
             } else {
                 ctx.stats({
-                    ...data,
+                    ...requestData,
                     responseStatus: status,
                 });
             }
@@ -797,8 +799,6 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 ...requestData,
                 responseSize: grpcError.getRawError()?.metadata,
                 grpcStatus: grpcError.getGatewayError().code,
-                traceId: ctx.getTraceId?.(),
-                userId,
             });
             ctx.logError(
                 'Request failed',
@@ -1100,8 +1100,6 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     ...requestData,
                                     responseSize: sizeof(response),
                                     grpcStatus: 0,
-                                    traceId: ctx.getTraceId?.(),
-                                    userId,
                                 });
 
                                 ctx.log('Request completed', {

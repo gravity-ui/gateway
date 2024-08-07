@@ -294,6 +294,7 @@ export default function createRestAction<Context extends GatewayContext>(
             requestMethod: config.method,
             requestUrl: actionURL,
             traceId: ctx.getTraceId?.() || '',
+            userId: userId || '',
         };
 
         const requestConfig: AxiosRequestConfig = {
@@ -414,27 +415,16 @@ export default function createRestAction<Context extends GatewayContext>(
                         ...requestData,
                         responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
                         restStatus: 200,
-                        userId,
                     } as Stats,
                     redactSensitiveHeaders(parentCtx, headers),
                     parentCtx,
                     {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
                 );
             } else {
-                const commonStats = {
+                ctx.stats({
                     ...requestData,
                     responseStatus: 200,
-                    responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
-                };
-
-                if (userId) {
-                    ctx.stats({
-                        ...commonStats,
-                        userId,
-                    });
-                } else {
-                    ctx.stats(commonStats);
-                }
+                });
             }
 
             ctx.log('Request completed', {debugHeaders: sanitizeDebugHeaders(debugHeaders)});
@@ -495,24 +485,10 @@ export default function createRestAction<Context extends GatewayContext>(
                     {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
                 );
             } else {
-                const commonStats = {
+                ctx.stats({
                     ...requestData,
                     responseStatus: 200,
-                    responseSize: getRestResponseSize(
-                        (error as any)?.response?.data,
-                        ctx,
-                        ErrorConstructor,
-                    ),
-                };
-
-                if (userId) {
-                    ctx.stats({
-                        ...commonStats,
-                        userId,
-                    });
-                } else {
-                    ctx.stats(commonStats);
-                }
+                });
             }
 
             ctx.logError('Request failed', error, {
