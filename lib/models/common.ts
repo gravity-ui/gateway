@@ -40,6 +40,7 @@ export interface ApiActionConfig<
     timeout?: number;
     callback?: (response: TResponseData) => void;
     authArgs?: Record<string, unknown>;
+    userId?: string;
 }
 
 export interface GRPCActionData {
@@ -64,6 +65,8 @@ export interface Stats {
     requestMethod: string;
     requestUrl: string;
     timestamp: number;
+    userId?: string;
+    traceId: string;
 }
 
 export type ControllerType = 'rest' | 'grpc';
