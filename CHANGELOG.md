@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.0](https://github.com/gravity-ui/gateway/compare/v2.5.0...v2.6.0) (2024-08-07)
+
+
+### Features
+
+* send extra params (responseSize, traceId, userId) to stats ([de78014](https://github.com/gravity-ui/gateway/commit/de7801422084c824f5ec85312b8bcb5d258ba278))
+* send extra params (responseSize, traceId, userId) to stats ([03069e7](https://github.com/gravity-ui/gateway/commit/03069e7aa2d11bf75191e698262f99792c92a0d5))
+
 ## [2.5.0](https://github.com/gravity-ui/gateway/compare/v2.4.0...v2.5.0) (2024-06-20)
 
 
