@@ -487,7 +487,7 @@ export default function createRestAction<Context extends GatewayContext>(
             } else {
                 ctx.stats({
                     ...requestData,
-                    responseStatus: 200,
+                    responseStatus,
                 });
             }
 
