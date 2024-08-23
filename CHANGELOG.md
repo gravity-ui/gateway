@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.2](https://github.com/gravity-ui/gateway/compare/v2.5.1...v2.5.2) (2024-08-23)
+
+
+### Bug Fixes
+
+* use proto loader options for decoding "any" messages ([#64](https://github.com/gravity-ui/gateway/issues/64)) ([f544198](https://github.com/gravity-ui/gateway/commit/f544198dca8b3183271c038837ca3cdfdb07cde6))
+
 ## [2.5.1](https://github.com/gravity-ui/gateway/compare/v2.5.0...v2.5.1) (2024-08-04)
 
 
