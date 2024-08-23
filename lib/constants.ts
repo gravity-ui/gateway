@@ -43,6 +43,13 @@ export const DEFAULT_GRPC_OPTIONS = {
     'grpc.keepalive_permit_without_calls': 1,
 };
 
+export const DEFAULT_PROTO_LOADER_OPTIONS = {
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+};
+
 /**
  * Byte sizes are taken from ECMAScript Language Specification
  * http://www.ecma-international.org/ecma-262/5.1/

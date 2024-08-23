@@ -3,7 +3,11 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protobufjs from 'protobufjs';
 
-import {RECREATE_SERVICE_CODES, RETRYABLE_STATUS_CODES} from '../constants';
+import {
+    DEFAULT_PROTO_LOADER_OPTIONS,
+    RECREATE_SERVICE_CODES,
+    RETRYABLE_STATUS_CODES,
+} from '../constants';
 
 export function decodeAnyMessageRecursively(
     root: protobufjs.Root,
@@ -22,7 +26,7 @@ export function decodeAnyMessageRecursively(
     const typeName = message.type_url.substring(lastSlashIndex + 1);
     const type = root.lookupType(typeName);
 
-    const data = type.decode(message.value).toJSON();
+    const data = type.toObject(type.decode(message.value), DEFAULT_PROTO_LOADER_OPTIONS);
 
     Object.keys(data).forEach((key) => {
         data[key] = decodeAnyMessageRecursively(root, data[key]);
