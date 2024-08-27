@@ -9,12 +9,30 @@ import {
     RETRYABLE_STATUS_CODES,
 } from '../constants';
 
-export function decodeAnyMessageRecursively(
-    root: protobufjs.Root,
-    message?: {type_url?: string; value?: Buffer},
-) {
-    if (!message || !message.type_url || !message.value) {
+type EncodedMessage = {type_url: string; value: Buffer};
+
+function isEncodedMessage(
+    message: Record<string, any> | EncodedMessage,
+): message is EncodedMessage {
+    return Boolean(message.type_url && message.value);
+}
+
+export function decodeAnyMessageRecursively(root: protobufjs.Root, message?: unknown): unknown {
+    if (!message || typeof message !== 'object') {
         return message;
+    }
+
+    if (Array.isArray(message)) {
+        return message.map((innerMessage: unknown) =>
+            decodeAnyMessageRecursively(root, innerMessage),
+        );
+    }
+
+    if (typeof message === 'object' && !isEncodedMessage(message)) {
+        return Object.entries(message as Record<string, unknown>).reduce((res, [key, value]) => {
+            res[key] = decodeAnyMessageRecursively(root, value);
+            return res;
+        }, {} as Record<string, unknown>);
     }
 
     const lastSlashIndex = message.type_url.lastIndexOf('/');
@@ -25,40 +43,9 @@ export function decodeAnyMessageRecursively(
 
     const typeName = message.type_url.substring(lastSlashIndex + 1);
     const type = root.lookupType(typeName);
+    const decodedMessage = type.toObject(type.decode(message.value), DEFAULT_PROTO_LOADER_OPTIONS);
 
-    const data = type.toObject(type.decode(message.value), DEFAULT_PROTO_LOADER_OPTIONS);
-
-    Object.keys(data).forEach((key) => {
-        if (Array.isArray(data[key])) {
-            data[key] = data[key].map((item: any) => decodeAnyMessageRecursively(root, item));
-        } else {
-            data[key] = decodeAnyMessageRecursively(root, data[key]);
-        }
-    });
-
-    return data;
-}
-
-export function traverseAnyMessage(root: protobufjs.Root, message?: any): any {
-    if (!message) {
-        return message;
-    }
-
-    if (Array.isArray(message)) {
-        return message.map((item) => {
-            return traverseAnyMessage(root, item);
-        });
-    }
-
-    if (typeof message === 'object') {
-        Object.keys(message).forEach((key) => {
-            if (message[key]) {
-                message[key] = traverseAnyMessage(root, message[key]);
-            }
-        });
-    }
-
-    return decodeAnyMessageRecursively(root, message);
+    return decodeAnyMessageRecursively(root, decodedMessage);
 }
 
 export function isRetryableError(error?: grpc.ServiceError) {
