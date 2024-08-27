@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3](https://github.com/gravity-ui/gateway/compare/v2.5.2...v2.5.3) (2024-08-23)
+
+
+### Bug Fixes
+
+* correctly parse details in grpc error ([#67](https://github.com/gravity-ui/gateway/issues/67)) ([277a51b](https://github.com/gravity-ui/gateway/commit/277a51b3b104b753ffefa0db4ba88b132c06a0e7))
+
 ## [2.5.2](https://github.com/gravity-ui/gateway/compare/v2.5.1...v2.5.2) (2024-08-23)
 
 
