@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.4](https://github.com/gravity-ui/gateway/compare/v2.5.3...v2.5.4) (2024-08-27)
+
+
+### Bug Fixes
+
+* remove traverseAnyMessage helper ([#70](https://github.com/gravity-ui/gateway/issues/70)) ([685379b](https://github.com/gravity-ui/gateway/commit/685379b12b1b1000cfc15f9f3f0d8ce64125ad9b))
+
 ## [2.5.3](https://github.com/gravity-ui/gateway/compare/v2.5.2...v2.5.3) (2024-08-23)
 
 
