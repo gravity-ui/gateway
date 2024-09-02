@@ -29,11 +29,7 @@ export function decodeAnyMessageRecursively(
     const data = type.toObject(type.decode(message.value), DEFAULT_PROTO_LOADER_OPTIONS);
 
     Object.keys(data).forEach((key) => {
-        if (Array.isArray(data[key])) {
-            data[key] = data[key].map((item: any) => decodeAnyMessageRecursively(root, item));
-        } else {
-            data[key] = decodeAnyMessageRecursively(root, data[key]);
-        }
+        data[key] = decodeAnyMessageRecursively(root, data[key]);
     });
 
     return data;

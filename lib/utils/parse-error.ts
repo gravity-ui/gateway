@@ -224,7 +224,7 @@ export function parseGrpcError(
             title,
             description,
             grpcCode: code,
-            ...(typeof details === 'object' && !Array.isArray(details) ? details : {details}), // we want to spread objects only,
+            ...details,
         },
     };
 }
