@@ -724,7 +724,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     }
 
     return async function action(actionConfig: ApiActionConfig<Context, any, any>) {
-        const {args, requestId, headers, ctx: parentCtx} = actionConfig;
+        const {args, requestId, headers, ctx: parentCtx, userId} = actionConfig;
         const {action} = config;
         const lang = headers[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
 
@@ -745,6 +745,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
             requestId: actionConfig.requestId,
             requestMethod: action,
             requestUrl: config.protoKey,
+            traceId: ctx.getTraceId?.() || '',
+            userId: userId || '',
         };
 
         const debugHeaders: Headers = {

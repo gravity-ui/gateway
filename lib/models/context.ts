@@ -17,4 +17,5 @@ export interface GatewayContext {
         redactSensitiveKeys?: (headers: Dict) => Dict;
     };
     getMetadata: () => IncomingHttpHeaders;
+    getTraceId?: () => string;
 }
