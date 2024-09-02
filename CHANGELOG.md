@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/gravity-ui/gateway/compare/v2.6.0...v3.0.0) (2024-09-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* use toObject when decoding "Any" messages ([#77](https://github.com/gravity-ui/gateway/issues/77))
+
+### Features
+
+* use toObject when decoding "Any" messages ([#77](https://github.com/gravity-ui/gateway/issues/77)) ([805ff27](https://github.com/gravity-ui/gateway/commit/805ff27a99c7345e3d9dd135b074111c82be102a))
+
 ## [2.6.0](https://github.com/gravity-ui/gateway/compare/v2.5.4...v2.6.0) (2024-09-02)
 
 
