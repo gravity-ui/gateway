@@ -51,7 +51,12 @@ import {
     isExtendedGrpcActionEndpoint,
     sanitizeDebugHeaders,
 } from '../utils/common';
-import {decodeAnyMessageRecursively, isRecreateServiceError, isRetryableError} from '../utils/grpc';
+import {
+    decodeAnyMessageRecursively,
+    isRecreateServiceError,
+    isRetryableError,
+    traverseAnyMessage,
+} from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
 import {patchProtoPathResolver} from '../utils/proto-path-resolver';
@@ -208,14 +213,20 @@ function decodeResponse<Context extends GatewayContext>(
 
     [...systemFields, ...encodedFields].forEach((fieldName) => {
         try {
-            const parsedFieldName = fieldName.replace(/\.\*$/, '');
+            const traverseRegExp = /\.\*$/;
+            const needTraverse = traverseRegExp.test(fieldName);
+            const parsedFieldName = needTraverse
+                ? fieldName.replace(traverseRegExp, '')
+                : fieldName;
             const fieldValue = _.get(response, parsedFieldName);
 
             if (fieldValue) {
                 _.set(
                     response,
                     parsedFieldName,
-                    decodeAnyMessageRecursively(packageRoot, fieldValue),
+                    needTraverse
+                        ? traverseAnyMessage(packageRoot, fieldValue)
+                        : decodeAnyMessageRecursively(packageRoot, fieldValue),
                 );
             }
         } catch (error) {
