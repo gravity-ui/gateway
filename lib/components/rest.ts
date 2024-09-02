@@ -78,7 +78,14 @@ export default function createRestAction<Context extends GatewayContext>(
     return async function action(
         actionConfig: ApiActionConfig<Context, any>,
     ): Promise<{responseData: unknown; responseHeaders?: Headers; debugHeaders: Headers}> {
-        const {args, requestId, headers: requestHeaders, ctx: parentCtx, authArgs} = actionConfig;
+        const {
+            args,
+            requestId,
+            headers: requestHeaders,
+            ctx: parentCtx,
+            authArgs,
+            userId,
+        } = actionConfig;
         const debugHeaders: Headers = {};
         const lang = requestHeaders[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
         const serviceName = options?.serviceName || serviceKey;
@@ -286,6 +293,8 @@ export default function createRestAction<Context extends GatewayContext>(
             requestId,
             requestMethod: config.method,
             requestUrl: actionURL,
+            traceId: ctx.getTraceId?.() || '',
+            userId: userId || '',
         };
 
         const requestConfig: AxiosRequestConfig = {
@@ -469,6 +478,7 @@ export default function createRestAction<Context extends GatewayContext>(
                             ErrorConstructor,
                         ),
                         restStatus: responseStatus,
+                        userId,
                     } as Stats,
                     redactSensitiveHeaders(parentCtx, headers),
                     parentCtx,
