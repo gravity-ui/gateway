@@ -23,7 +23,6 @@ import {v4 as uuidv4} from 'uuid';
 import {
     DEFAULT_GRPC_OPTIONS,
     DEFAULT_LANG_HEADER,
-    DEFAULT_PROTO_LOADER_OPTIONS,
     DEFAULT_PROXY_HEADERS,
     DEFAULT_TIMEOUT,
     Lang,
@@ -51,7 +50,12 @@ import {
     isExtendedGrpcActionEndpoint,
     sanitizeDebugHeaders,
 } from '../utils/common';
-import {decodeAnyMessageRecursively, isRecreateServiceError, isRetryableError} from '../utils/grpc';
+import {
+    decodeAnyMessageRecursively,
+    isRecreateServiceError,
+    isRetryableError,
+    traverseAnyMessage,
+} from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
 import {patchProtoPathResolver} from '../utils/proto-path-resolver';
@@ -158,8 +162,15 @@ type ServiceClient = grpc.Client & {
     [key: string]: UnaryAction | ServerStreamAction | ClientStreamAction | BidiStreamAction;
 };
 
+const reflectLoaderOptions = {
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+};
+
 const grpcLoaderOptions = {
-    ...DEFAULT_PROTO_LOADER_OPTIONS,
+    ...reflectLoaderOptions,
     includeDirs: [path.join(__dirname, '../../proto')],
 };
 
@@ -208,14 +219,20 @@ function decodeResponse<Context extends GatewayContext>(
 
     [...systemFields, ...encodedFields].forEach((fieldName) => {
         try {
-            const parsedFieldName = fieldName.replace(/\.\*$/, '');
+            const traverseRegExp = /\.\*$/;
+            const needTraverse = traverseRegExp.test(fieldName);
+            const parsedFieldName = needTraverse
+                ? fieldName.replace(traverseRegExp, '')
+                : fieldName;
             const fieldValue = _.get(response, parsedFieldName);
 
             if (fieldValue) {
                 _.set(
                     response,
                     parsedFieldName,
-                    decodeAnyMessageRecursively(packageRoot, fieldValue),
+                    needTraverse
+                        ? traverseAnyMessage(packageRoot, fieldValue)
+                        : decodeAnyMessageRecursively(packageRoot, fieldValue),
                 );
             }
         } catch (error) {
@@ -509,7 +526,7 @@ async function getServiceInstanceReflect(
 
     const definition = protoLoader.loadFileDescriptorSetFromObject(
         descriptor,
-        DEFAULT_PROTO_LOADER_OPTIONS,
+        reflectLoaderOptions,
     );
 
     const packageObject = grpc.loadPackageDefinition(definition);
