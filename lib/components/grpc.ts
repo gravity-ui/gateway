@@ -23,7 +23,6 @@ import {v4 as uuidv4} from 'uuid';
 import {
     DEFAULT_GRPC_OPTIONS,
     DEFAULT_LANG_HEADER,
-    DEFAULT_PROTO_LOADER_OPTIONS,
     DEFAULT_PROXY_HEADERS,
     DEFAULT_TIMEOUT,
     Lang,
@@ -163,8 +162,15 @@ type ServiceClient = grpc.Client & {
     [key: string]: UnaryAction | ServerStreamAction | ClientStreamAction | BidiStreamAction;
 };
 
+const reflectLoaderOptions = {
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+};
+
 const grpcLoaderOptions = {
-    ...DEFAULT_PROTO_LOADER_OPTIONS,
+    ...reflectLoaderOptions,
     includeDirs: [path.join(__dirname, '../../proto')],
 };
 
@@ -520,7 +526,7 @@ async function getServiceInstanceReflect(
 
     const definition = protoLoader.loadFileDescriptorSetFromObject(
         descriptor,
-        DEFAULT_PROTO_LOADER_OPTIONS,
+        reflectLoaderOptions,
     );
 
     const packageObject = grpc.loadPackageDefinition(definition);
