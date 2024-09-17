@@ -71,7 +71,7 @@ export default function createRestAction<Context extends GatewayContext>(
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
 ) {
-    const timeout = config?.timeout ?? options?.timeout;
+    const timeout = config?.timeout ?? options?.axiosConfig?.timeout ?? options?.timeout;
     const defaultAxiosClient = getAxiosClient(timeout, config?.retries, options?.axiosConfig);
 
     /* eslint-disable complexity */
@@ -270,10 +270,10 @@ export default function createRestAction<Context extends GatewayContext>(
         const customActionTimeout =
             actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig.timeout ?? timeout;
 
-        if (actionConfig.timeout || endpointAxiosConfig) {
+        if (actionConfig.timeout || Object.keys(endpointAxiosConfig).length > 0) {
             const customActionAxiosConfig = {
                 ...(options?.axiosConfig || {}),
-                ...(endpointAxiosConfig || {}),
+                ...endpointAxiosConfig,
             };
             axiosClient = getAxiosClient(
                 customActionTimeout,
