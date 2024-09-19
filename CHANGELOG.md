@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/gravity-ui/gateway/compare/v3.0.0...v3.0.1) (2024-09-17)
+
+
+### Bug Fixes
+
+* **rest:** setup axios config ([#79](https://github.com/gravity-ui/gateway/issues/79)) ([29768df](https://github.com/gravity-ui/gateway/commit/29768dfdb15459a0492fe04cf849021662ccc4c1))
+
 ## [3.0.0](https://github.com/gravity-ui/gateway/compare/v2.6.0...v3.0.0) (2024-09-02)
 
 
