@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.1](https://github.com/gravity-ui/gateway/compare/v2.6.0...v2.6.1) (2024-10-04)
+
+
+### Bug Fixes
+
+* bump object-sizeof to 2.6.5 ([#84](https://github.com/gravity-ui/gateway/issues/84)) ([3f77733](https://github.com/gravity-ui/gateway/commit/3f777330e1957c6d05c91b2736117c04df65c5a8))
+* tune release flow ([#85](https://github.com/gravity-ui/gateway/issues/85)) ([f903886](https://github.com/gravity-ui/gateway/commit/f903886a307b912c8eae8e3ee4809da50bd571fa))
+
 ## [2.6.0](https://github.com/gravity-ui/gateway/compare/v2.5.4...v2.6.0) (2024-09-02)
 
 
