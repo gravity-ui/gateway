@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.3](https://github.com/gravity-ui/gateway/compare/v3.0.2...v3.0.3) (2024-10-04)
+
+
+### Bug Fixes
+
+* tune release flow ([#86](https://github.com/gravity-ui/gateway/issues/86)) ([6ddda46](https://github.com/gravity-ui/gateway/commit/6ddda460a9406acd0121203eb7e9d2c88c304288))
+
 ## [3.0.2](https://github.com/gravity-ui/gateway/compare/v3.0.1...v3.0.2) (2024-09-30)
 
 
