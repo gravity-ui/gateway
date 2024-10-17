@@ -22,7 +22,7 @@ export function getAxiosClient(
             return axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error);
         },
         onRetry: (retryCount, error, requestConfig) => {
-            _.set(requestConfig, ['headers', 'x-request-attempt'], retryCount || 0);
+            _.set(requestConfig, ['headers', 'x-request-attempt'], retryCount);
         },
     });
 
