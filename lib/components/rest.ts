@@ -269,10 +269,10 @@ export default function createRestAction<Context extends GatewayContext>(
         const customActionTimeout =
             actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig?.timeout ?? timeout;
 
-        if (actionConfig.timeout || Object.keys(endpointAxiosConfig).length > 0) {
+        if (actionConfig.timeout || endpointAxiosConfig) {
             const customActionAxiosConfig = {
                 ...(options?.axiosConfig || {}),
-                ...endpointAxiosConfig,
+                ...(endpointAxiosConfig || {}),
             };
             axiosClient = getAxiosClient(
                 customActionTimeout,
