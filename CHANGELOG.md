@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.4](https://github.com/gravity-ui/gateway/compare/v3.0.3...v3.0.4) (2024-10-17)
+
+
+### Bug Fixes
+
+* use onRetry function instead of interceptors for setting x-request-attempt header ([#90](https://github.com/gravity-ui/gateway/issues/90)) ([18c2574](https://github.com/gravity-ui/gateway/commit/18c2574cd2b69468e28991b218e827e7c35442ef))
+
 ## [3.0.3](https://github.com/gravity-ui/gateway/compare/v3.0.2...v3.0.3) (2024-10-04)
 
 
