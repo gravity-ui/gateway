@@ -6,7 +6,6 @@ import _ from 'lodash';
 import {v4 as uuidv4} from 'uuid';
 
 import {
-    AXIOS_RETRY_NAMESPACE,
     DEFAULT_LANG_HEADER,
     DEFAULT_PROXY_HEADERS,
     DEFAULT_TIMEOUT,
@@ -149,8 +148,8 @@ export default function createRestAction<Context extends GatewayContext>(
             ? endpointData.path
             : endpointData;
         const endpointAxiosConfig = isExtendedRestActionEndpoint(endpointData)
-            ? endpointData.axiosConfig || {}
-            : {};
+            ? endpointData.axiosConfig
+            : undefined;
 
         const pathArgs = config.validationSchema
             ? encodePathParams(args)
@@ -268,7 +267,7 @@ export default function createRestAction<Context extends GatewayContext>(
         let axiosClient = defaultAxiosClient;
 
         const customActionTimeout =
-            actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig.timeout ?? timeout;
+            actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig?.timeout ?? timeout;
 
         if (actionConfig.timeout || Object.keys(endpointAxiosConfig).length > 0) {
             const customActionAxiosConfig = {
@@ -317,19 +316,6 @@ export default function createRestAction<Context extends GatewayContext>(
                 responseType: config.responseType,
             });
         }
-
-        axiosClient.interceptors.request.use((requestConfig) => {
-            requestConfig.headers.set(
-                'x-request-attempt',
-                // according this issue https://github.com/softonic/axios-retry/issues/167
-                // 'axios-retry' doesn`t define retryCount field in exported type
-                // however in this issue https://github.com/softonic/axios-retry/issues/75#issuecomment-502151719
-                // people use it
-                // @ts-ignore
-                requestConfig[AXIOS_RETRY_NAMESPACE]?.retryCount || 0,
-            );
-            return requestConfig;
-        });
 
         try {
             const response = await axiosClient.request(requestConfig);
