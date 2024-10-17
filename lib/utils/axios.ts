@@ -21,7 +21,7 @@ export function getAxiosClient(
 
             return axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error);
         },
-        onRetry: (retryCount, error, requestConfig) => {
+        onRetry: (retryCount, _error, requestConfig) => {
             _.set(requestConfig, ['headers', 'x-request-attempt'], retryCount);
         },
     });
