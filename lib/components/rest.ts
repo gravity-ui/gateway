@@ -71,7 +71,12 @@ export default function createRestAction<Context extends GatewayContext>(
     ErrorConstructor: AppErrorConstructor,
 ) {
     const timeout = config?.timeout ?? options?.axiosConfig?.timeout ?? options?.timeout;
-    const defaultAxiosClient = getAxiosClient(timeout, config?.retries, options?.axiosConfig);
+    const defaultAxiosClient = getAxiosClient(
+        timeout,
+        config?.retries,
+        options?.axiosConfig,
+        options?.axiosInterceptors,
+    );
 
     /* eslint-disable complexity */
     return async function action(
@@ -278,6 +283,7 @@ export default function createRestAction<Context extends GatewayContext>(
                 customActionTimeout,
                 config?.retries,
                 customActionAxiosConfig,
+                options?.axiosInterceptors,
             );
         }
 
