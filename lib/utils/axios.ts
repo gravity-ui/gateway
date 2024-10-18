@@ -3,13 +3,22 @@ import axiosRetry from 'axios-retry';
 import _ from 'lodash';
 
 import {DEFAULT_AXIOS_OPTIONS, DEFAULT_TIMEOUT} from '../constants';
+import {AxiosInterceptorsConfig} from '../models/common';
 
 export function getAxiosClient(
     timeout: number = DEFAULT_TIMEOUT,
     retries = 0,
     axiosConfig: AxiosRequestConfig = DEFAULT_AXIOS_OPTIONS,
+    {request: reqInterceptors, response: resInterceptors}: AxiosInterceptorsConfig = {},
 ) {
     const client = axios.create({...axiosConfig, timeout});
+
+    reqInterceptors?.forEach(({callback, errorCallback}) =>
+        client.interceptors.request.use(callback, errorCallback),
+    );
+    resInterceptors?.forEach(({callback, errorCallback}) =>
+        client.interceptors.response.use(callback, errorCallback),
+    );
 
     axiosRetry(client, {
         retries,

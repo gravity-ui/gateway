@@ -106,6 +106,7 @@ function createApiAction<
                 proxyHeaders: config.proxyHeaders,
                 proxyDebugHeaders: config.proxyDebugHeaders,
                 axiosConfig: config.axiosConfig,
+                axiosInterceptors: config.axiosInterceptors,
                 validationSchema: config.validationSchema,
                 encodePathArgs: config.encodePathArgs,
                 getAuthHeaders: config.getAuthHeaders,
