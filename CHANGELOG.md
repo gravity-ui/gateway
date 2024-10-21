@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/gravity-ui/gateway/compare/v3.0.4...v3.1.0) (2024-10-21)
+
+
+### Features
+
+* **rest:** add ability to add axios interceptors in config ([#92](https://github.com/gravity-ui/gateway/issues/92)) ([766b150](https://github.com/gravity-ui/gateway/commit/766b150901460de2224962c3fc1e2d5858c84401))
+
 ## [3.0.4](https://github.com/gravity-ui/gateway/compare/v3.0.3...v3.0.4) (2024-10-17)
 
 
