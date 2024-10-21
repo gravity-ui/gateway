@@ -2,7 +2,12 @@ import {IncomingHttpHeaders} from 'http';
 
 import {ClientDuplexStream, ClientReadableStream, ClientWritableStream} from '@grpc/grpc-js';
 import {HandlerType} from '@grpc/grpc-js/build/src/server-call';
-import {AxiosRequestConfig, AxiosResponse} from 'axios';
+import {
+    AxiosInterceptorManager,
+    AxiosRequestConfig,
+    AxiosResponse,
+    InternalAxiosRequestConfig,
+} from 'axios';
 import type {Request, Response} from 'express';
 
 import type {GrpcContext} from '../components/grpc';
@@ -112,6 +117,7 @@ export interface GatewayApiOptions<Context extends GatewayContext> {
     grpcOptions?: object;
     grpcRecreateService?: boolean;
     axiosConfig?: AxiosRequestConfig;
+    axiosInterceptors?: AxiosInterceptorsConfig;
     proxyHeaders?: ProxyHeaders;
     proxyDebugHeaders?: ProxyHeaders;
     validationSchema?: object;
@@ -417,6 +423,18 @@ interface OnUnknownActionData {
     action?: string;
 }
 
+type AxiosInterceptorUseParams<T> = Parameters<AxiosInterceptorManager<T>['use']>;
+
+interface AxiosInterceptorConfig<T> {
+    callback: AxiosInterceptorUseParams<T>[0];
+    errorCallback?: AxiosInterceptorUseParams<T>[1];
+}
+
+export interface AxiosInterceptorsConfig {
+    request?: AxiosInterceptorConfig<InternalAxiosRequestConfig<any>>[];
+    response?: AxiosInterceptorConfig<AxiosResponse<any>>[];
+}
+
 export interface GatewayConfig<
     Context extends GatewayContext,
     Req extends GatewayRequest<Context>,
@@ -429,6 +447,7 @@ export interface GatewayConfig<
     grpcOptions?: object;
     grpcRecreateService?: boolean;
     axiosConfig?: AxiosRequestConfig;
+    axiosInterceptors?: AxiosInterceptorsConfig;
     onUnknownAction?: (req: Req, res: Res, data: OnUnknownActionData) => any;
     onBeforeAction?: (
         req: Req,
