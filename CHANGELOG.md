@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.2](https://github.com/gravity-ui/gateway/compare/v2.6.1...v2.6.2) (2024-10-29)
+
+
+### Bug Fixes
+
+* trace id type ([#96](https://github.com/gravity-ui/gateway/issues/96)) ([15f5845](https://github.com/gravity-ui/gateway/commit/15f5845fdb95c29ec443ae8b4d608e888319e9f4))
+
 ## [2.6.1](https://github.com/gravity-ui/gateway/compare/v2.6.0...v2.6.1) (2024-10-04)
 
 
