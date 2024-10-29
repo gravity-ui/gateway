@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/gravity-ui/gateway/compare/v3.1.0...v3.1.1) (2024-10-29)
+
+
+### Bug Fixes
+
+* type for traceId for compatible with nodekit context ([#94](https://github.com/gravity-ui/gateway/issues/94)) ([56835fd](https://github.com/gravity-ui/gateway/commit/56835fd7e4c46354109576d365516ed80ca530fe))
+
 ## [3.1.0](https://github.com/gravity-ui/gateway/compare/v3.0.4...v3.1.0) (2024-10-21)
 
 
