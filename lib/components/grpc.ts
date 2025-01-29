@@ -939,7 +939,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     error as grpc.ServiceError,
                                     root,
                                     lang as Lang,
-                                    actionConfig.decodeAnyMessageProtoLoaderOptions,
+                                    config.decodeAnyMessageProtoLoaderOptions,
                                 ),
                                 error as grpc.ServiceError,
                             ),
@@ -1000,7 +1000,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     error as grpc.ServiceError,
                                     root,
                                     lang as Lang,
-                                    actionConfig.decodeAnyMessageProtoLoaderOptions,
+                                    config.decodeAnyMessageProtoLoaderOptions,
                                 ),
                                 error as grpc.ServiceError,
                             ),
@@ -1084,7 +1084,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                                 error,
                                                 root,
                                                 lang as Lang,
-                                                actionConfig.decodeAnyMessageProtoLoaderOptions,
+                                                config.decodeAnyMessageProtoLoaderOptions,
                                             ),
                                             error,
                                         ),
@@ -1100,7 +1100,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     packageRoot: root,
                                     ErrorConstructor,
                                     decodeAnyMessageProtoLoaderOptions:
-                                        actionConfig.decodeAnyMessageProtoLoaderOptions,
+                                        config.decodeAnyMessageProtoLoaderOptions,
                                 });
                                 const responseHeaders: Headers = {};
 

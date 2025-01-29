@@ -47,7 +47,6 @@ export interface ApiActionConfig<
     callback?: (response: TResponseData) => void;
     authArgs?: Record<string, unknown>;
     userId?: string;
-    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
 }
 
 export interface GRPCActionData {
@@ -206,6 +205,7 @@ export interface ApiServiceBaseGrpcActionConfig<
     secureWithoutRootCert?: boolean;
     encodedFields?: string[];
     type?: HandlerType;
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
 }
 
 export interface ApiServiceFileGrpcActionConfig<
