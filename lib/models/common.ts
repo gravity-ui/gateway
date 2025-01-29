@@ -9,6 +9,7 @@ import {
     InternalAxiosRequestConfig,
 } from 'axios';
 import type {Request, Response} from 'express';
+import * as protobufjs from 'protobufjs';
 
 import type {GrpcContext} from '../components/grpc';
 import {Lang} from '../constants';
@@ -46,6 +47,7 @@ export interface ApiActionConfig<
     callback?: (response: TResponseData) => void;
     authArgs?: Record<string, unknown>;
     userId?: string;
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
 }
 
 export interface GRPCActionData {

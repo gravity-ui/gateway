@@ -46,7 +46,6 @@ export const DEFAULT_GRPC_OPTIONS = {
 export const DEFAULT_PROTO_LOADER_OPTIONS = {
     longs: String,
     enums: String,
-    bytes: String,
     defaults: true,
     oneofs: true,
 };
