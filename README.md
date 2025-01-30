@@ -13,7 +13,7 @@ npm install --save-dev @gravity-ui/gateway
 First of all, you need to create a controller where you will import Gateway and Schema, and then return the initialized gateway controller:
 
 ```javascript
-import getGatewayControllers from '@gravity-ui/gateway';
+import {getGatewayControllers} from '@gravity-ui/gateway';
 import Schema from '<schemas package>';
 
 const config = {
@@ -134,7 +134,7 @@ If the parameter value does not pass validation, the `GATEWAY_INVALID_PARAM_VALU
 Upon gateway initialization, in addition to exporting the controller, it also exports an `api` object, which represents the core for executing requests to the backend.
 
 ```javascript
-import getGatewayControllers from '@gravity-ui/gateway';
+import {getGatewayControllers} from '@gravity-ui/gateway';
 import Schema from '<schemas package>';
 
 const config = {
@@ -180,7 +180,7 @@ const schemasByScopes = {scope1: schema1, scope2: schema2};
 Example with two scope namespaces: `root` and `anotherScope`.
 
 ```javascript
-import getGatewayControllers from '@gravity-ui/gateway';
+import {getGatewayControllers} from '@gravity-ui/gateway';
 
 const {
     controller, // Controller
@@ -215,7 +215,7 @@ If the scope parameter is not specified, the default scope is assumed to be `roo
 When initializing the `gateway`, there is an option to explicitly specify the actions that need to be connected from the schemas. To do this, provide a list of available client-side actions in the `actions` field in the config. If `actions` are not provided, all actions from the schemas are connected by default.
 
 ```typescript
-import getGatewayControllers from '@gravity-ui/gateway';
+import {getGatewayControllers} from '@gravity-ui/gateway';
 import rootSchema from '<schemas package>';
 import localSchema from '../shared/schemas';
 
