@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0](https://github.com/gravity-ui/gateway/compare/v3.1.1...v4.0.0) (2025-01-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* replace default export from the library with named export ([#99](https://github.com/gravity-ui/gateway/issues/99))
+
+### Bug Fixes
+
+* replace default export from the library with named export ([#99](https://github.com/gravity-ui/gateway/issues/99)) ([1bb0580](https://github.com/gravity-ui/gateway/commit/1bb058000f857a5ffb2cdc7887d839bbe68ae832))
+
 ## [3.1.1](https://github.com/gravity-ui/gateway/compare/v3.1.0...v3.1.1) (2024-10-29)
 
 
