@@ -29,7 +29,9 @@
     "start-integration-server": "node build-integration/integration-test/server",
     "build-and-run-integration": "npm run build-integration && npm run start-integration-server",
     "clean": "rm -rf build && rm -rf build-integration",
-    "lint": "eslint \"lib/**/*.{js,ts}\" --quiet",
+    "lint": "npm run lint:code && npm run lint:exports",
+    "lint:code": "eslint \"lib/**/*.{js,ts}\" --quiet",
+    "lint:exports": "npm run build && attw --pack .",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "test": "jest --colors",
@@ -48,6 +50,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.3",
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
     "@gravity-ui/eslint-config": "^2.0.0",
