@@ -332,7 +332,7 @@ function generateGatewayApiController<
     };
 }
 
-export default function getGatewayControllers<
+export function getGatewayControllers<
     TSchema extends SchemasByScope,
     Context extends GatewayContext,
     Req extends GatewayRequest<Context>,

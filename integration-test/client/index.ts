@@ -1,4 +1,4 @@
-import getGatewayControllers from '../../lib';
+import {getGatewayControllers} from '../../lib';
 
 import {ErrorConstructor, createCoreContext} from './create-core-context';
 import {schema} from './schema/meta';
