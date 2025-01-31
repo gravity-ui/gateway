@@ -1,7 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
-import {Metadata} from '@grpc/grpc-js/build/src/metadata';
+import {Metadata} from '@grpc/grpc-js/build/src/metadata.js';
 
-import {v1Package} from '../package-definitions';
+import {v1Package} from '../package-definitions.js';
 
 function serverStreamCall(
     //@ts-ignore

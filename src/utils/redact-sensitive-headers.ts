@@ -1,6 +1,6 @@
 import {IncomingHttpHeaders} from 'http';
 
-import {GatewayContext} from '../models/context';
+import {GatewayContext} from '../models/context.js';
 
 export function redactSensitiveHeaders(
     ctx: GatewayContext,

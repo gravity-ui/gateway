@@ -1,4 +1,4 @@
-import {DEFAULT_LANG_HEADER, Lang} from '../constants';
+import {DEFAULT_LANG_HEADER, Lang} from '../constants.js';
 import {
     ApiActionConfig,
     ApiByScope,
@@ -7,14 +7,14 @@ import {
     GatewayRequest,
     GatewayResponse,
     SchemasByScope,
-} from '../models/common';
-import {GatewayContext} from '../models/context';
-import {AppErrorConstructor} from '../models/error';
-import {handleError} from '../utils/common';
-import {generateContextApi} from '../utils/create-context-api';
-import {parseMixedError} from '../utils/parse-error';
+} from '../models/common.js';
+import {GatewayContext} from '../models/context.js';
+import {AppErrorConstructor} from '../models/error.js';
+import {handleError} from '../utils/common.js';
+import {generateContextApi} from '../utils/create-context-api.js';
+import {parseMixedError} from '../utils/parse-error.js';
 
-import type {GrpcContext} from './grpc';
+import type {GrpcContext} from './grpc.js';
 
 export function createMixedAction<
     TSchema extends SchemasByScope,

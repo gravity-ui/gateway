@@ -1,6 +1,6 @@
-import {ExtendedGrpcActionEndpoint} from '../../models/common';
+import {ExtendedGrpcActionEndpoint} from '../../models/common.js';
 
-import {overrideEndpoints} from './overrideEndpoints';
+import {overrideEndpoints} from './overrideEndpoints.js';
 
 describe('overrideEndpoints', () => {
     test('simple override endpoint and grpcEndpoint', () => {

@@ -1,9 +1,9 @@
 import _ from 'lodash';
 
-import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc';
-import {createMixedAction} from './components/mixed';
-import createRestAction from './components/rest';
-import {ANY_ACTION_SYMBOL} from './constants';
+import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc.js';
+import {createMixedAction} from './components/mixed.js';
+import createRestAction from './components/rest.js';
+import {ANY_ACTION_SYMBOL} from './constants.js';
 import {
     ApiByScope,
     ApiServiceActionConfig,
@@ -16,16 +16,16 @@ import {
     GatewayRequest,
     GatewayResponse,
     SchemasByScope,
-} from './models/common';
-import {GatewayContext} from './models/context';
-import {getKeys, handleError} from './utils/common';
-import overrideEndpoints from './utils/overrideEndpoints';
+} from './models/common.js';
+import {GatewayContext} from './models/context.js';
+import {getKeys, handleError} from './utils/common.js';
+import overrideEndpoints from './utils/overrideEndpoints/index.js';
 
-export * from './utils/typed-api';
-export * from './utils/grpc-reflection';
-export * from './models/common';
-export * from './models/context';
-export * from './models/error';
+export * from './utils/typed-api.js';
+export * from './utils/grpc-reflection.js';
+export * from './models/common.js';
+export * from './models/context.js';
+export * from './models/error.js';
 
 type ControllerActions = Record<string, string | Record<string, string | Record<string, boolean>>>;
 
@@ -421,3 +421,5 @@ export function getGatewayControllers<
         api,
     };
 }
+
+export default getGatewayControllers;

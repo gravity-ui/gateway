@@ -15,10 +15,10 @@ jest.mock('grpc-reflection-js', () => ({
 
 import * as grpcReflection from 'grpc-reflection-js';
 
-import {getGatewayControllers} from '../../lib';
+import {getGatewayControllers} from '../../src/index.js';
 
-import {ErrorConstructor, createCoreContext} from './create-core-context';
-import {schema} from './schema/meta';
+import {ErrorConstructor, createCoreContext} from './create-core-context.js';
+import {schema} from './schema/meta.js';
 
 function getControllers() {
     return getGatewayControllers(

@@ -1,4 +1,4 @@
-import {encodePathParams, getPathArgsProxy, validateArgs} from './validate';
+import {encodePathParams, getPathArgsProxy, validateArgs} from './validate.js';
 
 describe('validate: getPathArgsProxy', () => {
     test('should escape path params', () => {
