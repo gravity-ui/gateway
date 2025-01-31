@@ -65,7 +65,7 @@ function getConfigSerializerFunction(config: ApiServiceRestActionConfig<any, any
     return undefined;
 }
 
-export default function createRestAction<Context extends GatewayContext>(
+export function createRestAction<Context extends GatewayContext>(
     endpoints: EndpointsConfig | undefined,
     config: ApiServiceRestActionConfig<Context, any, any>,
     serviceKey: string,

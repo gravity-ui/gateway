@@ -658,7 +658,7 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     return responseData;
 }
 
-export default function createGrpcAction<Context extends GatewayContext>(
+export function createGrpcAction<Context extends GatewayContext>(
     {root, credentials}: GrpcContext,
     endpoints: EndpointsConfig | undefined,
     config: ApiServiceGrpcActionConfig<Context, any, any>,

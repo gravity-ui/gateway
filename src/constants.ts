@@ -1,5 +1,5 @@
-import http from 'http';
-import https from 'https';
+import * as http from 'http';
+import * as https from 'https';
 
 import * as grpc from '@grpc/grpc-js';
 
@@ -27,11 +27,11 @@ export const DEFAULT_PROXY_HEADERS = [
 export const DEFAULT_AXIOS_OPTIONS = {
     maxContentLength: 1024 * 1024 * 100, // 100 Mb
     httpAgent: new http.Agent({
-        //@ts-ignore https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
+        // https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
         family: 6,
     }),
     httpsAgent: new https.Agent({
-        //@ts-ignore https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
+        // https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
         family: 6,
     }),
 };
