@@ -1,8 +1,8 @@
 import _ from 'lodash';
 
-import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc.js';
+import {GrpcContext, createGrpcAction, createRoot, getCredentialsMap} from './components/grpc.js';
 import {createMixedAction} from './components/mixed.js';
-import createRestAction from './components/rest.js';
+import {createRestAction} from './components/rest.js';
 import {ANY_ACTION_SYMBOL} from './constants.js';
 import {
     ApiByScope,
@@ -19,7 +19,7 @@ import {
 } from './models/common.js';
 import {GatewayContext} from './models/context.js';
 import {getKeys, handleError} from './utils/common.js';
-import overrideEndpoints from './utils/overrideEndpoints/index.js';
+import {overrideEndpoints} from './utils/overrideEndpoints/overrideEndpoints.js';
 
 export * from './utils/typed-api.js';
 export * from './utils/grpc-reflection.js';

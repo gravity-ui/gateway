@@ -2,7 +2,6 @@ import {createServer} from 'http';
 import * as path from 'path';
 import * as url from 'url';
 
-import {Status} from '@grpc/grpc-js/build/src/constants.js';
 import {
     Server,
     ServerCredentials,
@@ -10,7 +9,8 @@ import {
     handleClientStreamingCall,
     handleServerStreamingCall,
     handleUnaryCall,
-} from '@grpc/grpc-js/build/src/index.js';
+} from '@grpc/grpc-js';
+import {Status} from '@grpc/grpc-js/build/src/constants.js';
 import {addReflection} from 'grpc-server-reflection';
 
 import {serverEndpoint} from '../constants.cjs';
@@ -140,9 +140,8 @@ const getDataWithTimeout: handleUnaryCall<any, any> = (call, callback) => {
 function startGrpcServer() {
     const server = new Server();
     addReflection(server, path.resolve(__dirname, '../proto/descriptor_set.bin'));
-    // @ts-ignore
+    // @ts-expect-error
     server.addService(v1Package.MetaService.service, {
-        // @ts-ignore
         GetEntityUnary: getEntityUnary,
         GetLongEntityUnary: getLongEntityUnary,
         MethodWithError: methodWithError,
@@ -153,15 +152,15 @@ function startGrpcServer() {
         GetEntityListDuplexStream: getEntityListDuplexStream,
         GetEntityTestOptions: getEntityTestOptions,
     });
-    // @ts-ignore
+    // @ts-expect-error
     server.addService(v1Package.Meta2Service.service, {
         GetEntityUnary: getEntityUnary,
     });
-    // @ts-ignore
+    // @ts-expect-error
     server.addService(v1Package.Meta3Service.service, {
         GetEntityUnary: getEntityUnary,
     });
-    // @ts-ignore
+    // @ts-expect-error
     server.addService(v1Package.TimeoutService.service, {
         GetDataWithTimeout: getDataWithTimeout,
     });

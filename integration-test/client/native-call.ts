@@ -1,12 +1,11 @@
 import * as grpc from '@grpc/grpc-js';
-import {Metadata} from '@grpc/grpc-js/build/src/metadata.js';
 
 import {v1Package} from '../package-definitions.js';
 
 function serverStreamCall(
-    //@ts-ignore
+    //@ts-expect-error
     client: v1Package.MetaService,
-    serviceMetadata: Metadata,
+    serviceMetadata: grpc.Metadata,
     actionName: string,
 ) {
     // eslint-disable-next-line new-cap
@@ -31,14 +30,13 @@ function serverStreamCall(
 }
 
 export function nativeCall() {
-    //@ts-ignore
+    //@ts-expect-error
     const client = new v1Package.MetaService('localhost:50051', grpc.credentials.createInsecure());
     const serviceMetadata = new grpc.Metadata();
-    const metadata = {
+    const metadata: Record<string, grpc.MetadataValue> = {
         'meta-key': 'meta-value',
     };
     Object.keys(metadata).forEach((key) => {
-        // @ts-ignore
         serviceMetadata.add(key, metadata[key]);
     });
 
