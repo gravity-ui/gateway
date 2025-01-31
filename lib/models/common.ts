@@ -9,6 +9,7 @@ import {
     InternalAxiosRequestConfig,
 } from 'axios';
 import type {Request, Response} from 'express';
+import * as protobufjs from 'protobufjs';
 
 import type {GrpcContext} from '../components/grpc';
 import {Lang} from '../constants';
@@ -204,6 +205,7 @@ export interface ApiServiceBaseGrpcActionConfig<
     secureWithoutRootCert?: boolean;
     encodedFields?: string[];
     type?: HandlerType;
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
 }
 
 export interface ApiServiceFileGrpcActionConfig<
