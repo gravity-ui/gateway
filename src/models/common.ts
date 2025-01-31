@@ -1,7 +1,7 @@
 import {IncomingHttpHeaders} from 'http';
 
 import {ClientDuplexStream, ClientReadableStream, ClientWritableStream} from '@grpc/grpc-js';
-import {HandlerType} from '@grpc/grpc-js/build/src/server-call.js';
+import type {HandlerType} from '@grpc/grpc-js/build/src/server-call.js';
 import {
     AxiosInterceptorManager,
     AxiosRequestConfig,
