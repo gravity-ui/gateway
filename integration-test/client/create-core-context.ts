@@ -1,6 +1,6 @@
 import {Console} from 'console';
 
-import {Dict, GatewayContext, GatewayContextParams} from '../../lib';
+import {Dict, GatewayContext, GatewayContextParams} from '../../src/index.js';
 
 const logger = new Console({stdout: process.stdout});
 const logFactory = (type: string) => (message: string, _params: any) => {
