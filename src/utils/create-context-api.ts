@@ -1,7 +1,5 @@
 import _ from 'lodash';
 
-import {GatewayContext} from '../models/context';
-
 import {
     ApiActionConfig,
     ApiByScope,
@@ -14,8 +12,10 @@ import {
     GatewayRequest,
     GatewayResponse,
     SchemasByScope,
-} from './../models/common';
-import {getKeys} from './common';
+} from '../models/common.js';
+import {GatewayContext} from '../models/context.js';
+
+import {getKeys} from './common.js';
 
 export type RequestContext<Context extends GatewayContext> = Omit<
     ApiActionConfig<Context, never>,

@@ -2,8 +2,8 @@ import axios, {AxiosRequestConfig} from 'axios';
 import axiosRetry, {IAxiosRetryConfig} from 'axios-retry';
 import _ from 'lodash';
 
-import {DEFAULT_AXIOS_OPTIONS, DEFAULT_TIMEOUT} from '../constants';
-import {AxiosInterceptorsConfig} from '../models/common';
+import {DEFAULT_AXIOS_OPTIONS, DEFAULT_TIMEOUT} from '../constants.js';
+import {AxiosInterceptorsConfig} from '../models/common.js';
 
 export function getAxiosClient(
     timeout: number = DEFAULT_TIMEOUT,

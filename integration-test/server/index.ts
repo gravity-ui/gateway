@@ -1,6 +1,8 @@
 import {createServer} from 'http';
 import * as path from 'path';
+import * as url from 'url';
 
+import {Status} from '@grpc/grpc-js/build/src/constants.js';
 import {
     Server,
     ServerCredentials,
@@ -8,12 +10,13 @@ import {
     handleClientStreamingCall,
     handleServerStreamingCall,
     handleUnaryCall,
-} from '@grpc/grpc-js/build/src';
-import {Status} from '@grpc/grpc-js/build/src/constants';
+} from '@grpc/grpc-js/build/src/index.js';
 import {addReflection} from 'grpc-server-reflection';
 
-import {serverEndpoint} from '../constants';
-import {v1Package} from '../package-definitions';
+import {serverEndpoint} from '../constants.cjs';
+import {v1Package} from '../package-definitions.js';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 function startHttpServer() {
     const hostname = '127.0.0.1';

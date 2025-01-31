@@ -3,7 +3,7 @@ import type {Client as GrpcReflectionClient} from 'grpc-reflection-js';
 import _ from 'lodash';
 import * as protobufjs from 'protobufjs';
 
-import {patchProtoPathResolver} from './proto-path-resolver';
+import {patchProtoPathResolver} from './proto-path-resolver.js';
 
 type ClientWithCache = {
     client: GrpcReflectionClient;
