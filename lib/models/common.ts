@@ -113,6 +113,7 @@ export type ResponseContentType = AxiosResponse['headers']['Content-Type'];
 export interface GatewayApiOptions<Context extends GatewayContext> {
     serviceName: string;
     timeout?: number;
+    retryCondition?: (res: any, error: any) => boolean;
     sendStats?: SendStats<Context>;
     grpcOptions?: object;
     grpcRecreateService?: boolean;
@@ -444,6 +445,7 @@ export interface GatewayConfig<
     env?: string;
     actions?: string[];
     timeout?: number;
+    retryCondition?: (req: any, error: any) => boolean;
     grpcOptions?: object;
     grpcRecreateService?: boolean;
     axiosConfig?: AxiosRequestConfig;

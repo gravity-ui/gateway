@@ -1014,8 +1014,12 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     error &&
                                     options.grpcRecreateService &&
                                     isRecreateServiceError(error);
-                                const shouldRetry = error && retries && isRetryableError(error);
-
+                                const shouldRetry =
+                                    (retries &&
+                                        !options.retryCondition &&
+                                        error &&
+                                        isRetryableError(error)) ||
+                                    (retries && options.retryCondition?.(response, error));
                                 if (shouldRecreateService) {
                                     ctx.log(
                                         `Service client for ${config.protoKey} is going to be re-created`,

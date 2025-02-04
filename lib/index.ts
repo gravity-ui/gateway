@@ -129,6 +129,7 @@ function createApiAction<
             sendStats: config.sendStats,
             proxyHeaders: config.proxyHeaders,
             proxyDebugHeaders: config.proxyDebugHeaders,
+            retryCondition: config.retryCondition,
             grpcOptions: config.grpcOptions,
             grpcRecreateService,
             getAuthHeaders: config.getAuthHeaders,
