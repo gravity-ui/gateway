@@ -160,23 +160,32 @@ interface StatusMessage {
     details: any[];
 }
 
-function decodeGrpcStatusMessage(metadata: grpc.Metadata, packageRoot: protobufjs.Root) {
+function decodeGrpcStatusMessage(
+    metadata: grpc.Metadata,
+    packageRoot: protobufjs.Root,
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions,
+) {
     const statusMessageBin = metadata.get('grpc-status-details-bin')[0] as Buffer;
 
     if (!statusMessageBin) {
         return undefined;
     }
 
-    return decodeAnyMessageRecursively(packageRoot, {
-        type_url: 'type.googleapis.com/google.rpc.Status',
-        value: statusMessageBin,
-    }) as StatusMessage;
+    return decodeAnyMessageRecursively(
+        packageRoot,
+        {
+            type_url: 'type.googleapis.com/google.rpc.Status',
+            value: statusMessageBin,
+        },
+        decodeAnyMessageProtoLoaderOptions,
+    ) as StatusMessage;
 }
 
 export function parseGrpcError(
     error: grpc.ServiceError,
     packageRoot: protobufjs.Root,
     lang = Lang.Ru,
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions,
 ): GatewayError {
     let title = lang === Lang.Ru ? 'Ошибка' : 'Error';
 
@@ -191,7 +200,11 @@ export function parseGrpcError(
 
     if (error.metadata) {
         try {
-            const statusMessage = decodeGrpcStatusMessage(error.metadata, packageRoot);
+            const statusMessage = decodeGrpcStatusMessage(
+                error.metadata,
+                packageRoot,
+                decodeAnyMessageProtoLoaderOptions,
+            );
 
             if (statusMessage) {
                 code = statusMessage.code;
