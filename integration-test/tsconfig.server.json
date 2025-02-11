@@ -6,5 +6,5 @@
     "allowJs": false,
     "outDir": "../build-integration"
   },
-  "include": ["**/*"],
+  "include": ["server/**/*"]
 }

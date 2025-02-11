@@ -3,7 +3,7 @@ import path from 'path';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
-import {GetAuthHeadersParams, getGatewayControllers} from './index';
+import {GetAuthHeadersParams, getGatewayControllers} from './index.js';
 
 const mock = new MockAdapter(axios);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

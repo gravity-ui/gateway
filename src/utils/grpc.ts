@@ -7,7 +7,7 @@ import {
     DEFAULT_PROTO_LOADER_OPTIONS,
     RECREATE_SERVICE_CODES,
     RETRYABLE_STATUS_CODES,
-} from '../constants';
+} from '../constants.js';
 
 type EncodedMessage = {type_url: string; value: Buffer};
 

@@ -4,5 +4,20 @@
     "env": {
         "node": true,
         "jest": true
-    }
+    },
+    "overrides": [
+        {
+            "files": ["src/**/*"],
+            "rules": {
+                "no-restricted-syntax": [
+                    "error",
+                    {
+                        "selector": "Identifier[name='__dirname']",
+                        "message": "__dirname is not supported, use import {sourceDir} from '<src>/utils/source-dir.js' instead"
+                    }
+                ]
+            },
+            "excludedFiles": ["*.test.*"]
+        }
+    ]
 }
