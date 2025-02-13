@@ -20,7 +20,7 @@ import {getGatewayControllers} from '../../lib';
 import {ErrorConstructor, createCoreContext} from './create-core-context';
 import {schema} from './schema/meta';
 
-const mockRetryCondition = jest.fn((_, error) => {
+const mockGrpcRetryCondition = jest.fn((error) => {
     return Boolean(error?.details === 'Error details here');
 });
 
@@ -37,7 +37,7 @@ function getControllers() {
             getAuthHeaders: () => undefined,
             proxyHeaders: [],
             withDebugHeaders: false,
-            retryCondition: mockRetryCondition,
+            grpcRetryCondition: mockGrpcRetryCondition,
         },
     );
 }
@@ -101,7 +101,7 @@ describe('Unary requests tests', () => {
             },
         });
         await expectStatsToSendError();
-        expect(mockRetryCondition).toHaveBeenCalledTimes(2);
+        expect(mockGrpcRetryCondition).toHaveBeenCalledTimes(2);
     });
 
     it('should correctly rejects when backend error', async () => {

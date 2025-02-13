@@ -1017,7 +1017,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 const shouldRetry =
                                     error &&
                                     retries &&
-                                    (options.retryCondition?.(response, error) ||
+                                    (options.grpcRetryCondition?.(error) ??
                                         isRetryableError(error));
                                 if (shouldRecreateService) {
                                     ctx.log(
