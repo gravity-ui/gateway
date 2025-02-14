@@ -19,7 +19,7 @@ type DescriptorExtensionProto =
           filenames: string[];
       };
 
-function getCachedClient(
+async function getCachedClient(
     actionEndpoint: string,
     credentials: ChannelCredentials,
     grpcOptions?: object,
@@ -29,11 +29,14 @@ function getCachedClient(
     let clientWithCache = _.get(reflectionClientsMap, cacheKey);
 
     if (!clientWithCache) {
-        const grpcReflection = require('grpc-reflection-js');
+        const grpcReflection = await import('grpc-reflection-js');
         let descriptorRoot: protobufjs.Root | undefined;
 
         if (descriptorExtensionProto) {
-            descriptorRoot = protobufjs.Root.fromJSON(require('protobufjs/ext/descriptor'));
+            descriptorRoot = protobufjs.Root.fromJSON(
+                // @ts-expect-error no typings for default export
+                (await import('protobufjs/ext/descriptor/index.js')).default,
+            );
             if (Array.isArray(descriptorExtensionProto)) {
                 descriptorRoot.loadSync(descriptorExtensionProto);
             } else {
@@ -47,6 +50,7 @@ function getCachedClient(
             credentials,
             grpcOptions,
             undefined,
+            // @ts-ignore this parameter is present only in the patched version
             descriptorRoot,
         );
 
@@ -74,7 +78,7 @@ export async function getCachedReflectionRoot(
     grpcOptions?: object,
     descriptorExtensionProto?: DescriptorExtensionProto,
 ) {
-    const {client, reflectionRootPromiseMap} = getCachedClient(
+    const {client, reflectionRootPromiseMap} = await getCachedClient(
         actionEndpoint,
         credentials,
         grpcOptions,
@@ -110,7 +114,7 @@ export async function getReflectionRoot(
     grpcOptions?: object,
     addToCache?: boolean,
 ) {
-    const {client, reflectionRootPromiseMap} = getCachedClient(
+    const {client, reflectionRootPromiseMap} = await getCachedClient(
         actionEndpoint,
         credentials,
         grpcOptions,
