@@ -61,10 +61,10 @@ import {
     isRetryableGrpcError,
     listenForAbort,
 } from '../utils/grpc.js';
+import {packageRoot} from '../utils/package-root.js';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error.js';
 import {patchProtoPathResolver} from '../utils/proto-path-resolver.js';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers.js';
-import {sourceDir} from '../utils/source-dir.js';
 import {validateArgs} from '../utils/validate.js';
 
 // https://github.com/protobufjs/protobuf.js/issues/1499
@@ -169,7 +169,7 @@ type ServiceClient = grpc.Client & {
 
 const grpcLoaderOptions = {
     ...DEFAULT_PROTO_LOADER_OPTIONS,
-    includeDirs: [path.join(sourceDir, '../proto')],
+    includeDirs: [path.join(packageRoot, 'proto')],
 };
 
 export interface GrpcContext {
@@ -179,9 +179,9 @@ export interface GrpcContext {
 
 export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
     const root = new protobufjs.Root();
-    root.loadSync(path.resolve(sourceDir, '../proto/google/rpc/code.proto'));
-    root.loadSync(path.resolve(sourceDir, '../proto/google/rpc/error_details.proto'));
-    root.loadSync(path.resolve(sourceDir, '../proto/google/rpc/status.proto'));
+    root.loadSync(path.resolve(packageRoot, 'proto/google/rpc/code.proto'));
+    root.loadSync(path.resolve(packageRoot, 'proto/google/rpc/error_details.proto'));
+    root.loadSync(path.resolve(packageRoot, 'proto/google/rpc/status.proto'));
     // Load well-known internal protobufjs types
     root.loadSync('google/protobuf/struct.proto');
     root.loadSync('google/protobuf/wrappers.proto');

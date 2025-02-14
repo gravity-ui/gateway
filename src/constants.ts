@@ -1,9 +1,13 @@
+import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
+import * as path from 'path';
 
 import * as grpc from '@grpc/grpc-js';
 
-const packageJson = require('../package.json');
+import {packageRoot} from './utils/package-root.js';
+
+const packageJson = JSON.parse(fs.readFileSync(path.resolve(packageRoot, 'package.json'), 'utf-8'));
 
 export const VERSION = packageJson.version;
 
