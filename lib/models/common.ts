@@ -1,6 +1,11 @@
 import {IncomingHttpHeaders} from 'http';
 
-import {ClientDuplexStream, ClientReadableStream, ClientWritableStream} from '@grpc/grpc-js';
+import {
+    ClientDuplexStream,
+    ClientReadableStream,
+    ClientWritableStream,
+    type ServiceError,
+} from '@grpc/grpc-js';
 import {HandlerType} from '@grpc/grpc-js/build/src/server-call';
 import {
     AxiosInterceptorManager,
@@ -8,6 +13,7 @@ import {
     AxiosResponse,
     InternalAxiosRequestConfig,
 } from 'axios';
+import {IAxiosRetryConfig} from 'axios-retry';
 import type {Request, Response} from 'express';
 import * as protobufjs from 'protobufjs';
 
@@ -89,6 +95,9 @@ export interface GatewayError {
     requestId?: string;
 }
 
+export type GrpcRetryCondition = (error: ServiceError) => boolean;
+export type AxiosRetryCondition = IAxiosRetryConfig['retryCondition'];
+
 export type ProxyHeadersFunction = (
     headers: IncomingHttpHeaders,
     type: ControllerType,
@@ -114,6 +123,8 @@ export type ResponseContentType = AxiosResponse['headers']['Content-Type'];
 export interface GatewayApiOptions<Context extends GatewayContext> {
     serviceName: string;
     timeout?: number;
+    grpcRetryCondition?: GrpcRetryCondition;
+    axiosRetryCondition?: AxiosRetryCondition;
     sendStats?: SendStats<Context>;
     grpcOptions?: object;
     grpcRecreateService?: boolean;
@@ -446,6 +457,8 @@ export interface GatewayConfig<
     env?: string;
     actions?: string[];
     timeout?: number;
+    grpcRetryCondition?: GrpcRetryCondition;
+    axiosRetryCondition?: AxiosRetryCondition;
     grpcOptions?: object;
     grpcRecreateService?: boolean;
     axiosConfig?: AxiosRequestConfig;

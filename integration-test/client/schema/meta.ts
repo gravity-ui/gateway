@@ -59,6 +59,12 @@ const actions = {
         action: 'MethodWithError',
         insecure: true,
     },
+    methodWithErrorAndRetries: {
+        ...config,
+        action: 'MethodWithError',
+        insecure: true,
+        retries: 2,
+    },
     methodWithDeadline: {
         ...config,
         action: 'MethodWithDeadline',
