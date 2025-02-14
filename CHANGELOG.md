@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.0](https://github.com/gravity-ui/gateway/compare/v4.1.0...v4.2.0) (2025-02-14)
+
+
+### Features
+
+* custom retries ([#107](https://github.com/gravity-ui/gateway/issues/107)) ([6cc9775](https://github.com/gravity-ui/gateway/commit/6cc9775d72ebf86f67f543a47317ca77391d6a24))
+
 ## [4.1.0](https://github.com/gravity-ui/gateway/compare/v4.0.0...v4.1.0) (2025-02-11)
 
 
