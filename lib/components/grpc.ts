@@ -203,6 +203,7 @@ function decodeResponse<Context extends GatewayContext>(
     ctx: Context,
     encodedFields: string[] = [],
     ErrorConstructor: AppErrorConstructor,
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions,
 ) {
     const systemFields = ['metadata', 'response', 'error.details'];
 
@@ -215,7 +216,11 @@ function decodeResponse<Context extends GatewayContext>(
                 _.set(
                     response,
                     parsedFieldName,
-                    decodeAnyMessageRecursively(packageRoot, fieldValue),
+                    decodeAnyMessageRecursively(
+                        packageRoot,
+                        fieldValue,
+                        decodeAnyMessageProtoLoaderOptions,
+                    ),
                 );
             }
         } catch (error) {
@@ -588,6 +593,7 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     packageRoot,
     args,
     ErrorConstructor,
+    decodeAnyMessageProtoLoaderOptions,
 }: {
     config: ApiServiceGrpcActionConfig<Context, any, any>;
     response: T;
@@ -595,16 +601,31 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     packageRoot: protobufjs.Root;
     args: R;
     ErrorConstructor: AppErrorConstructor;
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
 }) {
     // Handle operation's runtime protocol buffers
     if (response) {
         const encodedFields = config.encodedFields;
         if (Array.isArray(response)) {
             response.forEach((responseItem) =>
-                decodeResponse(responseItem, packageRoot, ctx, encodedFields, ErrorConstructor),
+                decodeResponse(
+                    responseItem,
+                    packageRoot,
+                    ctx,
+                    encodedFields,
+                    ErrorConstructor,
+                    decodeAnyMessageProtoLoaderOptions,
+                ),
             );
         } else if (typeof response === 'object') {
-            decodeResponse(response, packageRoot, ctx, encodedFields, ErrorConstructor);
+            decodeResponse(
+                response,
+                packageRoot,
+                ctx,
+                encodedFields,
+                ErrorConstructor,
+                decodeAnyMessageProtoLoaderOptions,
+            );
         }
     }
 
@@ -914,7 +935,12 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         processError(
                             new GrpcError(
                                 'ClientReadableStream error',
-                                parseGrpcError(error as grpc.ServiceError, root, lang as Lang),
+                                parseGrpcError(
+                                    error as grpc.ServiceError,
+                                    root,
+                                    lang as Lang,
+                                    config.decodeAnyMessageProtoLoaderOptions,
+                                ),
                                 error as grpc.ServiceError,
                             ),
                         );
@@ -970,7 +996,12 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         processError(
                             new GrpcError(
                                 'BidiStream error',
-                                parseGrpcError(error as grpc.ServiceError, root, lang as Lang),
+                                parseGrpcError(
+                                    error as grpc.ServiceError,
+                                    root,
+                                    lang as Lang,
+                                    config.decodeAnyMessageProtoLoaderOptions,
+                                ),
                                 error as grpc.ServiceError,
                             ),
                         );
@@ -1052,7 +1083,12 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     reject(
                                         new GrpcError(
                                             'gRPC request error',
-                                            parseGrpcError(error, root, lang as Lang),
+                                            parseGrpcError(
+                                                error,
+                                                root,
+                                                lang as Lang,
+                                                config.decodeAnyMessageProtoLoaderOptions,
+                                            ),
                                             error,
                                         ),
                                     );
@@ -1066,6 +1102,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     args,
                                     packageRoot: root,
                                     ErrorConstructor,
+                                    decodeAnyMessageProtoLoaderOptions:
+                                        config.decodeAnyMessageProtoLoaderOptions,
                                 });
                                 const responseHeaders: Headers = {};
 

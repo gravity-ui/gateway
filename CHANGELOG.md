@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://github.com/gravity-ui/gateway/compare/v4.0.0...v4.1.0) (2025-02-11)
+
+
+### Features
+
+* add option to override decodeAnyMessage default proto loader options ([#98](https://github.com/gravity-ui/gateway/issues/98)) ([#106](https://github.com/gravity-ui/gateway/issues/106)) ([15f955f](https://github.com/gravity-ui/gateway/commit/15f955f443e5385f6855ea0addd436b38ba008c5))
+
 ## [4.0.0](https://github.com/gravity-ui/gateway/compare/v3.1.1...v4.0.0) (2025-01-30)
 
 

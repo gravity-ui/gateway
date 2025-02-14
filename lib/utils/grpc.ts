@@ -17,20 +17,24 @@ function isEncodedMessage(
     return Boolean(message.type_url && message.value);
 }
 
-export function decodeAnyMessageRecursively(root: protobufjs.Root, message?: unknown): unknown {
+export function decodeAnyMessageRecursively(
+    root: protobufjs.Root,
+    message?: unknown,
+    decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions,
+): unknown {
     if (!message || typeof message !== 'object') {
         return message;
     }
 
     if (Array.isArray(message)) {
         return message.map((innerMessage: unknown) =>
-            decodeAnyMessageRecursively(root, innerMessage),
+            decodeAnyMessageRecursively(root, innerMessage, decodeAnyMessageProtoLoaderOptions),
         );
     }
 
     if (typeof message === 'object' && !isEncodedMessage(message)) {
         return Object.entries(message as Record<string, unknown>).reduce((res, [key, value]) => {
-            res[key] = decodeAnyMessageRecursively(root, value);
+            res[key] = decodeAnyMessageRecursively(root, value, decodeAnyMessageProtoLoaderOptions);
             return res;
         }, {} as Record<string, unknown>);
     }
@@ -43,9 +47,12 @@ export function decodeAnyMessageRecursively(root: protobufjs.Root, message?: unk
 
     const typeName = message.type_url.substring(lastSlashIndex + 1);
     const type = root.lookupType(typeName);
-    const decodedMessage = type.toObject(type.decode(message.value), DEFAULT_PROTO_LOADER_OPTIONS);
+    const decodedMessage = type.toObject(type.decode(message.value), {
+        ...DEFAULT_PROTO_LOADER_OPTIONS,
+        ...decodeAnyMessageProtoLoaderOptions,
+    });
 
-    return decodeAnyMessageRecursively(root, decodedMessage);
+    return decodeAnyMessageRecursively(root, decodedMessage, decodeAnyMessageProtoLoaderOptions);
 }
 
 export function isRetryableError(error?: grpc.ServiceError) {
