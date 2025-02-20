@@ -2,7 +2,7 @@
 
 Express controller for working with REST/GRPC APIs.
 
-## Install
+## Install 1
 
 ```shell
 npm install --save-dev @gravity-ui/gateway
