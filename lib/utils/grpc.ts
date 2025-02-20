@@ -54,11 +54,19 @@ export function decodeAnyMessageRecursively(
             ...decodeAnyMessageProtoLoaderOptions,
         });
 
-        if (typeof decodedMessage === 'object' && !Array.isArray(decodedMessage) && !decodedMessage['@type']) {
+        if (
+            typeof decodedMessage === 'object' &&
+            !Array.isArray(decodedMessage) &&
+            !decodedMessage['@type']
+        ) {
             Object.assign(decodedMessage, {'@type': message.type_url});
         }
-    
-        return decodeAnyMessageRecursively(root, decodedMessage, decodeAnyMessageProtoLoaderOptions);
+
+        return decodeAnyMessageRecursively(
+            root,
+            decodedMessage,
+            decodeAnyMessageProtoLoaderOptions,
+        );
     } catch (error) {
         console.error(`Failed to lookup ${typeName}`, error);
 
