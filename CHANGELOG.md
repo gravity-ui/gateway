@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.1](https://github.com/gravity-ui/gateway/compare/v3.2.0...v3.2.1) (2025-02-20)
+
+
+### Bug Fixes
+
+* add [@type](https://github.com/type) field to decoded grpc message ([#110](https://github.com/gravity-ui/gateway/issues/110)) ([#112](https://github.com/gravity-ui/gateway/issues/112)) ([ab3dee4](https://github.com/gravity-ui/gateway/commit/ab3dee45c6b60242f3b834b92796112a0b6be595))
+
 ## [3.2.0](https://github.com/gravity-ui/gateway/compare/v3.1.1...v3.2.0) (2025-01-31)
 
 
