@@ -46,13 +46,32 @@ export function decodeAnyMessageRecursively(
     }
 
     const typeName = message.type_url.substring(lastSlashIndex + 1);
-    const type = root.lookupType(typeName);
-    const decodedMessage = type.toObject(type.decode(message.value), {
-        ...DEFAULT_PROTO_LOADER_OPTIONS,
-        ...decodeAnyMessageProtoLoaderOptions,
-    });
 
-    return decodeAnyMessageRecursively(root, decodedMessage, decodeAnyMessageProtoLoaderOptions);
+    try {
+        const type = root.lookupType(typeName);
+        const decodedMessage = type.toObject(type.decode(message.value), {
+            ...DEFAULT_PROTO_LOADER_OPTIONS,
+            ...decodeAnyMessageProtoLoaderOptions,
+        });
+
+        if (
+            typeof decodedMessage === 'object' &&
+            !Array.isArray(decodedMessage) &&
+            !decodedMessage['@type']
+        ) {
+            Object.assign(decodedMessage, {'@type': message.type_url});
+        }
+
+        return decodeAnyMessageRecursively(
+            root,
+            decodedMessage,
+            decodeAnyMessageProtoLoaderOptions,
+        );
+    } catch (error) {
+        console.error(`Failed to lookup ${typeName}`, error);
+
+        return message;
+    }
 }
 
 export function isRetryableError(error?: grpc.ServiceError) {
