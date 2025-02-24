@@ -1,4 +1,4 @@
-import Ajv from 'ajv';
+import {Ajv} from 'ajv';
 
 export function validateArgs<TParams>(args: TParams, schema: object) {
     const ajv = new Ajv();

@@ -1,9 +1,13 @@
-import http from 'http';
-import https from 'https';
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import * as path from 'path';
 
 import * as grpc from '@grpc/grpc-js';
 
-const packageJson = require('../package.json');
+import {packageRoot} from './utils/package-root.js';
+
+const packageJson = JSON.parse(fs.readFileSync(path.resolve(packageRoot, 'package.json'), 'utf-8'));
 
 export const VERSION = packageJson.version;
 
@@ -27,11 +31,11 @@ export const DEFAULT_PROXY_HEADERS = [
 export const DEFAULT_AXIOS_OPTIONS = {
     maxContentLength: 1024 * 1024 * 100, // 100 Mb
     httpAgent: new http.Agent({
-        //@ts-ignore https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
+        // https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
         family: 6,
     }),
     httpsAgent: new https.Agent({
-        //@ts-ignore https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
+        // https://github.com/nodejs/node/blob/master/lib/_http_agent.js#L233
         family: 6,
     }),
 };
