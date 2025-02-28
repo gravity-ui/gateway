@@ -44,6 +44,7 @@ import {
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
+import {listenForAbort} from '../utils/abort';
 import {
     getHeadersFromMetadata,
     handleError,
@@ -724,7 +725,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     }
 
     return async function action(actionConfig: ApiActionConfig<Context, any, any>) {
-        const {args, requestId, headers, ctx: parentCtx, userId} = actionConfig;
+        const {args, requestId, headers, ctx: parentCtx, userId, abortSignal} = actionConfig;
         const {action} = config;
         const lang = headers[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
 
@@ -831,6 +832,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
             throw error;
         }
 
+        let stopListeningForAbort: (() => void) | null = null;
+
         // eslint-disable-next-line complexity
         return new Promise<GatewayActionResponseData<Context, any, any, any>>((resolve, reject) => {
             let endpointData = endpoints?.grpcEndpoint || endpoints?.endpoint;
@@ -907,6 +910,13 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         serviceOptions as CallOptions,
                     );
 
+                    listenForAbort({
+                        signal: abortSignal,
+                        config,
+                        call: stream,
+                        reject,
+                    });
+
                     stream.on('error', (error) => {
                         ctx.log('ServerStream error', {
                             debugHeaders: sanitizeDebugHeaders(debugHeaders),
@@ -925,11 +935,14 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     });
 
                     stream.on('end', () => {
+                        stopListeningForAbort?.();
+
                         ctx.log('ServerStream request completed', {
                             debugHeaders: sanitizeDebugHeaders(debugHeaders),
                         });
                         ctx.end();
                     });
+
                     resolve({debugHeaders, stream});
                     return;
                 }
@@ -950,7 +963,20 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         serviceOptions as CallOptions,
                         actionConfig.callback,
                     );
+
+                    listenForAbort({
+                        signal: abortSignal,
+                        config,
+                        call: stream,
+                        reject,
+                    });
+
+                    stream.once('end', () => {
+                        stopListeningForAbort?.();
+                    });
+
                     resolve({debugHeaders, stream});
+
                     return;
                 }
                 case 'bidi': {
@@ -962,6 +988,13 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         serviceMetadata as Metadata,
                         serviceOptions as CallOptions,
                     );
+
+                    listenForAbort({
+                        signal: abortSignal,
+                        config,
+                        call: stream,
+                        reject,
+                    });
 
                     stream.on('error', (error) => {
                         ctx.log('BidiStream error', {
@@ -981,6 +1014,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     });
 
                     stream.on('end', () => {
+                        stopListeningForAbort?.();
+
                         ctx.log('BidiStream request completed', {
                             debugHeaders: sanitizeDebugHeaders(debugHeaders),
                         });
@@ -999,6 +1034,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     });
                     let retries = config.retries ?? 0;
                     let actionCall = service[action].bind(service) as UnaryAction;
+
                     const callAction = () => {
                         let trailingMetadata: Record<string, grpc.MetadataValue[]> = {};
 
@@ -1039,6 +1075,9 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                         );
                                         throw error;
                                     }
+
+                                    stopListeningForAbort?.();
+
                                     // Update service
                                     actionCall = service[action].bind(service) as UnaryAction;
                                     callAction();
@@ -1046,6 +1085,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 }
 
                                 if (error) {
+                                    stopListeningForAbort?.();
                                     reject(
                                         new GrpcError(
                                             'gRPC request error',
@@ -1107,12 +1147,21 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 });
                                 ctx.end();
 
+                                stopListeningForAbort?.();
+
                                 return resolve({responseData, responseHeaders, debugHeaders});
                             },
                         );
 
                         call.on('status', (status) => {
                             trailingMetadata = status.metadata.toJSON();
+                        });
+
+                        stopListeningForAbort = listenForAbort({
+                            signal: abortSignal,
+                            config,
+                            call,
+                            reject,
                         });
                     };
 
@@ -1122,6 +1171,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
         }).catch((error: Error | GrpcError) => {
             const grpcError = isGrpcError(error) ? error : grpcErrorFactory(error);
             processError(grpcError);
+
+            stopListeningForAbort?.();
 
             return Promise.reject({error: grpcError.getGatewayError(), debugHeaders});
         });

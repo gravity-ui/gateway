@@ -89,6 +89,7 @@ export default function createRestAction<Context extends GatewayContext>(
             ctx: parentCtx,
             authArgs,
             userId,
+            abortSignal,
         } = actionConfig;
         const debugHeaders: Headers = {};
         const lang = requestHeaders[DEFAULT_LANG_HEADER] || Lang.Ru; // header might be empty string
@@ -309,6 +310,7 @@ export default function createRestAction<Context extends GatewayContext>(
             params: query,
             headers: ctx ? {...ctx.getMetadata(), ...headers} : headers,
             maxRedirects: config.maxRedirects,
+            signal: config.abortOnClientDisconnect ? abortSignal : undefined,
         };
 
         if (config.paramsSerializer) {
