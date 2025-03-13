@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.0](https://github.com/gravity-ui/gateway/compare/v4.2.1...v4.3.0) (2025-03-13)
+
+
+### Features
+
+* export isRetryableError function ([#116](https://github.com/gravity-ui/gateway/issues/116)) ([37b1b49](https://github.com/gravity-ui/gateway/commit/37b1b492e5e3f7849acd327572c7f90df8f27d97))
+
 ## [4.2.1](https://github.com/gravity-ui/gateway/compare/v4.2.0...v4.2.1) (2025-02-20)
 
 
