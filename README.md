@@ -1,16 +1,37 @@
 # @gravity-ui/gateway &middot; [![npm package](https://img.shields.io/npm/v/@gravity-ui/gateway)](https://www.npmjs.com/package/@gravity-ui/gateway) [![CI](https://img.shields.io/github/actions/workflow/status/gravity-ui/gateway/.github/workflows/ci.yml?label=CI&logo=github)](https://github.com/gravity-ui/gateway/actions/workflows/ci.yml?query=branch:main)
 
-Express controller for working with REST/GRPC APIs.
+A flexible and powerful Express controller for working with REST and gRPC APIs in Node.js applications.
 
-## Install
+## Table of Contents
+
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+- [Configuration](#configuration)
+  - [Config Structure](#config-structure)
+  - [Validation Schema](#validation-schema)
+- [Advanced Usage](#advanced-usage)
+  - [Using the API in Node.js](#using-the-api-in-nodejs)
+  - [Schema Scopes](#schema-scopes)
+  - [Connecting Specific Actions](#connecting-specific-actions)
+  - [Overriding Endpoints](#overriding-endpoints)
+  - [Authentication](#authentication)
+  - [Error Handling](#error-handling)
+- [gRPC Features](#grpc-features)
+  - [gRPC Reflection](#grpc-reflection-for-grpc-actions)
+  - [Retryable Errors](#retryable-errors)
+- [Development](#development)
+  - [Running Tests](#running-tests)
+  - [Contributing](#contributing)
+
+## Installation
 
 ```shell
-npm install --save-dev @gravity-ui/gateway
+npm install --save @gravity-ui/gateway
 ```
 
-## Usage
+## Basic Usage
 
-First of all, you need to create a controller where you will import Gateway and Schema, and then return the initialized gateway controller:
+First, create a controller by importing Gateway and your API schemas:
 
 ```javascript
 import {getGatewayControllers} from '@gravity-ui/gateway';
@@ -27,7 +48,7 @@ const {controller: gatewayController} = getGatewayControllers({root: Schema}, co
 export default gatewayController;
 ```
 
-Next, the controller described above should be connected to a route of the following format (the project should use [expresskit](https://github.com/gravity-ui/expresskit)):
+Then, connect the controller to your Express routes (using [expresskit](https://github.com/gravity-ui/expresskit)):
 
 ```javascript
 {
@@ -37,11 +58,12 @@ Next, the controller described above should be connected to a route of the follo
 
 The `prefix` can be any prefix for API endpoints (for example, `/gateway/:service/:action`).
 
-### Config Structure
+## Configuration
 
 ```typescript
 import {AxiosRequestConfig} from 'axios';
 import {IncomingHttpHeaders} from 'http';
+import {IAxiosRetryConfig} from 'axios-retry';
 
 interface OnUnknownActionData {
   service?: string;
@@ -67,6 +89,11 @@ type SendStats = (
   meta: {debugHeaders: Headers},
 ) => void;
 
+type GrpcRetryCondition = (error: ServiceError) => boolean;
+type AxiosRetryCondition = IAxiosRetryConfig['retryCondition'];
+
+type ControllerType = 'rest' | 'grpc';
+
 type ProxyHeadersFunction = (
   headers: IncomingHttpHeaders,
   type: ControllerType,
@@ -74,19 +101,48 @@ type ProxyHeadersFunction = (
 type ProxyHeaders = string[] | ProxyHeadersFunction;
 type ResponseContentType = AxiosResponse['headers']['Content-Type'];
 
+type GetAuthHeadersParams<AuthArgs = Record<string, unknown>> = {
+  actionType: ControllerType;
+  serviceName: string;
+  requestHeaders: Headers;
+  authArgs: AuthArgs | undefined;
+};
+
+interface AppErrorArgs {
+  code?: string | number;
+  details?: object;
+  debug?: object;
+}
+
+interface AppErrorWrapArgs extends AppErrorArgs {
+  message?: string;
+}
+
+interface AppErrorConstructor {
+  new (message?: string, args?: AppErrorArgs): Error;
+
+  wrap: (error: Error, args?: AppErrorWrapArgs) => Error;
+}
+
 interface GatewayConfig {
-  // Gateway Installation (external/internal/...). If the configuration is not provided, it is determined from process.env.APP_INSTALLATION.
+  // Gateway Installation (external/internal/...). If not provided, determined from process.env.APP_INSTALLATION.
   installation?: string;
-  // Gateway Environment (production/testing/...). If the configuration is not provided, it is determined from process.env.APP_ENV.
+
+  // Gateway Environment (production/testing/...). If not provided, determined from process.env.APP_ENV.
   env?: string;
+
   // Additional gRPC client options.
   grpcOptions?: object;
+
   // Additional Axios client options.
   axiosConfig?: AxiosRequestConfig;
-  // List of actions that need to be connected from the schema. By default, all actions are connected.
+
+  // List of actions to connect from the schema. By default, all actions are connected.
   actions?: string[];
+
   // Called when an unknown service or action is provided.
   onUnknownAction?: (req: Request, res: Response, data: OnUnknownActionData) => any;
+
   // Called before the request is executed.
   onBeforeAction?: (
     req: Request,
@@ -96,42 +152,92 @@ interface GatewayConfig {
     action: string,
     config?: ApiServiceActionConfig,
   ) => any;
+
   // Called upon successful completion of the request.
   onRequestSuccess?: (req: Request, res: Response, data: any) => any;
+
   // Called in case of unsuccessful request execution.
   onRequestFailed?: (req: Request, res: Response, error: any) => any;
+
   // List of paths to the necessary proto files for the gateway.
   includeProtoRoots?: string[];
+
   // Configuration of the path to the certificate in gRPC.
   // Set to null to use system certificates by default.
   caCertificatePath?: string | null;
+
   // Telemetry sending configuration.
   sendStats?: SendStats;
+
   // Configuration of headers sent to the API.
   proxyHeaders?: ProxyHeaders;
+
   // When passing a boolean value, it enables/disables debug headers in the response to the request.
   // For unary requests to gRPC backends, debug headers will include information from the trailing metadata returned by the backend.
   withDebugHeaders?: boolean;
-  // Validation schema for parameters used when no schema is present in the action. Documentation: https://ajv.js.org/json-schema.html#json-data-type
+
+  // Validation schema for parameters used when no schema is present in the action.
   // You can use DEFAULT_VALIDATION_SCHEMA from lib/constants.ts.
   validationSchema?: object;
+
   // Enables encoding of REST path arguments (default is true).
   encodePathArgs?: boolean;
+
   // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is true).
   grpcRecreateService?: boolean;
-  // Enable verification of response contentType header. Actual only for REST actions. This value can be set / redefined the in action confg.
+
+  // Customize retry behavior for grpc requests
+  grpcRetryCondition?: GrpcRetryCondition;
+
+  // Customize retry behavior for rest (axios) requests
+  axiosRetryCondition?: AxiosRetryCondition;
+
+  // Enable verification of response contentType header. Actual only for REST actions.
+  // This value can be set/redefined in the action config.
   expectedResponseContentType?: ResponseContentType | ResponseContentType[];
+
+  // Function to get authentication arguments for API requests
+  getAuthArgs: (req: Request, res: Response) => Record<string, unknown> | undefined;
+
+  // Function to get authentication headers for API requests
+  getAuthHeaders: (params: GetAuthHeadersParams) => Record<string, string> | undefined;
+
+  // Error constructor for handling errors
+  ErrorConstructor: AppErrorConstructor;
 }
 ```
 
-#### validationSchema
+### Validation Schema
 
-By default, for path params in rest actions used the following regexp: `/^((?!(\.\.|\?|#|\\|\/)).)*$/i`.
-If the parameter value does not pass validation, the `GATEWAY_INVALID_PARAM_VALUE` value is returned.
+By default, for path params in REST actions, the following regexp is used: `/^((?!(\.\.|\?|#|\\|\/)).)*$/i`.
+If the parameter value does not pass validation, the `GATEWAY_INVALID_PARAM_VALUE` error is returned.
 
-### Usage in Node.js
+You can use the `DEFAULT_VALIDATION_SCHEMA` from `lib/constants.ts` as a starting point:
 
-Upon gateway initialization, in addition to exporting the controller, it also exports an `api` object, which represents the core for executing requests to the backend.
+```javascript
+export const DEFAULT_VALIDATION_SCHEMA = {
+  additionalProperties: {
+    oneOf: [
+      {
+        type: 'number',
+      },
+      {
+        type: 'string',
+        pattern: '^((?!(\\.\\.|\\?|#|\\\\|\\/)).)*$',
+      },
+      {
+        type: 'object',
+      },
+    ],
+  },
+};
+```
+
+## Advanced Usage
+
+### Using the API in Node.js
+
+In addition to the Express controller, the gateway also exports an `api` object for making direct requests to backend services:
 
 ```javascript
 import {getGatewayControllers} from '@gravity-ui/gateway';
@@ -146,15 +252,18 @@ const config = {
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: Schema}, config);
+
+// Use the API to make requests
+const result = await gatewayApi.serviceName.actionName({
+  authArgs: {token: 'auth-token'},
+  requestId: '123',
+  headers: {},
+  args: {param1: 'value1'},
+  ctx: context,
+});
 ```
 
-Subsequently, in the code, you can use it as follows:
-
-```javascript
-gatewayApi[service][action](actionConfig);
-```
-
-`actionConfig` has the following structure:
+The `actionConfig` parameter has the following structure:
 
 ```typescript
 interface ApiActionConfig<Context, TRequestData> {
@@ -171,50 +280,49 @@ interface ApiActionConfig<Context, TRequestData> {
 ### Schema Scopes
 
 Each schema belongs to its own namespace. Service and action names between schemas are completely independent and can coincide. Each scope has an independent gRPC context, which eliminates naming conflicts between schemas in proto files.
-The scope name is the key in the first parameter of the object containing the schemas.
+
+The scope name is the key in the first parameter of the object containing the schemas:
 
 ```javascript
 const schemasByScopes = {scope1: schema1, scope2: schema2};
 ```
 
-Example with two scope namespaces: `root` and `anotherScope`.
+Example with two scope namespaces: `root` and `anotherScope`:
 
 ```javascript
 import {getGatewayControllers} from '@gravity-ui/gateway';
 
 const {
-    controller, // Controller
-    api, // API (for Node.js environment)
-} = getGatewayControllers({ root: rootSchema, anotherScope: anotherSchema}, config);
+  controller, // Controller
+  api, // API (for Node.js environment)
+} = getGatewayControllers({root: rootSchema, anotherScope: anotherSchema}, config);
 
-// API calls are made by specifying the scope.
-const resultFromRoot = api.rootSchema.<root-service>.<root-action>(params);
-const resultFromAnother = api.anotherSchema.<another-service>.<another-action>(params);
+// API calls are made by specifying the scope
+const resultFromRoot = api.root.rootService.rootAction(params);
+const resultFromAnother = api.anotherScope.anotherService.anotherAction(params);
 ```
 
-There is a special scope called root. Its methods can be invoked without explicitly specifying the scope.
+There is a special scope called `root`. Its methods can be invoked without explicitly specifying the scope:
 
 ```javascript
-const resultFromRoot = api.rootSchema.<root-service>.<root-action>(params);
+const resultFromRoot = api.root.rootService.rootAction(params);
 // Same result
-const sameResultFromRoot = api.<root-service>.<root-action>(params);
+const sameResultFromRoot = api.rootService.rootAction(params);
 ```
 
-The controller for the expresskit will also expect the `:scope` parameter.
+The controller for expresskit will also expect the `:scope` parameter. If the scope parameter is not specified, the default scope is assumed to be `root`.
 
 ```javascript
 {
-    'POST   /<prefix>/:scope/:service/:action': {...}
+    'POST   /<prefix>/:scope/:service/:action': gatewayController
 }
 ```
 
-If the scope parameter is not specified, the default scope is assumed to be `root`.
+### Connecting Specific Actions
 
-### Connecting a Specific Set of Actions
+You can explicitly specify which actions to connect from the schemas using the `actions` field in the config. If actions are not provided, all actions from the schemas are connected by default.
 
-When initializing the `gateway`, there is an option to explicitly specify the actions that need to be connected from the schemas. To do this, provide a list of available client-side actions in the `actions` field in the config. If `actions` are not provided, all actions from the schemas are connected by default.
-
-```typescript
+```javascript
 import {getGatewayControllers} from '@gravity-ui/gateway';
 import rootSchema from '<schemas package>';
 import localSchema from '../shared/schemas';
@@ -223,49 +331,177 @@ const config = {
   installation: 'external',
   env: 'production',
   includeProtoRoots: ['...'],
-  actions: ['local.*', 'root.serviceA.*', 'root.serviceB.get'], // List of actions to be connected from the schemas. By default, all actions are connected.
+  actions: [
+    'local.*', // All actions from the 'local' scope
+    'root.serviceA.*', // All actions from 'serviceA' in the 'root' scope
+    'root.serviceB.getUser', // Only the 'getUser' action from 'serviceB' in the 'root' scope
+  ],
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: rootSchema, local: localSchema}, config);
 ```
 
-The following combinations are available for specifying connected actions:
+Available patterns for specifying actions:
 
-- `<scope>.*` - all actions from the scope scope are connected (for example, `local.*`)
-- `<scope>.<service>.*` - all actions from the service service are connected (for example, `root.serviceA.*`)
-- `<scope>.<service>.action` - only the specified action is connected (for example, `root.serviceB.get`)
+- `<scope>.*` - all actions from the specified scope
+- `<scope>.<service>.*` - all actions from the specified service
+- `<scope>.<service>.<action>` - only the specified action
 
-**Important.** The actions configuration only affects the list of actions that will be accessible from the client (e.g., via the `sdk`). All actions from the schemas will continue to be accessible on Node.js.
+**Note:** This configuration only affects client-side access. All actions remain accessible on the server side.
 
-### GATEWAY_ENDPOINTS_OVERRIDES
+### Overriding Endpoints
 
-Through the `GATEWAY_ENDPOINTS_OVERRIDES` environment variable, you can override specific endpoints. This can be useful for testing environments. A simple example: `{"serviceName":{"endpoint":"https://example.com"}}`. You can find a more detailed format in the OverrideParams interface and test examples.
+You can override specific endpoints using the `GATEWAY_ENDPOINTS_OVERRIDES` environment variable. This is useful for testing environments.
+
+Example format:
+
+```javascript
+GATEWAY_ENDPOINTS_OVERRIDES = JSON.stringify({
+  "serviceName": {
+    "endpoint": "https://example.com"
+  },
+  "example.exampleService": {
+    "endpoint": "https://overrided.example.com"
+  }
+}
+```
+
+### Authentication
+
+The gateway supports set up authentication through the `getAuthArgs` and `getAuthHeaders` config options:
+
+```javascript
+const config = {
+  // ...other config options
+
+  // Get authentication arguments for request
+  getAuthArgs: (req, res) => ({
+    token: req.authorization.token,
+  }),
+
+  // Generate authentication headers for backend requests
+  getAuthHeaders: (params) => {
+    if (!params?.token) return undefined;
+
+    return {
+      Authorization: `Bearer ${params.token}`,
+    };
+  },
+};
+```
+
+You can also define service-specific authentication by adding a `getAuthHeaders` function to individual actions:
+
+```javascript
+const schema = {
+  userService: {
+    serviceName: 'users',
+    endpoints: {...},
+    actions: {
+      getProfile: {
+        path: () => '/profile',
+        method: 'GET',
+        getAuthHeaders: (params) => ({
+          'X-Special-Auth': params.token,
+        }),
+      },
+    },
+  },
+};
+```
+
+### Error Handling
+
+The gateway provides several ways to handle errors:
+
+1. **Error constructor** through the `ErrorConstructor` (reqiured field) config option:
+
+```javascript
+class CustomError extends Error {
+  constructor(message, options = {}) {
+    super(message);
+    this.name = 'CustomError';
+    this.code = options.code || 'UNKNOWN_ERROR';
+    this.status = options.status || 500;
+    this.details = options.details;
+  }
+
+  static wrap(error) {
+    if (error instanceof CustomError) return error;
+    return new CustomError(error.message, {
+      code: error.code || 'INTERNAL_ERROR',
+      status: error.status || 500,
+    });
+  }
+}
+
+const config = {
+  // ...other config options
+  ErrorConstructor: CustomError,
+};
+```
+
+2. **Custom request error handling** through the `onRequestFailed` config option:
+
+```javascript
+const config = {
+  // ...other config options
+  onRequestFailed: (req, res, error) => {
+    console.error('Request failed:', error);
+    return res.status(error.status || 500).json({
+      error: error.message,
+      code: error.code,
+    });
+  },
+};
+```
 
 ### gRPC Reflection for gRPC Actions
 
-Instead of using gRPC proto files, a gRPC action can determine the structure of the service and the required method through reflection.
+Instead of using gRPC proto files, you can use gRPC reflection to determine the structure of services and methods.
 
-**Enabling Reflection**
+**Prerequisites:**
 
-To use reflection, you need to:
+1. Install the `grpc-reflection-js` package:
 
-- Install the `grpc-reflection-js` package as a peer dependency.
-- Apply patches to the `protobufjs` library. You can do this in the following ways:
+   ```shell
+   npm install --save grpc-reflection-js
+   ```
 
-  a) Add `npx gateway-reflection-patch` to the `postinstall` script in your project and execute it. This assumes that protobufjs is located in the root of node_modules.
+2. Apply patches to the `protobufjs` library:
+   - Add `npx gateway-reflection-patch` to your project's `postinstall` script. This assumes that protobufjs is located in the root of node_modules.
+   - Copy the patch from the library's patches folder to your project root, install [patch-package](https://www.npmjs.com/package/patch-package), and add the patch-package command to the `postinstall` script. In this case, you need to keep an eye on updates to the patches in the gateway when updating it.
 
-  b) Copy the patch from the library's patches folder to your project's root, install [patch-package](https://www.npmjs.com/package/patch-package), and add the `patch-package` command to the `postinstall` script. In this case, you need to keep an eye on updates to the patches in the gateway when updating it.
+If you encounter a "cannot run in wd [...]" error during Docker build, you can add unsafe-perm = true to your .npmrc file as described here.
 
-  If you encounter a "cannot run in wd [...]" error during Docker build, you can add unsafe-perm = true to your .npmrc file as described here.
+3. Configure your action to use reflection:
 
-- In the `action` configuration, replace the `protoPath` option with the `reflection` option and set its value to the appropriate `GrpcReflection` enum value. For reflection to work, the endpoint must support it.
+   ```javascript
+   import {GrpcReflection} from '@gravity-ui/gateway';
 
-Possible values for `GrpcReflection`, affecting the caching of reflection results:
+   const schema = {
+     userService: {
+       serviceName: 'users',
+       endpoints: {...},
+       actions: {
+         getUser: {
+           protoKey: 'users.v1.UserService',
+           action: 'GetUser',
+           reflection: GrpcReflection.OnFirstRequest,
+           // Optional: refresh reflection cache every 3600 seconds (1 hour)
+           reflectionRefreshSec: 3600,
+         },
+       },
+     },
+   };
+   ```
 
-- `OnFirstRequest` - Perform reflection on the first action request. Use cached reflections.
-- `OnEveryRequest` - Perform reflection before every action request. Do not use cached reflections.
+**Reflection Options:**
 
-For the `OnFirstRequest` options you can specify the reflectionRefreshSec parameter, which indicates how often in seconds the reflection cache can be updated in the background. Cache updates happen asynchronously and don't block the current request. The initial reflection request with an empty cache might introduce some delay in the request.
+- `GrpcReflection.OnFirstRequest` - Perform reflection on the first request. Use cached reflections.
+- `GrpcReflection.OnEveryRequest` - Perform reflection before every request. Do not use cached reflections.
+
+For the `OnFirstRequest` options you can specify the `reflectionRefreshSec` parameter, which indicates how often in seconds the reflection cache can be updated in the background. Cache updates happen asynchronously and don't block the current request. The initial reflection request with an empty cache might introduce some delay in the request.
 
 **Particularities**
 
@@ -282,3 +518,64 @@ For development, you need to apply the patch locally using the command `npx patc
 **ChannelCredentials Type Mismatch Error**
 
 This error can occur due to duplicate installations of the `@grpc/grpc-js` library. It's recommended to ensure that all versions of this library are aligned and consistent to avoid this issue.
+
+### Retryable Errors
+
+The default retry condition for REST-actions includes the certain condition:
+
+```javascript
+axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error);
+```
+
+The default retry condition for gRPC-actions includes the certain gRPC status codes:
+
+- `UNAVAILABLE`
+- `CANCELLED`
+- `ABORTED`
+- `UNKNOWN`
+
+You can customize retry behavior for gRPC-actions using the `grpcRetryCondition` config option:
+
+```javascript
+const config = {
+  // ...other config options
+  grpcRetryCondition: (error) => {
+    // Custom logic to determine if the request should be retried
+    return error.code === 'RESOURCE_EXHAUSTED';
+  },
+};
+```
+
+You can customize retry behavior for REST-actions using the `axiosRetryCondition` config option:
+
+```javascript
+const config = {
+  // ...other config options
+  axiosRetryCondition: (error) => {
+    // Custom logic to determine if the request should be retried
+    return error.code === 'TIMEOUT';
+  },
+};
+```
+
+For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated before retrying if config option `grpcRecreateService` is not set to `false`.
+
+## Development
+
+### Running Tests
+
+```shell
+# Run unit tests
+npm test
+
+# Run integration tests
+npm run test-integration
+```
+
+### Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## License
+
+MIT
