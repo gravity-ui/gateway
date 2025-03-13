@@ -9,14 +9,12 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
 - [Configuration](#configuration)
   - [Config Structure](#config-structure)
   - [Validation Schema](#validation-schema)
-- [Advanced Usage](#advanced-usage)
   - [Using the API in Node.js](#using-the-api-in-nodejs)
   - [Schema Scopes](#schema-scopes)
   - [Connecting Specific Actions](#connecting-specific-actions)
   - [Overriding Endpoints](#overriding-endpoints)
   - [Authentication](#authentication)
   - [Error Handling](#error-handling)
-- [gRPC Features](#grpc-features)
   - [gRPC Reflection](#grpc-reflection-for-grpc-actions)
   - [Retryable Errors](#retryable-errors)
 - [Development](#development)
@@ -232,8 +230,6 @@ export const DEFAULT_VALIDATION_SCHEMA = {
   },
 };
 ```
-
-## Advanced Usage
 
 ### Using the API in Node.js
 
@@ -456,6 +452,50 @@ const config = {
 };
 ```
 
+### Retryable Errors
+
+#### REST-actions
+
+The **default** retry condition for REST-actions includes the following conditions:
+
+- Network errors (detected by `axiosRetry.isNetworkError`)
+- Other retryable errors (detected by `axiosRetry.isRetryableError`)
+
+You can customize retry behavior for using the `axiosRetryCondition` config option:
+
+```javascript
+const config = {
+  // ...other config options
+  axiosRetryCondition: (error) => {
+    // Custom logic to determine if the request should be retried
+    return error.code === 'TIMEOUT';
+  },
+};
+```
+
+#### gRPC-actions
+
+The **default** retry condition for gRPC-actions includes the certain gRPC status codes:
+
+- `UNAVAILABLE`
+- `CANCELLED`
+- `ABORTED`
+- `UNKNOWN`
+
+You can customize retry behavior using the `grpcRetryCondition` config option:
+
+```javascript
+const config = {
+  // ...other config options
+  grpcRetryCondition: (error) => {
+    // Custom logic to determine if the request should be retried
+    return error.code === 'RESOURCE_EXHAUSTED';
+  },
+};
+```
+
+For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated before retrying if config option `grpcRecreateService` is not set to `false`.
+
 ### gRPC Reflection for gRPC Actions
 
 Instead of using gRPC proto files, you can use gRPC reflection to determine the structure of services and methods.
@@ -518,47 +558,6 @@ For development, you need to apply the patch locally using the command `npx patc
 **ChannelCredentials Type Mismatch Error**
 
 This error can occur due to duplicate installations of the `@grpc/grpc-js` library. It's recommended to ensure that all versions of this library are aligned and consistent to avoid this issue.
-
-### Retryable Errors
-
-The default retry condition for REST-actions includes the certain condition:
-
-```javascript
-axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error);
-```
-
-The default retry condition for gRPC-actions includes the certain gRPC status codes:
-
-- `UNAVAILABLE`
-- `CANCELLED`
-- `ABORTED`
-- `UNKNOWN`
-
-You can customize retry behavior for gRPC-actions using the `grpcRetryCondition` config option:
-
-```javascript
-const config = {
-  // ...other config options
-  grpcRetryCondition: (error) => {
-    // Custom logic to determine if the request should be retried
-    return error.code === 'RESOURCE_EXHAUSTED';
-  },
-};
-```
-
-You can customize retry behavior for REST-actions using the `axiosRetryCondition` config option:
-
-```javascript
-const config = {
-  // ...other config options
-  axiosRetryCondition: (error) => {
-    // Custom logic to determine if the request should be retried
-    return error.code === 'TIMEOUT';
-  },
-};
-```
-
-For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated before retrying if config option `grpcRecreateService` is not set to `false`.
 
 ## Development
 
