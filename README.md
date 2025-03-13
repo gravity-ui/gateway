@@ -509,10 +509,9 @@ Instead of using gRPC proto files, you can use gRPC reflection to determine the 
    ```
 
 2. Apply patches to the `protobufjs` library:
+
    - Add `npx gateway-reflection-patch` to your project's `postinstall` script. This assumes that protobufjs is located in the root of node_modules.
    - Copy the patch from the library's patches folder to your project root, install [patch-package](https://www.npmjs.com/package/patch-package), and add the patch-package command to the `postinstall` script. In this case, you need to keep an eye on updates to the patches in the gateway when updating it.
-
-If you encounter a "cannot run in wd [...]" error during Docker build, you can add unsafe-perm = true to your .npmrc file as described here.
 
 3. Configure your action to use reflection:
 
