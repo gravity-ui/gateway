@@ -353,13 +353,13 @@ Example format:
 
 ```javascript
 GATEWAY_ENDPOINTS_OVERRIDES = JSON.stringify({
-  "serviceName": {
-    "endpoint": "https://example.com"
+  serviceName: {
+    endpoint: 'https://example.com',
   },
-  "example.exampleService": {
-    "endpoint": "https://overrided.example.com"
-  }
-}
+  'example.exampleService': {
+    endpoint: 'https://overrided.example.com',
+  },
+});
 ```
 
 ### Authentication
