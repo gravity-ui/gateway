@@ -1060,6 +1060,12 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 if (shouldRetry) {
                                     ctx.logError(
                                         `Request failed, retrying ${retries--} more times`,
+                                        ErrorConstructor.wrap(error),
+                                        {
+                                            serviceName,
+                                            actionName,
+                                            debugHeaders: sanitizeDebugHeaders(debugHeaders),
+                                        },
                                     );
                                     // Update pointer to re-created client in local service variable
                                     try {
