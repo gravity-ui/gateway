@@ -23,7 +23,7 @@ import overrideEndpoints from './utils/overrideEndpoints';
 
 export * from './utils/typed-api';
 export * from './utils/grpc-reflection';
-export {isRetryableError as isRetryableGrpcError} from './utils/grpc';
+export {isRetryableGrpcError} from './utils/grpc';
 export * from './models/common';
 export * from './models/context';
 export * from './models/error';
