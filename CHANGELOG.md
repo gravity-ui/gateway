@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.0](https://github.com/gravity-ui/gateway/compare/v4.3.0...v4.4.0) (2025-03-17)
+
+
+### Features
+
+* log error for retries ([#117](https://github.com/gravity-ui/gateway/issues/117)) ([8d3958b](https://github.com/gravity-ui/gateway/commit/8d3958b623781b7990b28736450c95c6af4defa5))
+
 ## [4.3.0](https://github.com/gravity-ui/gateway/compare/v4.2.1...v4.3.0) (2025-03-13)
 
 
