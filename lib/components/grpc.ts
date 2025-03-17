@@ -51,7 +51,11 @@ import {
     isExtendedGrpcActionEndpoint,
     sanitizeDebugHeaders,
 } from '../utils/common';
-import {decodeAnyMessageRecursively, isRecreateServiceError, isRetryableError} from '../utils/grpc';
+import {
+    decodeAnyMessageRecursively,
+    isRecreateServiceError,
+    isRetryableGrpcError,
+} from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
 import {patchProtoPathResolver} from '../utils/proto-path-resolver';
@@ -1049,7 +1053,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     error &&
                                     retries &&
                                     (options.grpcRetryCondition?.(error) ??
-                                        isRetryableError(error));
+                                        isRetryableGrpcError(error));
                                 if (shouldRecreateService) {
                                     ctx.log(
                                         `Service client for ${config.protoKey} is going to be re-created`,
