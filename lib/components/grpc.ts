@@ -1058,9 +1058,11 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 }
 
                                 if (shouldRetry) {
-                                    ctx.logError(
+                                    handleError(
+                                        ErrorConstructor,
+                                        error,
+                                        ctx,
                                         `Request failed, retrying ${retries--} more times`,
-                                        ErrorConstructor.wrap(error),
                                         {
                                             serviceName,
                                             actionName,
