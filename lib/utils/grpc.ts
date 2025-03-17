@@ -74,7 +74,7 @@ export function decodeAnyMessageRecursively(
     }
 }
 
-export function isRetryableError(error?: grpc.ServiceError) {
+export function isRetryableGrpcError(error?: grpc.ServiceError) {
     if (!error) {
         return false;
     }
