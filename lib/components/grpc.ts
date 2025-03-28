@@ -774,6 +774,9 @@ export default function createGrpcAction<Context extends GatewayContext>(
             userId: userId || '',
         };
 
+        actionConfig.headers['x-api-request-action'] = action;
+        actionConfig.headers['x-api-request-protokey'] = config.protoKey;
+
         const debugHeaders: Headers = {
             'x-api-request-action': action,
             'x-api-request-protokey': config.protoKey,
@@ -784,6 +787,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
 
         if ('protoPath' in config) {
             debugHeaders['x-api-request-protopath'] = config.protoPath;
+            actionConfig.headers['x-api-request-protopath'] = config.protoPath;
         }
 
         if (typeof options.proxyDebugHeaders === 'function') {
