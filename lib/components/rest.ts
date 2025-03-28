@@ -74,7 +74,7 @@ export default function createRestAction<Context extends GatewayContext>(
     const defaultAxiosClient = getAxiosClient(
         timeout,
         config?.retries,
-        options?.axiosRetryCondition,
+        config?.axiosRetryCondition ?? options?.axiosRetryCondition,
         options?.axiosConfig,
         options?.axiosInterceptors,
     );

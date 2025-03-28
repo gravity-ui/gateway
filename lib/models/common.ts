@@ -202,6 +202,7 @@ export interface ApiServiceRestActionConfig<
     responseType?: AxiosRequestConfig['responseType'];
     expectedResponseContentType?: ResponseContentType | ResponseContentType[];
     maxRedirects?: number;
+    axiosRetryCondition?: AxiosRetryCondition;
 }
 
 export interface ApiServiceBaseGrpcActionConfig<
