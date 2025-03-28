@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.5.0](https://github.com/gravity-ui/gateway/compare/v4.4.0...v4.5.0) (2025-03-28)
+
+
+### Features
+
+* support custom axios-retry-confition for rest actions ([#126](https://github.com/gravity-ui/gateway/issues/126)) ([917cf1b](https://github.com/gravity-ui/gateway/commit/917cf1b30bbf8d4d6daaa731b257c28163530d22))
+
 ## [4.4.0](https://github.com/gravity-ui/gateway/compare/v4.3.0...v4.4.0) (2025-03-17)
 
 
