@@ -34,6 +34,13 @@ const generateContext = () => {
     return ctx;
 };
 
+const mockConnection = () => {
+    return {
+        once: jest.fn(),
+        removeListener: jest.fn(),
+    };
+};
+
 const testMsgRoot = 'root result';
 const testMsgExample = 'example result';
 const testMsgOverrided = 'overrided result';
@@ -406,9 +413,11 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
+
             expect(res.send.mock.calls[0][0]).toBe(testMsgRoot);
 
             await controller(
@@ -420,6 +429,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -434,6 +444,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -464,6 +475,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -478,6 +490,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -504,6 +517,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -763,6 +777,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -778,6 +793,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
