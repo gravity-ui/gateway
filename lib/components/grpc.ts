@@ -44,7 +44,6 @@ import {
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
-import {listenForAbort} from '../utils/abort';
 import {
     getHeadersFromMetadata,
     handleError,
@@ -56,6 +55,7 @@ import {
     decodeAnyMessageRecursively,
     isRecreateServiceError,
     isRetryableGrpcError,
+    listenForAbort,
 } from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
@@ -935,7 +935,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         serviceOptions as CallOptions,
                     );
 
-                    listenForAbort({
+                    stopListeningForAbort = listenForAbort({
                         signal: abortSignal,
                         config,
                         call: stream,
@@ -994,7 +994,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         actionConfig.callback,
                     );
 
-                    listenForAbort({
+                    stopListeningForAbort = listenForAbort({
                         signal: abortSignal,
                         config,
                         call: stream,
@@ -1019,7 +1019,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         serviceOptions as CallOptions,
                     );
 
-                    listenForAbort({
+                    stopListeningForAbort = listenForAbort({
                         signal: abortSignal,
                         config,
                         call: stream,
