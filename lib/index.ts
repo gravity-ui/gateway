@@ -266,6 +266,14 @@ function generateGatewayApiController<
         const args = req.method === 'GET' ? req.query : req.body;
 
         try {
+            const abortController = new AbortController();
+
+            const handleCloseConnection = () => {
+                abortController.abort();
+            };
+
+            req.connection.once('close', handleCloseConnection);
+
             const apiAction = Api[scope][service][action];
 
             if (onBeforeAction) {
@@ -282,14 +290,6 @@ function generateGatewayApiController<
                     throw {error, debugHeaders: {}};
                 }
             }
-
-            const abortController = new AbortController();
-
-            const handleCloseConnection = () => {
-                abortController.abort();
-            };
-
-            req.connection.once('close', handleCloseConnection);
 
             const {responseData, responseHeaders, debugHeaders} = await apiAction({
                 requestId: req.id,
