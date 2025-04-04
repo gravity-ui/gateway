@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.0](https://github.com/gravity-ui/gateway/compare/v4.5.0...v4.6.0) (2025-04-04)
+
+
+### Features
+
+* support cancelling request on disconnect ([#114](https://github.com/gravity-ui/gateway/issues/114)) ([31e540d](https://github.com/gravity-ui/gateway/commit/31e540d91b1ad947bdb321faddab73c30833c03d))
+
 ## [4.5.0](https://github.com/gravity-ui/gateway/compare/v4.4.0...v4.5.0) (2025-03-28)
 
 
