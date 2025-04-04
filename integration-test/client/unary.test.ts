@@ -183,6 +183,32 @@ describe('Unary requests tests', () => {
         });
         await expectStatsToSendError();
     });
+
+    it('should correctly rejects when aborted', async () => {
+        const abortController = new AbortController();
+        await expect(
+            new Promise((res, rej) => {
+                controllers.api.local.meta
+                    .getLongRequestAbort({
+                        ...getApiActionConfig({query: '123'}),
+                        abortSignal: abortController.signal,
+                    })
+                    .then(res, rej);
+
+                abortController.abort();
+            }),
+        ).rejects.toMatchObject({
+            debugHeaders: {
+                'x-request-id': requestId,
+            },
+            error: {
+                code: 'REQUEST_WAS_CANCELLED',
+                status: 499,
+            },
+        });
+
+        await expectStatsToSendError();
+    });
 });
 
 describe('Parallel requests test', () => {

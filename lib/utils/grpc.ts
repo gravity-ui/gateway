@@ -126,6 +126,11 @@ export function listenForAbort({signal, config, call, reject}: ListenForAbortArg
         );
     };
 
+    if (signal.aborted) {
+        handleAbortSignal();
+        return () => null;
+    }
+
     signal.addEventListener('abort', handleAbortSignal);
 
     return () => {
