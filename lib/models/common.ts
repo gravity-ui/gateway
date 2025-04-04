@@ -53,6 +53,7 @@ export interface ApiActionConfig<
     callback?: (response: TResponseData) => void;
     authArgs?: Record<string, unknown>;
     userId?: string;
+    abortSignal?: AbortSignal;
 }
 
 export interface GRPCActionData {
@@ -188,6 +189,7 @@ export interface ApiServiceBaseActionConfig<
     proxyHeaders?: ProxyHeaders;
     proxyResponseHeaders?: ProxyResponseHeaders;
     metadata?: Record<string, string | number | boolean>;
+    abortOnClientDisconnect?: boolean;
 }
 
 export interface ApiServiceRestActionConfig<
@@ -263,6 +265,7 @@ export interface ApiServiceMixedExtra<
     ctx: Context;
     config: GatewayConfig<Context, Req, Res>;
     grpcContext: GrpcContext;
+    abortSignal?: AbortSignal;
 }
 
 export type ApiServiceMixedActionConfig<

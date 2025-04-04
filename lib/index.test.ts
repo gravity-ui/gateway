@@ -1,4 +1,5 @@
 import path from 'path';
+import {EventEmitter} from 'stream';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
@@ -34,15 +35,24 @@ const generateContext = () => {
     return ctx;
 };
 
+const mockConnection = () => {
+    return {
+        once: jest.fn(),
+        removeListener: jest.fn(),
+    };
+};
+
 const testMsgRoot = 'root result';
 const testMsgExample = 'example result';
 const testMsgOverrided = 'overrided result';
 const testMsgAnotherAction = 'another action result';
 const testMsgDebugBody = 'debug body';
+const testMsgAborted = 'aborted';
 mock.onGet('https://example.com/root').reply(200, testMsgRoot);
 mock.onGet('https://example.com/another-action').reply(200, testMsgAnotherAction);
 mock.onGet('https://example.com/example').reply(200, testMsgExample);
 mock.onGet('https://example.com/overrided').reply(200, testMsgOverrided);
+mock.onGet('https://example.com/aborted').reply(200, testMsgAborted);
 mock.onPost('https://example.com/info').reply(({headers, data}: AxiosRequestConfig) => [
     200,
     {headers, data: JSON.parse(data)},
@@ -406,9 +416,11 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
+
             expect(res.send.mock.calls[0][0]).toBe(testMsgRoot);
 
             await controller(
@@ -420,6 +432,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -434,6 +447,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -464,6 +478,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -478,6 +493,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -504,10 +520,175 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
             expect(res.send.mock.calls[2][0]).toBe(testMsgAnotherAction);
+        });
+
+        test('abort rest abortOnClientDisconnect=true', async () => {
+            const connection = new EventEmitter();
+
+            const rootSchema = {
+                rootService: {
+                    serviceName: 'rootService',
+                    actions: {
+                        getAborted: {
+                            path: () => '/aborted',
+                            method: 'GET' as const,
+                            abortOnClientDisconnect: true,
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const res: any = {
+                status: jest.fn((_) => res),
+                send: jest.fn(),
+                set: jest.fn(),
+            };
+
+            const {controller} = getGatewayControllers(
+                {root: rootSchema as any},
+                {
+                    ...config,
+                    onBeforeAction() {
+                        connection.emit('close');
+                    },
+                },
+            );
+
+            await controller(
+                {
+                    params: {
+                        service: 'rootService',
+                        action: 'getAborted',
+                    },
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: connection as any,
+                } as any,
+                res,
+            );
+
+            expect(res.status.mock.calls[0][0]).toEqual(499);
+            expect(res.send.mock.calls[0][0]).toMatchObject({
+                status: 499,
+                code: 'ERR_CANCELED',
+                message: 'Запрос был отменен.',
+            });
+        });
+
+        test('abort rest abortOnClientDisconnect=false', async () => {
+            const connection = new EventEmitter();
+
+            const rootSchema = {
+                rootService: {
+                    serviceName: 'rootService',
+                    actions: {
+                        getAborted: {
+                            path: () => '/aborted',
+                            method: 'GET' as const,
+                            abortOnClientDisconnect: false,
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const res: any = {
+                status: jest.fn((_) => res),
+                send: jest.fn(),
+                set: jest.fn(),
+            };
+
+            const {controller} = getGatewayControllers(
+                {root: rootSchema as any},
+                {
+                    ...config,
+                    onBeforeAction() {
+                        connection.emit('close');
+                    },
+                },
+            );
+
+            await controller(
+                {
+                    params: {
+                        service: 'rootService',
+                        action: 'getAborted',
+                    },
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: connection as any,
+                } as any,
+                res,
+            );
+
+            expect(res.send.mock.calls[0][0]).toEqual('aborted');
+        });
+
+        test('abort mixed', async () => {
+            const connection = new EventEmitter();
+
+            const rootSchema = {
+                rootService: {
+                    serviceName: 'rootService',
+                    actions: {
+                        getAborted: {
+                            path: () => '/aborted',
+                            method: 'GET' as const,
+                            abortOnClientDisconnect: false,
+                        },
+                        mixedAborted: (
+                            _a: unknown,
+                            _b: unknown,
+                            c: {abortSignal?: AbortSignal},
+                        ) => {
+                            return new Promise((_res, rej) => {
+                                c.abortSignal?.addEventListener(
+                                    'abort',
+                                    () => {
+                                        // emulate fetch canceled error
+                                        rej({
+                                            code: 'ERR_CANCELED',
+                                        });
+                                    },
+                                    {once: true},
+                                );
+
+                                connection.emit('close');
+                            });
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const res: any = {
+                status: jest.fn((_) => res),
+                send: jest.fn(),
+                set: jest.fn(),
+            };
+
+            const {controller} = getGatewayControllers({root: rootSchema as any}, config);
+
+            await controller(
+                {
+                    params: {
+                        service: 'rootService',
+                        action: 'mixedAborted',
+                    },
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: connection as any,
+                } as any,
+                res,
+            );
+
+            expect(res.status.mock.calls[0][0]).toEqual(500);
         });
     });
 
@@ -763,6 +944,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );
@@ -778,6 +960,7 @@ describe('getGatewayControllers', () => {
                     },
                     headers: {},
                     ctx: generateContext(),
+                    connection: mockConnection(),
                 } as any,
                 res,
             );

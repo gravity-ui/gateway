@@ -54,6 +54,13 @@ const actions = {
         params: (data: any) => ({body: data}),
         insecure: true,
     },
+    getLongRequestAbort: {
+        ...config,
+        action: 'GetLongEntityUnary',
+        params: (data: any) => ({body: data}),
+        insecure: true,
+        abortOnClientDisconnect: true,
+    },
     methodWithError: {
         ...config,
         action: 'MethodWithError',

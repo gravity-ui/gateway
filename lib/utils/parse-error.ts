@@ -131,6 +131,9 @@ export function parseRestError(error: any, lang?: string): GatewayError {
         if (code === 'ECONNABORTED' || code === 'ETIMEDOUT') {
             status = 504;
             description = lang === Lang.Ru ? 'Превышено время ожидания ответа' : 'Timeout exceeded';
+        } else if (code === 'ERR_CANCELED') {
+            status = 499;
+            description = lang === Lang.Ru ? 'Запрос был отменен.' : 'Request was cancelled.';
         } else {
             status = 500;
             description =

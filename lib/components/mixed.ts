@@ -47,6 +47,7 @@ export function createMixedAction<
                 lang: actionConfig.headers[DEFAULT_LANG_HEADER] || Lang.Ru,
                 ctx,
                 ...extra,
+                abortSignal: actionConfig.abortSignal,
             });
 
             ctx.log('Request completed');

@@ -1,6 +1,12 @@
 /* eslint-disable camelcase */
 
 import * as grpc from '@grpc/grpc-js';
+import {
+    ClientDuplexStream,
+    ClientReadableStream,
+    ClientUnaryCall,
+    ClientWritableStream,
+} from '@grpc/grpc-js';
 import * as protobufjs from 'protobufjs';
 
 import {
@@ -8,6 +14,8 @@ import {
     RECREATE_SERVICE_CODES,
     RETRYABLE_STATUS_CODES,
 } from '../constants';
+
+import {GrpcError} from './parse-error';
 
 type EncodedMessage = {type_url: string; value: Buffer};
 
@@ -88,4 +96,44 @@ export function isRecreateServiceError(error?: grpc.ServiceError) {
     }
 
     return RECREATE_SERVICE_CODES.includes(error.code);
+}
+
+export type ListenForAbortArgs = {
+    signal?: AbortSignal;
+    config: {abortOnClientDisconnect?: boolean};
+    call:
+        | ClientUnaryCall
+        | ClientReadableStream<unknown>
+        | ClientWritableStream<unknown>
+        | ClientDuplexStream<unknown, unknown>;
+    reject: (err: Error) => void;
+};
+
+export function listenForAbort({signal, config, call, reject}: ListenForAbortArgs) {
+    if (!signal || !config.abortOnClientDisconnect) {
+        return () => null;
+    }
+
+    const handleAbortSignal = () => {
+        call.cancel();
+
+        reject(
+            new GrpcError('Request was cancelled.', {
+                status: 499,
+                code: 'REQUEST_WAS_CANCELLED',
+                message: 'Request was cancelled because the original connection was disconnected.',
+            }),
+        );
+    };
+
+    if (signal.aborted) {
+        handleAbortSignal();
+        return () => null;
+    }
+
+    signal.addEventListener('abort', handleAbortSignal);
+
+    return () => {
+        signal.removeEventListener('abort', handleAbortSignal);
+    };
 }
