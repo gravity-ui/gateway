@@ -41,11 +41,14 @@ import {
     GrpcReflection,
     Headers,
     ParamsOutput,
+    ProxyHeadersFunction,
+    ProxyHeadersFunctionArg,
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
 import {
     getHeadersFromMetadata,
+    getProxyHeadersArgs,
     handleError,
     isExtendedActionEndpoint,
     isExtendedGrpcActionEndpoint,
@@ -240,6 +243,7 @@ function createMetadata<Context extends GatewayContext>({
     config,
     params,
     serviceName,
+    proxyHeadersCaller,
     ctx,
 }: {
     options: GatewayApiOptions<Context>;
@@ -247,6 +251,9 @@ function createMetadata<Context extends GatewayContext>({
     config: ApiServiceGrpcActionConfig<Context, any, any>;
     params: ParamsOutput | undefined;
     serviceName: string;
+    proxyHeadersCaller: (
+        proxyHeadersFunc: ProxyHeadersFunction,
+    ) => ReturnType<ProxyHeadersFunction>;
     ctx: Context;
 }) {
     const {headers, requestId, authArgs} = actionConfig;
@@ -258,13 +265,13 @@ function createMetadata<Context extends GatewayContext>({
     };
 
     if (typeof options.proxyHeaders === 'function') {
-        Object.assign(metadata, options.proxyHeaders({...headers}, 'grpc'));
+        Object.assign(metadata, proxyHeadersCaller(options.proxyHeaders));
     } else if (Array.isArray(options.proxyHeaders)) {
         proxyHeaders.push(...options.proxyHeaders);
     }
 
     if (typeof config.proxyHeaders === 'function') {
-        Object.assign(metadata, config.proxyHeaders({...headers}, 'grpc'));
+        Object.assign(metadata, proxyHeadersCaller(config.proxyHeaders));
     } else if (Array.isArray(config.proxyHeaders)) {
         proxyHeaders.push(...config.proxyHeaders);
     }
@@ -768,7 +775,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
             service: serviceName,
             action: actionName,
             requestTime: 0,
-            requestId: actionConfig.requestId,
+            requestId,
             requestMethod: action,
             requestUrl: config.protoKey,
             traceId: ctx.getTraceId?.() || '',
@@ -783,12 +790,22 @@ export default function createGrpcAction<Context extends GatewayContext>(
             'x-gateway-version': VERSION,
         };
 
-        if ('protoPath' in config) {
-            debugHeaders['x-api-request-protopath'] = config.protoPath;
+        const protopath = 'protoPath' in config ? config.protoPath : undefined;
+        if (protopath) {
+            debugHeaders['x-api-request-protopath'] = protopath;
         }
 
+        let proxyHeadersArgs: ProxyHeadersFunctionArg | undefined;
+        const proxyHeadersCaller = (proxyHeadersFunc: ProxyHeadersFunction) => {
+            if (proxyHeadersArgs === undefined) {
+                proxyHeadersArgs = getProxyHeadersArgs(serviceName, actionName, config);
+            }
+
+            return proxyHeadersFunc({...headers}, 'rest', proxyHeadersArgs);
+        };
+
         if (typeof options.proxyDebugHeaders === 'function') {
-            Object.assign(debugHeaders, options.proxyDebugHeaders({...headers}, 'grpc'));
+            Object.assign(debugHeaders, proxyHeadersCaller(options.proxyDebugHeaders));
         } else if (Array.isArray(options.proxyDebugHeaders)) {
             for (const headerName of options.proxyDebugHeaders) {
                 if (headers[headerName] !== undefined) {
@@ -909,6 +926,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 config,
                 params,
                 serviceName,
+                proxyHeadersCaller,
                 ctx,
             });
 

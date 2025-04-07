@@ -3,10 +3,12 @@ import _ from 'lodash';
 
 import {
     ActionEndpoint,
+    ApiServiceGrpcActionConfig,
     ExtendedActionEndpoint,
     ExtendedGrpcActionEndpoint,
     ExtendedRestActionEndpoint,
     Headers,
+    ProxyHeadersFunctionArg,
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
@@ -69,3 +71,19 @@ export function handleError<Context extends GatewayContext>(
         ctx.logError(message, error, extra);
     }
 }
+
+export const getProxyHeadersArgs = <Context extends GatewayContext>(
+    serviceName: string,
+    actionName: string,
+    grpcConfig?: ApiServiceGrpcActionConfig<Context, any, any>,
+): ProxyHeadersFunctionArg => {
+    const protopath = grpcConfig && 'protoPath' in grpcConfig ? grpcConfig.protoPath : undefined;
+    const protokey = grpcConfig?.protoKey;
+
+    return {
+        service: serviceName,
+        action: actionName,
+        protopath,
+        protokey,
+    };
+};

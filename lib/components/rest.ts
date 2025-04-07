@@ -21,6 +21,8 @@ import {
     GatewayError,
     Headers,
     ParamsOutput,
+    ProxyHeadersFunction,
+    ProxyHeadersFunctionArg,
     ResponseError,
     Stats,
 } from '../models/common';
@@ -28,6 +30,7 @@ import {GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
 import {getAxiosClient} from '../utils/axios';
 import {
+    getProxyHeadersArgs,
     handleError,
     isExtendedActionEndpoint,
     isExtendedRestActionEndpoint,
@@ -175,14 +178,23 @@ export default function createRestAction<Context extends GatewayContext>(
             'x-gateway-version': VERSION,
         };
 
+        let proxyHeadersArgs: ProxyHeadersFunctionArg | undefined;
+        const proxyHeadersCaller = (proxyHeadersFunc: ProxyHeadersFunction) => {
+            if (proxyHeadersArgs === undefined) {
+                proxyHeadersArgs = getProxyHeadersArgs(serviceName, actionName);
+            }
+
+            return proxyHeadersFunc({...requestHeaders}, 'rest', proxyHeadersArgs);
+        };
+
         if (typeof options.proxyHeaders === 'function') {
-            Object.assign(actionHeaders, options.proxyHeaders({...requestHeaders}, 'rest'));
+            Object.assign(actionHeaders, proxyHeadersCaller(options.proxyHeaders));
         } else if (Array.isArray(options.proxyHeaders)) {
             proxyHeaders.push(...options.proxyHeaders);
         }
 
         if (typeof config.proxyHeaders === 'function') {
-            Object.assign(actionHeaders, config.proxyHeaders({...requestHeaders}, 'rest'));
+            Object.assign(actionHeaders, proxyHeadersCaller(config.proxyHeaders));
         } else if (Array.isArray(config.proxyHeaders)) {
             proxyHeaders.push(...config.proxyHeaders);
         }
@@ -260,7 +272,7 @@ export default function createRestAction<Context extends GatewayContext>(
         }
 
         if (typeof options.proxyDebugHeaders === 'function') {
-            Object.assign(debugHeaders, options.proxyDebugHeaders({...requestHeaders}, 'rest'));
+            Object.assign(debugHeaders, proxyHeadersCaller(options.proxyDebugHeaders));
         } else if (Array.isArray(options.proxyDebugHeaders)) {
             for (const headerName of options.proxyDebugHeaders) {
                 if (headers[headerName] !== undefined) {
