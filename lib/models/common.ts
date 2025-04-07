@@ -99,7 +99,7 @@ export interface GatewayError {
 export type GrpcRetryCondition = (error: ServiceError) => boolean;
 export type AxiosRetryCondition = IAxiosRetryConfig['retryCondition'];
 
-export type ProxyHeadersFunctionArg = {
+export type ProxyHeadersFunctionExtra = {
     service: string;
     action: string;
 
@@ -110,7 +110,7 @@ export type ProxyHeadersFunctionArg = {
 export type ProxyHeadersFunction = (
     headers: IncomingHttpHeaders,
     type: ControllerType,
-    arg: ProxyHeadersFunctionArg,
+    extra: ProxyHeadersFunctionExtra,
 ) => IncomingHttpHeaders;
 export type ProxyHeaders = string[] | ProxyHeadersFunction;
 

@@ -8,7 +8,7 @@ import {
     ExtendedGrpcActionEndpoint,
     ExtendedRestActionEndpoint,
     Headers,
-    ProxyHeadersFunctionArg,
+    ProxyHeadersFunctionExtra,
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
@@ -76,7 +76,7 @@ export const getProxyHeadersArgs = <Context extends GatewayContext>(
     serviceName: string,
     actionName: string,
     grpcConfig?: ApiServiceGrpcActionConfig<Context, any, any>,
-): ProxyHeadersFunctionArg => {
+): ProxyHeadersFunctionExtra => {
     const protopath = grpcConfig && 'protoPath' in grpcConfig ? grpcConfig.protoPath : undefined;
     const protokey = grpcConfig?.protoKey;
 

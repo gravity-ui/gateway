@@ -22,7 +22,7 @@ import {
     Headers,
     ParamsOutput,
     ProxyHeadersFunction,
-    ProxyHeadersFunctionArg,
+    ProxyHeadersFunctionExtra,
     ResponseError,
     Stats,
 } from '../models/common';
@@ -178,13 +178,13 @@ export default function createRestAction<Context extends GatewayContext>(
             'x-gateway-version': VERSION,
         };
 
-        let proxyHeadersArgs: ProxyHeadersFunctionArg | undefined;
+        let proxyHeadersExtra: ProxyHeadersFunctionExtra | undefined;
         const proxyHeadersCaller = (proxyHeadersFunc: ProxyHeadersFunction) => {
-            if (proxyHeadersArgs === undefined) {
-                proxyHeadersArgs = getProxyHeadersArgs(serviceName, actionName);
+            if (proxyHeadersExtra === undefined) {
+                proxyHeadersExtra = getProxyHeadersArgs(serviceName, actionName);
             }
 
-            return proxyHeadersFunc({...requestHeaders}, 'rest', proxyHeadersArgs);
+            return proxyHeadersFunc({...requestHeaders}, 'rest', proxyHeadersExtra);
         };
 
         if (typeof options.proxyHeaders === 'function') {

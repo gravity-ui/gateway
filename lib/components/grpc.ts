@@ -42,7 +42,7 @@ import {
     Headers,
     ParamsOutput,
     ProxyHeadersFunction,
-    ProxyHeadersFunctionArg,
+    ProxyHeadersFunctionExtra,
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
@@ -795,13 +795,13 @@ export default function createGrpcAction<Context extends GatewayContext>(
             debugHeaders['x-api-request-protopath'] = protopath;
         }
 
-        let proxyHeadersArgs: ProxyHeadersFunctionArg | undefined;
+        let proxyHeadersExtra: ProxyHeadersFunctionExtra | undefined;
         const proxyHeadersCaller = (proxyHeadersFunc: ProxyHeadersFunction) => {
-            if (proxyHeadersArgs === undefined) {
-                proxyHeadersArgs = getProxyHeadersArgs(serviceName, actionName, config);
+            if (proxyHeadersExtra === undefined) {
+                proxyHeadersExtra = getProxyHeadersArgs(serviceName, actionName, config);
             }
 
-            return proxyHeadersFunc({...headers}, 'rest', proxyHeadersArgs);
+            return proxyHeadersFunc({...headers}, 'rest', proxyHeadersExtra);
         };
 
         if (typeof options.proxyDebugHeaders === 'function') {
