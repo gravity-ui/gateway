@@ -4,7 +4,7 @@ import {EventEmitter} from 'stream';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
-import {GetAuthHeadersParams, getGatewayControllers} from './index';
+import {GetAuthHeadersParams, ProxyHeadersFunction, getGatewayControllers} from './index';
 
 const mock = new MockAdapter(axios);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -122,11 +122,15 @@ const rootSchema = {
         endpoints,
     },
 };
+
+const EXAMPLE_SCHEMA_SERVICE_NAME = 'example';
+const EXAMPLE_SCHEMA_ACTION_NAME = 'getExample';
+
 const exampleSchema = {
     exampleService: {
-        serviceName: 'example',
+        serviceName: EXAMPLE_SCHEMA_SERVICE_NAME,
         actions: {
-            getExample: {
+            [EXAMPLE_SCHEMA_ACTION_NAME]: {
                 path: () => '/example',
                 method: 'GET' as const,
             },
@@ -968,6 +972,32 @@ describe('getGatewayControllers', () => {
             expect((mockRequest.mock.calls[1] as any)[0].headers.token).toBe(
                 'change from config 777',
             );
+        });
+    });
+
+    describe('config', () => {
+        const proxyHeaders: ProxyHeadersFunction = (headers, _type, extra) => {
+            return {...headers, ...extra};
+        };
+
+        test('extra arg for REST action', async () => {
+            const {api} = getGatewayControllers(
+                {example: exampleSchema},
+                {
+                    ...config,
+                    proxyDebugHeaders: proxyHeaders,
+                },
+            );
+
+            const res = await api[EXAMPLE_SCHEMA_SERVICE_NAME].exampleService[
+                EXAMPLE_SCHEMA_ACTION_NAME
+            ](params);
+
+            expect(res.debugHeaders['service']).toBe(EXAMPLE_SCHEMA_SERVICE_NAME);
+            expect(res.debugHeaders['action']).toBe(EXAMPLE_SCHEMA_ACTION_NAME);
+
+            expect(res.debugHeaders['protopath']).toBe(undefined);
+            expect(res.debugHeaders['protokey']).toBe(undefined);
         });
     });
 });
