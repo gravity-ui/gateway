@@ -7,7 +7,6 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Configuration](#configuration)
-  - [Config Structure](#config-structure)
   - [Validation Schema](#validation-schema)
   - [Using the API in Node.js](#using-the-api-in-nodejs)
   - [Schema Scopes](#schema-scopes)
@@ -92,9 +91,18 @@ type AxiosRetryCondition = IAxiosRetryConfig['retryCondition'];
 
 type ControllerType = 'rest' | 'grpc';
 
+type ProxyHeadersFunctionExtra = {
+  service: string;
+  action: string;
+
+  protopath?: string;
+  protokey?: string;
+};
+
 type ProxyHeadersFunction = (
   headers: IncomingHttpHeaders,
   type: ControllerType,
+  extra: ProxyHeadersFunctionExtra,
 ) => IncomingHttpHeaders;
 type ProxyHeaders = string[] | ProxyHeadersFunction;
 type ResponseContentType = AxiosResponse['headers']['Content-Type'];
@@ -204,6 +212,49 @@ interface GatewayConfig {
   ErrorConstructor: AppErrorConstructor;
 }
 ```
+
+### `proxyHeaders`
+
+`GatewayConfig.proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level:
+
+```javascript
+const proxyHeaders = (headers, actionType, {service, action}) => {
+  const normalizedHeaders = {...headers};
+
+  if (actionType === 'rest' && service === 'mail') {
+    normalizedHeaders['x-mail-service-action'] = action;
+  }
+
+  return normalizedHeaders;
+};
+
+const {controller: gatewayController} = getGatewayControllers(
+  {root: Schema},
+  {...config, proxyHeaders},
+);
+```
+
+You can set headers for a specific action using `ApiServiceBaseActionConfig.proxyHeaders`:
+
+```javascript
+const schema = {
+  userService: {
+    serviceName: 'users',
+    endpoints: {...},
+    actions: {
+      getProfile: {
+        path: () => '/profile',
+        method: 'GET',
+        proxyHeaders: (headers) => ({...headers, ['x-users-service-action']: 'get-profile'}),
+      },
+    },
+  },
+};
+```
+
+The `GatewayConfig.proxyHeaders` and `ApiServiceBaseActionConfig.proxyHeaders` are merged when the action is called. The strategy for merging headers is not guaranteed.
+
+It is recommended to use `GatewayConfig.proxyHeaders` for assigning headers that are common to the entire application or a large number of actions. Otherwise, it is preferable to use `ApiServiceBaseActionConfig.proxyHeaders`.
 
 ### Validation Schema
 
