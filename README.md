@@ -215,11 +215,10 @@ interface GatewayConfig {
 
 ### `proxyHeaders`
 
-`GatewayConfig.proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level.
-It is recommended to use this method when gateway methods are defined not only locally but also imported from external libraries.
+`GatewayConfig.proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level:
 
 ```javascript
-export const proxyHeaders = (headers, actionType, {service, action}) => {
+const proxyHeaders = (headers, actionType, {service, action}) => {
   const normalizedHeaders = {...headers};
 
   if (actionType === 'rest' && service === 'mail') {
@@ -228,9 +227,14 @@ export const proxyHeaders = (headers, actionType, {service, action}) => {
 
   return normalizedHeaders;
 };
+
+const {controller: gatewayController} = getGatewayControllers(
+  {root: Schema},
+  {...config, proxyHeaders},
+);
 ```
 
-When actions are defined locally, it is better to specify their headers explicitly using local `ApiServiceBaseActionConfig.proxyHeaders`.
+You can set headers for a specific action using `ApiServiceBaseActionConfig.proxyHeaders`:
 
 ```javascript
 const schema = {
@@ -248,7 +252,9 @@ const schema = {
 };
 ```
 
-The `GatewayConfig.proxyHeaders` and `ApiServiceBaseActionConfig.proxyHeaders` are merged when the action is called. (We do not guarantee a specific strategy for merging headers).
+The `GatewayConfig.proxyHeaders` and `ApiServiceBaseActionConfig.proxyHeaders` are merged when the action is called. The strategy for merging headers is not guaranteed.
+
+It is recommended to use `GatewayConfig.proxyHeaders` for assigning headers that are common to the entire application or a large number of actions. Otherwise, it is preferable to use `ApiServiceBaseActionConfig.proxyHeaders`.
 
 ### Validation Schema
 
