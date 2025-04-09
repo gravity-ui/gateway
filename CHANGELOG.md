@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.7.0](https://github.com/gravity-ui/gateway/compare/v4.6.0...v4.7.0) (2025-04-09)
+
+
+### Features
+
+* proxyHeaders readme explanation ([f4ad619](https://github.com/gravity-ui/gateway/commit/f4ad6196e34745ca59dbb9a5368f5cc49ce85df4))
+
 ## [4.6.0](https://github.com/gravity-ui/gateway/compare/v4.5.0...v4.6.0) (2025-04-04)
 
 
