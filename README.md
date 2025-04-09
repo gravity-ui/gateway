@@ -7,7 +7,6 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Configuration](#configuration)
-  - [Config Structure](#config-structure)
   - [Validation Schema](#validation-schema)
   - [Using the API in Node.js](#using-the-api-in-nodejs)
   - [Schema Scopes](#schema-scopes)
