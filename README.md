@@ -216,7 +216,7 @@ interface GatewayConfig {
 
 ### `proxyHeaders`
 
-`proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level.
+`GatewayConfig.proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level.
 It is recommended to use this method when gateway methods are defined not only locally but also imported from external libraries.
 
 ```javascript
@@ -248,6 +248,8 @@ const schema = {
   },
 };
 ```
+
+The `GatewayConfig.proxyHeaders` and `ApiServiceBaseActionConfig.proxyHeaders` are merged when the action is called. (We do not guarantee a specific strategy for merging headers).
 
 ### Validation Schema
 
