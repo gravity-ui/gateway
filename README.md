@@ -92,9 +92,18 @@ type AxiosRetryCondition = IAxiosRetryConfig['retryCondition'];
 
 type ControllerType = 'rest' | 'grpc';
 
+type ProxyHeadersFunctionExtra = {
+  service: string;
+  action: string;
+
+  protopath?: string;
+  protokey?: string;
+};
+
 type ProxyHeadersFunction = (
   headers: IncomingHttpHeaders,
   type: ControllerType,
+  extra: ProxyHeadersFunctionExtra,
 ) => IncomingHttpHeaders;
 type ProxyHeaders = string[] | ProxyHeadersFunction;
 type ResponseContentType = AxiosResponse['headers']['Content-Type'];
@@ -203,6 +212,41 @@ interface GatewayConfig {
   // Error constructor for handling errors
   ErrorConstructor: AppErrorConstructor;
 }
+```
+
+### `proxyHeaders`
+
+`proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level.
+It is recommended to use this method when gateway methods are defined not only locally but also imported from external libraries.
+
+```javascript
+export const proxyHeaders = (headers, actionType, {service, action}) => {
+  const normalizedHeaders = {...headers};
+
+  if (actionType === 'rest' && service === 'mail') {
+    normalizedHeaders['x-mail-service-action'] = action;
+  }
+
+  return normalizedHeaders;
+};
+```
+
+When actions are defined locally, it is better to specify their headers explicitly using local `ApiServiceBaseActionConfig.proxyHeaders`.
+
+```javascript
+const schema = {
+  userService: {
+    serviceName: 'users',
+    endpoints: {...},
+    actions: {
+      getProfile: {
+        path: () => '/profile',
+        method: 'GET',
+        proxyHeaders: (headers) => ({...headers, ['x-users-service-action']: 'get-profile'}),
+      },
+    },
+  },
+};
 ```
 
 ### Validation Schema
