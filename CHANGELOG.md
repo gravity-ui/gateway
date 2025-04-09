@@ -5,7 +5,7 @@
 
 ### Features
 
-* proxyHeaders readme explanation ([f4ad619](https://github.com/gravity-ui/gateway/commit/f4ad6196e34745ca59dbb9a5368f5cc49ce85df4))
+* add third argument (`extra`) in proxyHeaders function ([e3dbb14](https://github.com/gravity-ui/gateway/commit/e3dbb14498f0ac7db444eeccc8ae096fdd84a0c9))
 
 ## [4.6.0](https://github.com/gravity-ui/gateway/compare/v4.5.0...v4.6.0) (2025-04-04)
 
