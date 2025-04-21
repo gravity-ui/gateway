@@ -16,6 +16,8 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
   - [Error Handling](#error-handling)
   - [gRPC Reflection](#grpc-reflection-for-grpc-actions)
   - [Retryable Errors](#retryable-errors)
+  - [Request Cancellation](#request-cancellation)
+  - [Response Content Type Validation](#response-content-type-validation)
 - [Development](#development)
   - [Running Tests](#running-tests)
   - [Contributing](#contributing)
@@ -72,11 +74,14 @@ interface Stats {
   action: string;
   restStatus: number;
   grpcStatus?: number;
+  responseSize: number;
   requestId: string;
   requestTime: number;
   requestMethod: string;
   requestUrl: string;
   timestamp: number;
+  userId?: string;
+  traceId: string;
 }
 
 type SendStats = (
@@ -180,7 +185,7 @@ interface GatewayConfig {
 
   // When passing a boolean value, it enables/disables debug headers in the response to the request.
   // For unary requests to gRPC backends, debug headers will include information from the trailing metadata returned by the backend.
-  withDebugHeaders?: boolean;
+  withDebugHeaders?: boolean | ((req: Request, res: Response) => boolean);
 
   // Validation schema for parameters used when no schema is present in the action.
   // You can use DEFAULT_VALIDATION_SCHEMA from lib/constants.ts.
@@ -210,6 +215,9 @@ interface GatewayConfig {
 
   // Error constructor for handling errors
   ErrorConstructor: AppErrorConstructor;
+
+  // Axios interceptors configuration
+  axiosInterceptors?: AxiosInterceptorsConfig;
 }
 ```
 
@@ -218,8 +226,9 @@ interface GatewayConfig {
 `GatewayConfig.proxyHeaders` is an optional method that allows setting headers for requests at the entire `gateway` level:
 
 ```javascript
-const proxyHeaders = (headers, actionType, {service, action}) => {
+const proxyHeaders = (headers, actionType, extra) => {
   const normalizedHeaders = {...headers};
+  const {service, action, protopath, protokey} = extra;
 
   if (actionType === 'rest' && service === 'mail') {
     normalizedHeaders['x-mail-service-action'] = action;
@@ -233,6 +242,13 @@ const {controller: gatewayController} = getGatewayControllers(
   {...config, proxyHeaders},
 );
 ```
+
+The `extra` parameter contains additional information about the request:
+
+- `service`: The service name
+- `action`: The action name
+- `protopath`: The proto path (for gRPC actions)
+- `protokey`: The proto key (for gRPC actions)
 
 You can set headers for a specific action using `ApiServiceBaseActionConfig.proxyHeaders`:
 
@@ -321,6 +337,8 @@ interface ApiActionConfig<Context, TRequestData> {
   timeout?: number;
   callback?: (response: TResponseData) => void;
   authArgs?: Record<string, unknown>;
+  userId?: string;
+  abortSignal?: AbortSignal;
 }
 ```
 
@@ -512,7 +530,7 @@ The **default** retry condition for REST-actions includes the following conditio
 - Network errors (detected by `axiosRetry.isNetworkError`)
 - Other retryable errors (detected by `axiosRetry.isRetryableError`)
 
-You can customize retry behavior for using the `axiosRetryCondition` config option:
+You can customize retry behavior using the `axiosRetryCondition` config option:
 
 ```javascript
 const config = {
@@ -520,6 +538,27 @@ const config = {
   axiosRetryCondition: (error) => {
     // Custom logic to determine if the request should be retried
     return error.code === 'TIMEOUT';
+  },
+};
+```
+
+You can also set retry conditions at the action level:
+
+```javascript
+const schema = {
+  userService: {
+    serviceName: 'users',
+    endpoints: {...},
+    actions: {
+      getProfile: {
+        path: () => '/profile',
+        method: 'GET',
+        axiosRetryCondition: (error) => {
+          // Custom logic for this specific action
+          return error.code === 'ECONNRESET';
+        },
+      },
+    },
   },
 };
 ```
@@ -545,7 +584,93 @@ const config = {
 };
 ```
 
+The library exports the `isRetryableGrpcError` function that you can use to check if a gRPC error is retryable according to the default conditions:
+
+```javascript
+import {isRetryableGrpcError} from '@gravity-ui/gateway';
+
+// Use in your custom retry condition
+const customGrpcRetryCondition = (error) => {
+  return isRetryableGrpcError(error) || error.code === 'RESOURCE_EXHAUSTED';
+};
+```
+
 For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated before retrying if config option `grpcRecreateService` is not set to `false`.
+
+### Request Cancellation
+
+The gateway supports cancelling requests when the client disconnects. This is useful for long-running operations where you want to avoid unnecessary processing if the client is no longer waiting for the response.
+
+This feature is enabled by default for exported controller. For API requests, you can pass an `AbortSignal` to cancel the request:
+
+```javascript
+const abortController = new AbortController();
+
+const result = await gatewayApi.serviceName.actionName({
+  authArgs: {token: 'auth-token'},
+  requestId: '123',
+  headers: {},
+  args: {param1: 'value1'},
+  ctx: context,
+  abortSignal: abortController.signal,
+});
+```
+
+You can also control this behavior at the action level using the `abortOnClientDisconnect` option:
+
+```javascript
+const schema = {
+  userService: {
+    serviceName: 'users',
+    endpoints: {...},
+    actions: {
+      longRunningOperation: {
+        path: () => '/process',
+        method: 'POST',
+        abortOnClientDisconnect: true, // Enable cancellation for this action
+      },
+    },
+  },
+};
+```
+
+### Response Content Type Validation
+
+For REST actions, you can validate the content type of the response to ensure it matches your expectations. This is useful for ensuring that the API returns the expected format.
+
+You can set the expected content type at the gateway level:
+
+```javascript
+const config = {
+  // ...other config options
+  expectedResponseContentType: 'application/json',
+};
+```
+
+Or at the action level:
+
+```javascript
+const schema = {
+  userService: {
+    serviceName: 'users',
+    endpoints: {...},
+    actions: {
+      getProfile: {
+        path: () => '/profile',
+        method: 'GET',
+        expectedResponseContentType: 'application/json',
+      },
+      getDocument: {
+        path: () => '/document',
+        method: 'GET',
+        expectedResponseContentType: ['application/pdf', 'application/octet-stream'],
+      },
+    },
+  },
+};
+```
+
+You can specify either a single content type or an array of acceptable content types. If the response content type doesn't match any of the expected types, an error will be thrown.
 
 ### gRPC Reflection for gRPC Actions
 
