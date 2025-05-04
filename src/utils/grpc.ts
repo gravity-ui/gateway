@@ -7,7 +7,7 @@ import {
     ClientUnaryCall,
     ClientWritableStream,
 } from '@grpc/grpc-js';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
 import {
     DEFAULT_PROTO_LOADER_OPTIONS,

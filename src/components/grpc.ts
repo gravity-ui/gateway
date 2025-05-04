@@ -16,7 +16,7 @@ import {
 import * as protoLoader from '@grpc/proto-loader';
 import _ from 'lodash';
 import sizeof from 'object-sizeof';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 import type * as descriptor from 'protobufjs/ext/descriptor';
 import {v4 as uuidv4} from 'uuid';
 

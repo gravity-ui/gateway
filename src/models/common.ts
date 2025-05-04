@@ -15,7 +15,7 @@ import {
 } from 'axios';
 import {IAxiosRetryConfig} from 'axios-retry';
 import type {Request, Response} from 'express';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
 import type {GrpcContext} from '../components/grpc.js';
 import {Lang} from '../constants.js';

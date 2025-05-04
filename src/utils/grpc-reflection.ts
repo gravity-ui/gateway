@@ -1,7 +1,7 @@
 import type {ChannelCredentials} from '@grpc/grpc-js';
 import type {Client as GrpcReflectionClient} from 'grpc-reflection-js';
 import _ from 'lodash';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
 import {patchProtoPathResolver} from './proto-path-resolver.js';
 

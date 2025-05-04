@@ -1,6 +1,6 @@
 import * as grpc from '@grpc/grpc-js';
 import _ from 'lodash';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
 import {Lang} from '../constants.js';
 import {GatewayError} from '../models/common.js';
