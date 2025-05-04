@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
 export function patchProtoPathResolver(root: protobufjs.Root, includeDirs: string[]) {
     const originalResolvePath = root.resolvePath;

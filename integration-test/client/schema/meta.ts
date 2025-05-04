@@ -1,5 +1,5 @@
-import {GrpcReflection} from '../../../lib';
-import {protoPath, serverEndpoint} from '../../constants';
+import {GrpcReflection} from '../../../src/index.js';
+import {protoPath, serverEndpoint} from '../../constants.cjs';
 
 const config = {
     protoPath: protoPath,

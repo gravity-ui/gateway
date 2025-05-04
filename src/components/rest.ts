@@ -12,7 +12,7 @@ import {
     ECMA_STRING_SIZE,
     Lang,
     VERSION,
-} from '../constants';
+} from '../constants.js';
 import {
     ApiActionConfig,
     ApiServiceRestActionConfig,
@@ -25,20 +25,20 @@ import {
     ProxyHeadersFunctionExtra,
     ResponseError,
     Stats,
-} from '../models/common';
-import {GatewayContext} from '../models/context';
-import {AppErrorConstructor} from '../models/error';
-import {getAxiosClient} from '../utils/axios';
+} from '../models/common.js';
+import {GatewayContext} from '../models/context.js';
+import {AppErrorConstructor} from '../models/error.js';
+import {getAxiosClient} from '../utils/axios.js';
 import {
     getProxyHeadersArgs,
     handleError,
     isExtendedActionEndpoint,
     isExtendedRestActionEndpoint,
     sanitizeDebugHeaders,
-} from '../utils/common';
-import {parseRestError} from '../utils/parse-error';
-import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
-import {encodePathParams, getPathArgsProxy, validateArgs} from '../utils/validate';
+} from '../utils/common.js';
+import {parseRestError} from '../utils/parse-error.js';
+import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers.js';
+import {encodePathParams, getPathArgsProxy, validateArgs} from '../utils/validate.js';
 
 function getRestResponseSize<Context extends GatewayContext>(
     data: unknown,
@@ -65,7 +65,7 @@ function getConfigSerializerFunction(config: ApiServiceRestActionConfig<any, any
     return undefined;
 }
 
-export default function createRestAction<Context extends GatewayContext>(
+export function createRestAction<Context extends GatewayContext>(
     endpoints: EndpointsConfig | undefined,
     config: ApiServiceRestActionConfig<Context, any, any>,
     serviceKey: string,

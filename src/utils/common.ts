@@ -9,9 +9,9 @@ import {
     ExtendedRestActionEndpoint,
     Headers,
     ProxyHeadersFunctionExtra,
-} from '../models/common';
-import {Dict, GatewayContext} from '../models/context';
-import {AppErrorConstructor} from '../models/error';
+} from '../models/common.js';
+import {Dict, GatewayContext} from '../models/context.js';
+import {AppErrorConstructor} from '../models/error.js';
 
 export function isExtendedActionEndpoint(
     endpoint: ActionEndpoint,

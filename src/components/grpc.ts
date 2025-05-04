@@ -16,7 +16,7 @@ import {
 import * as protoLoader from '@grpc/proto-loader';
 import _ from 'lodash';
 import sizeof from 'object-sizeof';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 import type * as descriptor from 'protobufjs/ext/descriptor';
 import {v4 as uuidv4} from 'uuid';
 
@@ -28,7 +28,7 @@ import {
     DEFAULT_TIMEOUT,
     Lang,
     VERSION,
-} from '../constants';
+} from '../constants.js';
 import {
     ActionEndpoint,
     ApiActionConfig,
@@ -43,9 +43,9 @@ import {
     ParamsOutput,
     ProxyHeadersFunction,
     ProxyHeadersFunctionExtra,
-} from '../models/common';
-import {Dict, GatewayContext} from '../models/context';
-import {AppErrorConstructor} from '../models/error';
+} from '../models/common.js';
+import {Dict, GatewayContext} from '../models/context.js';
+import {AppErrorConstructor} from '../models/error.js';
 import {
     getHeadersFromMetadata,
     getProxyHeadersArgs,
@@ -53,18 +53,19 @@ import {
     isExtendedActionEndpoint,
     isExtendedGrpcActionEndpoint,
     sanitizeDebugHeaders,
-} from '../utils/common';
+} from '../utils/common.js';
+import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection.js';
 import {
     decodeAnyMessageRecursively,
     isRecreateServiceError,
     isRetryableGrpcError,
     listenForAbort,
-} from '../utils/grpc';
-import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
-import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
-import {patchProtoPathResolver} from '../utils/proto-path-resolver';
-import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
-import {validateArgs} from '../utils/validate';
+} from '../utils/grpc.js';
+import {packageRoot} from '../utils/package-root.js';
+import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error.js';
+import {patchProtoPathResolver} from '../utils/proto-path-resolver.js';
+import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers.js';
+import {validateArgs} from '../utils/validate.js';
 
 // https://github.com/protobufjs/protobuf.js/issues/1499
 declare module 'protobufjs' {
@@ -168,7 +169,7 @@ type ServiceClient = grpc.Client & {
 
 const grpcLoaderOptions = {
     ...DEFAULT_PROTO_LOADER_OPTIONS,
-    includeDirs: [path.join(__dirname, '../../proto')],
+    includeDirs: [path.join(packageRoot, 'proto')],
 };
 
 export interface GrpcContext {
@@ -178,9 +179,9 @@ export interface GrpcContext {
 
 export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
     const root = new protobufjs.Root();
-    root.loadSync(path.resolve(__dirname, '../../proto/google/rpc/code.proto'));
-    root.loadSync(path.resolve(__dirname, '../../proto/google/rpc/error_details.proto'));
-    root.loadSync(path.resolve(__dirname, '../../proto/google/rpc/status.proto'));
+    root.loadSync(path.resolve(packageRoot, 'proto/google/rpc/code.proto'));
+    root.loadSync(path.resolve(packageRoot, 'proto/google/rpc/error_details.proto'));
+    root.loadSync(path.resolve(packageRoot, 'proto/google/rpc/status.proto'));
     // Load well-known internal protobufjs types
     root.loadSync('google/protobuf/struct.proto');
     root.loadSync('google/protobuf/wrappers.proto');
@@ -657,7 +658,7 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     return responseData;
 }
 
-export default function createGrpcAction<Context extends GatewayContext>(
+export function createGrpcAction<Context extends GatewayContext>(
     {root, credentials}: GrpcContext,
     endpoints: EndpointsConfig | undefined,
     config: ApiServiceGrpcActionConfig<Context, any, any>,

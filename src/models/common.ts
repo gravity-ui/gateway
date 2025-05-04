@@ -6,7 +6,7 @@ import {
     ClientWritableStream,
     type ServiceError,
 } from '@grpc/grpc-js';
-import {HandlerType} from '@grpc/grpc-js/build/src/server-call';
+import type {HandlerType} from '@grpc/grpc-js/build/src/server-call.js';
 import {
     AxiosInterceptorManager,
     AxiosRequestConfig,
@@ -15,13 +15,13 @@ import {
 } from 'axios';
 import {IAxiosRetryConfig} from 'axios-retry';
 import type {Request, Response} from 'express';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
-import type {GrpcContext} from '../components/grpc';
-import {Lang} from '../constants';
+import type {GrpcContext} from '../components/grpc.js';
+import {Lang} from '../constants.js';
 
-import {GatewayContext} from './context';
-import {AppErrorConstructor} from './error';
+import {GatewayContext} from './context.js';
+import {AppErrorConstructor} from './error.js';
 
 export interface GatewayRequest<Context extends GatewayContext> extends Request {
     id: string;
@@ -370,14 +370,20 @@ export interface GatewayActionUnaryResponse<TAction> extends GatewayActionHeader
 
 export interface GatewayActionClientStreamResponse<TAction> extends GatewayActionHeaders {
     stream: ClientWritableStream<ApiActionResponseType<TAction>>;
+    responseData?: never;
+    responseHeaders?: never;
 }
 
 export interface GatewayActionServerStreamResponse<TAction> extends GatewayActionHeaders {
     stream: ClientReadableStream<ApiActionResponseType<TAction>>;
+    responseData?: never;
+    responseHeaders?: never;
 }
 
 export interface GatewayActionDuplexStreamResponse<TAction> extends GatewayActionHeaders {
     stream: ClientDuplexStream<ApiActionParams<TAction>, ApiActionResponseType<TAction>>;
+    responseData?: never;
+    responseHeaders?: never;
 }
 
 export type GatewayActionResponseData<

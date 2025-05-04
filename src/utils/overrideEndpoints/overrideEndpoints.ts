@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import {ActionEndpoint, ExtendedActionEndpoint, SchemasByScope} from '../..';
+import {ActionEndpoint, ExtendedActionEndpoint, SchemasByScope} from '../../index.js';
 
 export interface OverrideParams {
     [serviceKeyScope: string]: {

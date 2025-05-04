@@ -1,12 +1,12 @@
 import * as grpc from '@grpc/grpc-js';
 import _ from 'lodash';
-import * as protobufjs from 'protobufjs';
+import protobufjs from 'protobufjs';
 
-import {Lang} from '../constants';
-import {GatewayError} from '../models/common';
-import {AppErrorConstructor} from '../models/error';
+import {Lang} from '../constants.js';
+import {GatewayError} from '../models/common.js';
+import {AppErrorConstructor} from '../models/error.js';
 
-import {decodeAnyMessageRecursively} from './grpc';
+import {decodeAnyMessageRecursively} from './grpc.js';
 
 const DEFAULT_GATEWAY_CODE = 'GATEWAY_REQUEST_ERROR';
 const DEFAULT_GATEWAY_MESSAGE = 'Gateway request error';
