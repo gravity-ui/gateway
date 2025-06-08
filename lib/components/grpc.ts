@@ -191,15 +191,29 @@ export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
     return root;
 }
 
-export function getCredentialsMap(caCertificatePath?: string | null): CredentialsMap {
+export function getCredentialsMap(
+    caCertificatePath?: string | null,
+    clientCertificatePath?: string | null,
+    clientKeyPath?: string | null,
+): CredentialsMap {
     let certificate: Buffer | undefined;
+    let clientCertificate: Buffer | undefined;
+    let clientKey: Buffer | undefined;
 
     if (caCertificatePath && fs.existsSync(caCertificatePath)) {
         certificate = fs.readFileSync(caCertificatePath);
     }
 
+    if (clientCertificatePath && fs.existsSync(clientCertificatePath)) {
+        clientCertificate = fs.readFileSync(clientCertificatePath);
+    }
+
+    if (clientKeyPath && fs.existsSync(clientKeyPath)) {
+        clientKey = fs.readFileSync(clientKeyPath);
+    }
+
     return {
-        secure: grpc.ChannelCredentials.createSsl(certificate),
+        secure: grpc.ChannelCredentials.createSsl(certificate, clientKey, clientCertificate),
         secureWithoutRootCert: grpc.ChannelCredentials.createSsl(),
         insecure: grpc.ChannelCredentials.createInsecure(),
     };
@@ -363,10 +377,12 @@ function getChannelCredential(
 ): grpc.ChannelCredentials {
     let endpointInsecure;
     let endpointSecureWithoutRootCert;
+
     if (isExtendedGrpcActionEndpoint(endpointData)) {
         endpointInsecure = endpointData?.insecure;
         endpointSecureWithoutRootCert = endpointData?.secureWithoutRootCert;
     }
+
     const isInsecure = config.insecure || endpointInsecure;
     const isSecureWithoutRootCert = config.secureWithoutRootCert || endpointSecureWithoutRootCert;
 
