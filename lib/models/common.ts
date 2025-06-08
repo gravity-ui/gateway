@@ -141,6 +141,8 @@ export interface ExtendedBaseActionEndpoint {
 export interface ExtendedGrpcActionEndpoint extends ExtendedBaseActionEndpoint {
     insecure?: boolean;
     secureWithoutRootCert?: boolean;
+    clientCertificatePath?: string;
+    clientKeyPath?: string;
     grpcOptions?: object;
 }
 export interface ExtendedRestActionEndpoint extends ExtendedBaseActionEndpoint {
@@ -203,6 +205,8 @@ export interface ApiServiceBaseGrpcActionConfig<
     protoKey: string;
     insecure?: boolean;
     secureWithoutRootCert?: boolean;
+    clientCertificatePath?: string;
+    clientKeyPath?: string;
     encodedFields?: string[];
     type?: HandlerType;
     decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
@@ -464,6 +468,8 @@ export interface GatewayConfig<
     sendStats?: SendStats<Context>;
     includeProtoRoots?: string[];
     caCertificatePath: string | null;
+    clientCertificatePath?: string | null;
+    clientKeyPath?: string | null;
     proxyHeaders: ProxyHeaders;
     proxyDebugHeaders?: ProxyHeaders;
     withDebugHeaders?: boolean | ((req: Req, res: Res) => boolean);

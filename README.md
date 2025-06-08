@@ -102,9 +102,13 @@ interface GatewayConfig {
   onRequestFailed?: (req: Request, res: Response, error: any) => any;
   // List of paths to the necessary proto files for the gateway.
   includeProtoRoots?: string[];
-  // Configuration of the path to the certificate in gRPC.
+  // Configuration of the path to the CA certificate in gRPC.
   // Set to null to use system certificates by default.
   caCertificatePath?: string | null;
+  // Configuration of the path to the client certificate for mTLS in gRPC.
+  clientCertificatePath?: string | null;
+  // Configuration of the path to the client private key for mTLS in gRPC.
+  clientKeyPath?: string | null;
   // Telemetry sending configuration.
   sendStats?: SendStats;
   // Configuration of headers sent to the API.
@@ -143,6 +147,9 @@ const config = {
   includeProtoRoots: ['...'],
   timeout: 25000, // default 25 seconds
   caCertificatePath: '...',
+  // Optional: paths for mTLS client certificate and key
+  clientCertificatePath: '...',
+  clientKeyPath: '...',
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: Schema}, config);
@@ -282,3 +289,32 @@ For development, you need to apply the patch locally using the command `npx patc
 **ChannelCredentials Type Mismatch Error**
 
 This error can occur due to duplicate installations of the `@grpc/grpc-js` library. It's recommended to ensure that all versions of this library are aligned and consistent to avoid this issue.
+
+### mTLS Support for gRPC
+
+The gateway supports mutual TLS (mTLS) authentication for gRPC services. To enable mTLS:
+
+1. Configure the paths to your client certificate and private key in the gateway config:
+
+```javascript
+const config = {
+  // ... other config options
+  caCertificatePath: '/path/to/ca.pem', // CA certificate to verify server
+  clientCertificatePath: '/path/to/client.pem', // Client certificate for mTLS
+  clientKeyPath: '/path/to/client.key', // Client private key for mTLS
+};
+```
+
+2. You can also configure mTLS at the endpoint level by adding the client certificate and key paths to the extended gRPC action endpoint:
+
+```javascript
+const endpoints = {
+  myGrpcEndpoint: {
+    path: 'localhost:50051',
+    clientCertificatePath: '/path/to/client.pem',
+    clientKeyPath: '/path/to/client.key',
+  },
+};
+```
+
+When both client certificate and key are provided, the gateway will use mTLS for secure communication with the gRPC server. The server must be configured to require and validate client certificates.
