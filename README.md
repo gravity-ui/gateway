@@ -102,9 +102,13 @@ interface GatewayConfig {
   onRequestFailed?: (req: Request, res: Response, error: any) => any;
   // List of paths to the necessary proto files for the gateway.
   includeProtoRoots?: string[];
-  // Configuration of the path to the certificate in gRPC.
+  // Configuration of the path to the CA certificate in gRPC.
   // Set to null to use system certificates by default.
   caCertificatePath?: string | null;
+  // Configuration of the path to the client certificate for mTLS in gRPC.
+  clientCertificatePath?: string | null;
+  // Configuration of the path to the client private key for mTLS in gRPC.
+  clientKeyPath?: string | null;
   // Telemetry sending configuration.
   sendStats?: SendStats;
   // Configuration of headers sent to the API.
@@ -143,6 +147,9 @@ const config = {
   includeProtoRoots: ['...'],
   timeout: 25000, // default 25 seconds
   caCertificatePath: '...',
+  // Optional: paths for mTLS client certificate and key
+  clientCertificatePath: '...',
+  clientKeyPath: '...',
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: Schema}, config);
