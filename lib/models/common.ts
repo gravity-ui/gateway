@@ -162,6 +162,7 @@ export interface ExtendedBaseActionEndpoint {
 export interface ExtendedGrpcActionEndpoint extends ExtendedBaseActionEndpoint {
     insecure?: boolean;
     secureWithoutRootCert?: boolean;
+    caCertificatePath?: string;
     clientCertificatePath?: string;
     clientKeyPath?: string;
     grpcOptions?: object;
@@ -228,6 +229,7 @@ export interface ApiServiceBaseGrpcActionConfig<
     protoKey: string;
     insecure?: boolean;
     secureWithoutRootCert?: boolean;
+    caCertificatePath?: string;
     clientCertificatePath?: string;
     clientKeyPath?: string;
     encodedFields?: string[];
