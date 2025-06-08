@@ -38,7 +38,7 @@ import {
 } from '../utils/common';
 import {parseRestError} from '../utils/parse-error';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
-import {encodePathParams, getPathArgsProxy, validateArgs} from '../utils/validate';
+import {getPathArgsProxy, validateArgs} from '../utils/validate';
 
 function getRestResponseSize<Context extends GatewayContext>(
     data: unknown,
@@ -161,10 +161,11 @@ export default function createRestAction<Context extends GatewayContext>(
             ? endpointData.axiosConfig
             : undefined;
 
-        const pathArgs = config.validationSchema
-            ? encodePathParams(args)
-            : getPathArgsProxy(args, options.encodePathArgs);
-        const actionPath = typeof config.path === 'function' ? config.path(pathArgs) : config.path;
+        const actionPath =
+            typeof config.path === 'function'
+                ? config.path(getPathArgsProxy(args, options.encodePathArgs))
+                : config.path;
+
         const actionURL = actionEndpoint + actionPath;
         const parsedActionURL = url.parse(actionURL);
         const proxyHeaders = [...DEFAULT_PROXY_HEADERS];

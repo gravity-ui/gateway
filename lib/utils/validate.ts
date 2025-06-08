@@ -1,5 +1,7 @@
 import Ajv from 'ajv';
 
+import {GATEWAY_INVALID_PARAM_VALUE} from '../constants';
+
 export function validateArgs<TParams>(args: TParams, schema: object) {
     const ajv = new Ajv();
     const validate = ajv.compile(schema);
@@ -7,26 +9,8 @@ export function validateArgs<TParams>(args: TParams, schema: object) {
     return validate(args) ? false : ajv.errorsText(validate.errors);
 }
 
-export function encodePathParams<TParams extends {}>(params: TParams) {
-    const encodedParams: Record<string, any> = {};
-
-    Object.keys(params).forEach((key) => {
-        const value = params[key as unknown as keyof TParams] as unknown as string | Buffer;
-
-        if (value instanceof Buffer) {
-            encodedParams[key] = value;
-        } else if (typeof value === 'object' && value !== null) {
-            encodedParams[key] = encodePathParams(value);
-        } else {
-            encodedParams[key] = encodeURIComponent(value);
-        }
-    });
-
-    return encodedParams;
-}
-
 export function getPathParam(value: string) {
-    return /^((?!(\.\.|\?|#|\\|\/)).)*$/i.test(value) ? value : 'GATEWAY_INVALID_PARAM_VALUE';
+    return /^((?!(\.\.|\?|#|\\|\/)).)*$/i.test(value) ? value : GATEWAY_INVALID_PARAM_VALUE;
 }
 
 export function getPathArgsProxy<TParams extends {}>(
@@ -53,7 +37,16 @@ export function getPathArgsProxy<TParams extends {}>(
 
             if (typeof value === 'string') {
                 const pathParam = getPathParam(value);
-                return encodePathArgsVal ? encodeURIComponent(pathParam) : pathParam;
+
+                if (encodePathArgsVal) {
+                    try {
+                        return encodeURIComponent(pathParam);
+                    } catch (error) {
+                        return GATEWAY_INVALID_PARAM_VALUE;
+                    }
+                }
+
+                return pathParam;
             }
 
             return value; // TODO return error INVALID_PARAMS
