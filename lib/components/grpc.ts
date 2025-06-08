@@ -365,14 +365,45 @@ function getChannelCredential(
 ): grpc.ChannelCredentials {
     let endpointInsecure;
     let endpointSecureWithoutRootCert;
+    let endpointCaCertificatePath;
+    let endpointClientCertificatePath;
+    let endpointClientKeyPath;
 
     if (isExtendedGrpcActionEndpoint(endpointData)) {
         endpointInsecure = endpointData?.insecure;
         endpointSecureWithoutRootCert = endpointData?.secureWithoutRootCert;
+        endpointCaCertificatePath = endpointData?.caCertificatePath;
+        endpointClientCertificatePath = endpointData?.clientCertificatePath;
+        endpointClientKeyPath = endpointData?.clientKeyPath;
     }
 
     const isInsecure = config.insecure || endpointInsecure;
     const isSecureWithoutRootCert = config.secureWithoutRootCert || endpointSecureWithoutRootCert;
+
+    // If endpoint-specific certificates are provided, create new credentials
+    if (endpointCaCertificatePath || endpointClientCertificatePath || endpointClientKeyPath) {
+        let certificate: Buffer | undefined;
+        let clientCertificate: Buffer | undefined;
+        let clientKey: Buffer | undefined;
+
+        const caCertPath = endpointCaCertificatePath || config.caCertificatePath;
+        const clientCertPath = endpointClientCertificatePath || config.clientCertificatePath;
+        const clientKeyPath = endpointClientKeyPath || config.clientKeyPath;
+
+        if (caCertPath && fs.existsSync(caCertPath)) {
+            certificate = fs.readFileSync(caCertPath);
+        }
+
+        if (clientCertPath && fs.existsSync(clientCertPath)) {
+            clientCertificate = fs.readFileSync(clientCertPath);
+        }
+
+        if (clientKeyPath && fs.existsSync(clientKeyPath)) {
+            clientKey = fs.readFileSync(clientKeyPath);
+        }
+
+        return grpc.ChannelCredentials.createSsl(certificate, clientKey, clientCertificate);
+    }
 
     let creds = credentials.secure;
     if (isInsecure) {
