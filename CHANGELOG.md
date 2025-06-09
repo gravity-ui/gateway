@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.7.1](https://github.com/gravity-ui/gateway/compare/v4.7.0...v4.7.1) (2025-06-09)
+
+
+### Bug Fixes
+
+* handle invalid unicode in path parameter encoding ([#138](https://github.com/gravity-ui/gateway/issues/138)) ([4a6bae6](https://github.com/gravity-ui/gateway/commit/4a6bae6d001d3a735c06a0c7416a6b9d67bad24d))
+
 ## [4.7.0](https://github.com/gravity-ui/gateway/compare/v4.6.0...v4.7.0) (2025-04-09)
 
 
