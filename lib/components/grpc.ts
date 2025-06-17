@@ -657,6 +657,13 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     return responseData;
 }
 
+// Function to generate fresh serviceOptions with updated deadline for each attempt
+function createServiceOptions(timeout: number) {
+    return {
+        deadline: Date.now() + timeout,
+    };
+}
+
 export default function createGrpcAction<Context extends GatewayContext>(
     {root, credentials}: GrpcContext,
     endpoints: EndpointsConfig | undefined,
@@ -914,9 +921,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
             const timeout =
                 actionConfig?.timeout ?? config?.timeout ?? options?.timeout ?? DEFAULT_TIMEOUT;
 
-            const serviceOptions: Partial<grpc.CallOptions> = {
-                deadline: Date.now() + timeout,
-            };
+            // Initial serviceOptions
+            let serviceOptions: Partial<grpc.CallOptions> = createServiceOptions(timeout);
 
             const {body = null} = params ?? {body: args};
 
@@ -1144,6 +1150,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
 
                                     // Update service
                                     actionCall = service[action].bind(service) as UnaryAction;
+                                    // Update serviceOptions with a fresh deadline for the retry
+                                    serviceOptions = createServiceOptions(timeout);
                                     callAction();
                                     return;
                                 }
