@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.7.2](https://github.com/gravity-ui/gateway/compare/v4.7.1...v4.7.2) (2025-06-18)
+
+
+### Bug Fixes
+
+* update serviceOptions with a fresh deadline for each attempt ([#140](https://github.com/gravity-ui/gateway/issues/140)) ([549fae0](https://github.com/gravity-ui/gateway/commit/549fae0096463e37001cb37c5501653ca302e3de))
+
 ## [4.7.1](https://github.com/gravity-ui/gateway/compare/v4.7.0...v4.7.1) (2025-06-09)
 
 
