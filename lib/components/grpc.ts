@@ -921,7 +921,6 @@ export default function createGrpcAction<Context extends GatewayContext>(
             const timeout =
                 actionConfig?.timeout ?? config?.timeout ?? options?.timeout ?? DEFAULT_TIMEOUT;
 
-            // Initial serviceOptions
             let serviceOptions: Partial<grpc.CallOptions> = createServiceOptions(timeout);
 
             const {body = null} = params ?? {body: args};
