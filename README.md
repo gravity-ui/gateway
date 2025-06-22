@@ -7,6 +7,7 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Configuration](#configuration)
+  - [`proxyHeaders`](#proxyheaders)
   - [Validation Schema](#validation-schema)
   - [Using the API in Node.js](#using-the-api-in-nodejs)
   - [Schema Scopes](#schema-scopes)
@@ -14,13 +15,16 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
   - [Overriding Endpoints](#overriding-endpoints)
   - [Authentication](#authentication)
   - [Error Handling](#error-handling)
-  - [gRPC Reflection](#grpc-reflection-for-grpc-actions)
   - [Retryable Errors](#retryable-errors)
+    - [REST-actions](#rest-actions)
+    - [gRPC-actions](#grpc-actions)
   - [Request Cancellation](#request-cancellation)
   - [Response Content Type Validation](#response-content-type-validation)
+  - [gRPC Reflection for gRPC Actions](#grpc-reflection-for-grpc-actions)
 - [Development](#development)
   - [Running Tests](#running-tests)
   - [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
@@ -173,10 +177,13 @@ interface GatewayConfig {
   // List of paths to the necessary proto files for the gateway.
   includeProtoRoots?: string[];
 
-  // Configuration of the path to the certificate in gRPC.
+  // Configuration of the path to the CA certificate in gRPC.
   // Set to null to use system certificates by default.
   caCertificatePath?: string | null;
-
+  // Configuration of the path to the client certificate for mTLS in gRPC.
+  clientCertificatePath?: string | null;
+  // Configuration of the path to the client private key for mTLS in gRPC.
+  clientKeyPath?: string | null;
   // Telemetry sending configuration.
   sendStats?: SendStats;
 
@@ -312,6 +319,9 @@ const config = {
   includeProtoRoots: ['...'],
   timeout: 25000, // default 25 seconds
   caCertificatePath: '...',
+  // Optional: paths for mTLS client certificate and key
+  clientCertificatePath: '...',
+  clientKeyPath: '...',
 };
 
 const {api: gatewayApi} = getGatewayControllers({root: Schema}, config);
