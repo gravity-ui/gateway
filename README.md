@@ -455,17 +455,41 @@ const config = {
 };
 ```
 
-You can also define service-specific authentication by adding a `getAuthHeaders` function to individual actions:
+You can define authentication at three levels:
+|
+
+1. **Gateway level** (global) - as shown above
+2. **Service level** - by adding authentication methods to the service definition
+3. **Action level** (most specific) - by adding authentication methods to individual actions
+   |
+   The authentication methods are checked in the following order: action > service > gateway.
+   |
+   **Service-level authentication:**
+   |
 
 ```javascript
 const schema = {
   userService: {
     serviceName: 'users',
     endpoints: {...},
+    // Service-level authentication
+    getAuthHeaders: (params) => ({
+      'X-User-Service-Auth': params.authArgs.token,
+    }),
+    getAuthArgs: (req, res) => ({
+      token: req.authorization.token,
+      serviceSpecificData: req.headers['x-service-data'],
+    }),
     actions: {
       getProfile: {
         path: () => '/profile',
         method: 'GET',
+        // Uses service-level authentication
+      },
+      updateProfile: {
+        path: () => '/profile',
+        method: 'PUT',
+        // Action-level authentication (overrides service-level)
         getAuthHeaders: (params) => ({
           'X-Special-Auth': params.token,
         }),

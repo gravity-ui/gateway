@@ -2,6 +2,7 @@ import querystring from 'querystring';
 import url from 'url';
 
 import type {AxiosRequestConfig} from 'axios';
+import type {Request, Response} from 'express';
 import _ from 'lodash';
 import {v4 as uuidv4} from 'uuid';
 
@@ -19,6 +20,7 @@ import {
     EndpointsConfig,
     GatewayApiOptions,
     GatewayError,
+    GetAuthHeaders,
     Headers,
     ParamsOutput,
     ProxyHeadersFunction,
@@ -72,6 +74,10 @@ export default function createRestAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
+    serviceSchema?: {
+        getAuthHeaders?: GetAuthHeaders;
+        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
+    },
 ) {
     const timeout = config?.timeout ?? options?.axiosConfig?.timeout ?? options?.timeout;
     const defaultAxiosClient = getAxiosClient(
@@ -214,7 +220,11 @@ export default function createRestAction<Context extends GatewayContext>(
             actionHeaders['idempotency-key'] = requestHeaders['idempotency-key'] || uuidv4();
         }
 
-        const authHeaders = (config.getAuthHeaders ?? options.getAuthHeaders)({
+        const authHeaders = (
+            config.getAuthHeaders ??
+            serviceSchema?.getAuthHeaders ??
+            options.getAuthHeaders
+        )({
             actionType: 'rest',
             serviceName,
             requestHeaders,

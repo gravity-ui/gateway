@@ -14,6 +14,7 @@ import {
     requestCallback,
 } from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
+import type {Request, Response} from 'express';
 import _ from 'lodash';
 import sizeof from 'object-sizeof';
 import * as protobufjs from 'protobufjs';
@@ -38,6 +39,7 @@ import {
     GRPCActionData,
     GatewayActionResponseData,
     GatewayApiOptions,
+    GetAuthHeaders,
     GrpcReflection,
     Headers,
     ParamsOutput,
@@ -245,6 +247,7 @@ function createMetadata<Context extends GatewayContext>({
     serviceName,
     proxyHeadersCaller,
     ctx,
+    serviceSchema,
 }: {
     options: GatewayApiOptions<Context>;
     actionConfig: ApiActionConfig<Context, any>;
@@ -255,6 +258,10 @@ function createMetadata<Context extends GatewayContext>({
         proxyHeadersFunc: ProxyHeadersFunction,
     ) => ReturnType<ProxyHeadersFunction>;
     ctx: Context;
+    serviceSchema?: {
+        getAuthHeaders?: GetAuthHeaders;
+        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
+    };
 }) {
     const {headers, requestId, authArgs} = actionConfig;
     const proxyHeaders = [...DEFAULT_PROXY_HEADERS];
@@ -282,7 +289,11 @@ function createMetadata<Context extends GatewayContext>({
         }
     }
 
-    const authHeaders = (config.getAuthHeaders ?? options.getAuthHeaders)({
+    const authHeaders = (
+        config.getAuthHeaders ??
+        serviceSchema?.getAuthHeaders ??
+        options.getAuthHeaders
+    )({
         actionType: 'grpc',
         serviceName,
         requestHeaders: headers,
@@ -672,6 +683,10 @@ export default function createGrpcAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
+    serviceSchema?: {
+        getAuthHeaders?: GetAuthHeaders;
+        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
+    },
 ) {
     const serviceName = options?.serviceName || serviceKey;
 
@@ -933,6 +948,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 serviceName,
                 proxyHeadersCaller,
                 ctx,
+                serviceSchema,
             });
 
             if (!service[action]) {

@@ -336,6 +336,8 @@ export interface BaseSchema {
         actions: Record<string, ApiServiceActionConfig<any, any, any, any, any, any>>;
         serviceName?: string;
         endpoints?: Record<string, Record<string, EndpointsConfig>>;
+        getAuthHeaders?: GetAuthHeaders;
+        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
     };
 }
 
