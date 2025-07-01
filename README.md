@@ -474,7 +474,7 @@ const schema = {
     endpoints: {...},
     // Service-level authentication
     getAuthHeaders: (params) => ({
-      'X-User-Service-Auth': params.authArgs.token,
+      'X-User-Service-Auth': params.token,
     }),
     getAuthArgs: (req, res) => ({
       token: req.authorization.token,
