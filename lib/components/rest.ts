@@ -16,6 +16,7 @@ import {
 import {
     ApiActionConfig,
     ApiServiceRestActionConfig,
+    BaseSchema,
     EndpointsConfig,
     GatewayApiOptions,
     GatewayError,
@@ -72,6 +73,7 @@ export default function createRestAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>,
 ) {
     const timeout = config?.timeout ?? options?.axiosConfig?.timeout ?? options?.timeout;
     const defaultAxiosClient = getAxiosClient(
@@ -214,7 +216,11 @@ export default function createRestAction<Context extends GatewayContext>(
             actionHeaders['idempotency-key'] = requestHeaders['idempotency-key'] || uuidv4();
         }
 
-        const authHeaders = (config.getAuthHeaders ?? options.getAuthHeaders)({
+        const authHeaders = (
+            config.getAuthHeaders ??
+            serviceSchema?.getAuthHeaders ??
+            options.getAuthHeaders
+        )({
             actionType: 'rest',
             serviceName,
             requestHeaders,

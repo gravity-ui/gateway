@@ -34,6 +34,7 @@ import {
     ApiActionConfig,
     ApiServiceGrpcActionConfig,
     ApiServiceReflectGrpcActionConfig,
+    BaseSchema,
     EndpointsConfig,
     GRPCActionData,
     GatewayActionResponseData,
@@ -245,6 +246,7 @@ function createMetadata<Context extends GatewayContext>({
     serviceName,
     proxyHeadersCaller,
     ctx,
+    serviceSchema,
 }: {
     options: GatewayApiOptions<Context>;
     actionConfig: ApiActionConfig<Context, any>;
@@ -255,6 +257,7 @@ function createMetadata<Context extends GatewayContext>({
         proxyHeadersFunc: ProxyHeadersFunction,
     ) => ReturnType<ProxyHeadersFunction>;
     ctx: Context;
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>;
 }) {
     const {headers, requestId, authArgs} = actionConfig;
     const proxyHeaders = [...DEFAULT_PROXY_HEADERS];
@@ -282,7 +285,11 @@ function createMetadata<Context extends GatewayContext>({
         }
     }
 
-    const authHeaders = (config.getAuthHeaders ?? options.getAuthHeaders)({
+    const authHeaders = (
+        config.getAuthHeaders ??
+        serviceSchema?.getAuthHeaders ??
+        options.getAuthHeaders
+    )({
         actionType: 'grpc',
         serviceName,
         requestHeaders: headers,
@@ -672,6 +679,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>,
 ) {
     const serviceName = options?.serviceName || serviceKey;
 
@@ -933,6 +941,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 serviceName,
                 proxyHeadersCaller,
                 ctx,
+                serviceSchema,
             });
 
             if (!service[action]) {
