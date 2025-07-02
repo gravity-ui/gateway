@@ -2,7 +2,6 @@ import querystring from 'querystring';
 import url from 'url';
 
 import type {AxiosRequestConfig} from 'axios';
-import type {Request, Response} from 'express';
 import _ from 'lodash';
 import {v4 as uuidv4} from 'uuid';
 
@@ -17,10 +16,10 @@ import {
 import {
     ApiActionConfig,
     ApiServiceRestActionConfig,
+    BaseSchema,
     EndpointsConfig,
     GatewayApiOptions,
     GatewayError,
-    GetAuthHeaders,
     Headers,
     ParamsOutput,
     ProxyHeadersFunction,
@@ -74,10 +73,7 @@ export default function createRestAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
-    serviceSchema?: {
-        getAuthHeaders?: GetAuthHeaders;
-        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
-    },
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>,
 ) {
     const timeout = config?.timeout ?? options?.axiosConfig?.timeout ?? options?.timeout;
     const defaultAxiosClient = getAxiosClient(

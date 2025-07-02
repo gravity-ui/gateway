@@ -14,7 +14,6 @@ import {
     requestCallback,
 } from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-import type {Request, Response} from 'express';
 import _ from 'lodash';
 import sizeof from 'object-sizeof';
 import * as protobufjs from 'protobufjs';
@@ -35,11 +34,11 @@ import {
     ApiActionConfig,
     ApiServiceGrpcActionConfig,
     ApiServiceReflectGrpcActionConfig,
+    BaseSchema,
     EndpointsConfig,
     GRPCActionData,
     GatewayActionResponseData,
     GatewayApiOptions,
-    GetAuthHeaders,
     GrpcReflection,
     Headers,
     ParamsOutput,
@@ -258,10 +257,7 @@ function createMetadata<Context extends GatewayContext>({
         proxyHeadersFunc: ProxyHeadersFunction,
     ) => ReturnType<ProxyHeadersFunction>;
     ctx: Context;
-    serviceSchema?: {
-        getAuthHeaders?: GetAuthHeaders;
-        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
-    };
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>;
 }) {
     const {headers, requestId, authArgs} = actionConfig;
     const proxyHeaders = [...DEFAULT_PROXY_HEADERS];
@@ -683,10 +679,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
-    serviceSchema?: {
-        getAuthHeaders?: GetAuthHeaders;
-        getAuthArgs?: (req: Request, res: Response) => Record<string, unknown> | undefined;
-    },
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>,
 ) {
     const serviceName = options?.serviceName || serviceKey;
 
