@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.8.0](https://github.com/gravity-ui/gateway/compare/v4.7.2...v4.8.0) (2025-07-02)
+
+
+### Features
+
+* allow set service level getAuthArgs and getAuthHeaders ([#143](https://github.com/gravity-ui/gateway/issues/143)) ([fc41d3c](https://github.com/gravity-ui/gateway/commit/fc41d3cb73c1c71d7df3603b7db4aa1fc35e125a))
+
 ## [4.7.2](https://github.com/gravity-ui/gateway/compare/v4.7.1...v4.7.2) (2025-06-18)
 
 
