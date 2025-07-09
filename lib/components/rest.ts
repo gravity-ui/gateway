@@ -16,6 +16,7 @@ import {
 import {
     ApiActionConfig,
     ApiServiceRestActionConfig,
+    BaseSchema,
     EndpointsConfig,
     GatewayApiOptions,
     GatewayError,
@@ -38,7 +39,7 @@ import {
 } from '../utils/common';
 import {parseRestError} from '../utils/parse-error';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
-import {encodePathParams, getPathArgsProxy, validateArgs} from '../utils/validate';
+import {getPathArgsProxy, validateArgs} from '../utils/validate';
 
 function getRestResponseSize<Context extends GatewayContext>(
     data: unknown,
@@ -72,6 +73,7 @@ export default function createRestAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>,
 ) {
     const timeout = config?.timeout ?? options?.axiosConfig?.timeout ?? options?.timeout;
     const defaultAxiosClient = getAxiosClient(
@@ -161,10 +163,11 @@ export default function createRestAction<Context extends GatewayContext>(
             ? endpointData.axiosConfig
             : undefined;
 
-        const pathArgs = config.validationSchema
-            ? encodePathParams(args)
-            : getPathArgsProxy(args, options.encodePathArgs);
-        const actionPath = typeof config.path === 'function' ? config.path(pathArgs) : config.path;
+        const actionPath =
+            typeof config.path === 'function'
+                ? config.path(getPathArgsProxy(args, options.encodePathArgs))
+                : config.path;
+
         const actionURL = actionEndpoint + actionPath;
         const parsedActionURL = url.parse(actionURL);
         const proxyHeaders = [...DEFAULT_PROXY_HEADERS];
@@ -213,7 +216,11 @@ export default function createRestAction<Context extends GatewayContext>(
             actionHeaders['idempotency-key'] = requestHeaders['idempotency-key'] || uuidv4();
         }
 
-        const authHeaders = (config.getAuthHeaders ?? options.getAuthHeaders)({
+        const authHeaders = (
+            config.getAuthHeaders ??
+            serviceSchema?.getAuthHeaders ??
+            options.getAuthHeaders
+        )({
             actionType: 'rest',
             serviceName,
             requestHeaders,

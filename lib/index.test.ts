@@ -822,10 +822,33 @@ describe('getGatewayControllers', () => {
         const getAuthHeadersInAction = jest.fn(({authArgs}: GetAuthHeadersParams) => ({
             token: 'change from config ' + authArgs?.token,
         }));
+        const getAuthHeadersInService = jest.fn(({authArgs}: GetAuthHeadersParams) => ({
+            token: 'change from service ' + authArgs?.token,
+        }));
+
         const localSchema = {
             localService: {
                 serviceName: testServiceName,
                 endpoints,
+                actions: {
+                    login: {
+                        path: () => '/login',
+                        method: 'POST' as const,
+                    },
+                    loginCustomGetAuthHeaders: {
+                        path: () => '/login',
+                        method: 'POST' as const,
+                        getAuthHeaders: getAuthHeadersInAction,
+                    },
+                },
+            },
+        };
+
+        const localSchemaWithServiceAuth = {
+            localService: {
+                serviceName: testServiceName,
+                endpoints,
+                getAuthHeaders: getAuthHeadersInService,
                 actions: {
                     login: {
                         path: () => '/login',
@@ -921,6 +944,139 @@ describe('getGatewayControllers', () => {
                 authArgs: undefined,
             });
             expect((mockRequest.mock.calls[0] as any)[0].headers.token).toBeUndefined();
+        });
+
+        test('should use service-level getAuthHeaders when action-level is not defined', async () => {
+            getAuthHeadersInService.mockClear();
+            localConfig.getAuthHeaders.mockClear();
+            mockRequest.mockClear();
+
+            const {api} = getGatewayControllers({root: localSchemaWithServiceAuth}, localConfig);
+            const res = await api.root.localService.login(localParams);
+
+            expect(res.responseData).toBe(msgResult);
+
+            expect(getAuthHeadersInService).toHaveBeenCalledTimes(1);
+            expect(getAuthHeadersInService.mock.calls[0][0]).toEqual({
+                actionType: 'rest',
+                serviceName: testServiceName,
+                requestHeaders: testHeaders,
+                authArgs: {token: testToket},
+            });
+
+            expect(localConfig.getAuthHeaders).not.toHaveBeenCalled();
+
+            expect((mockRequest.mock.calls[0] as any)[0].headers.token).toBe(
+                'change from service ' + testToket,
+            );
+        });
+
+        test('should respect authentication hierarchy (action > service > gateway)', async () => {
+            getAuthHeadersInAction.mockClear();
+            getAuthHeadersInService.mockClear();
+            localConfig.getAuthHeaders.mockClear();
+            mockRequest.mockClear();
+
+            const {api} = getGatewayControllers({root: localSchemaWithServiceAuth}, localConfig);
+
+            const res1 = await api.root.localService.loginCustomGetAuthHeaders(localParams);
+            expect(res1.responseData).toBe(msgResult);
+            expect(getAuthHeadersInAction).toHaveBeenCalledTimes(1);
+            expect(getAuthHeadersInService).not.toHaveBeenCalled();
+            expect(localConfig.getAuthHeaders).not.toHaveBeenCalled();
+            expect((mockRequest.mock.calls[0] as any)[0].headers.token).toBe(
+                'change from config ' + testToket,
+            );
+
+            mockRequest.mockClear();
+            getAuthHeadersInAction.mockClear();
+            getAuthHeadersInService.mockClear();
+            localConfig.getAuthHeaders.mockClear();
+
+            const schemaWithoutServiceAuth = {
+                localService: {
+                    serviceName: testServiceName,
+                    endpoints,
+                    actions: {
+                        login: {
+                            path: () => '/login',
+                            method: 'POST' as const,
+                        },
+                    },
+                },
+            };
+
+            const {api: api2} = getGatewayControllers(
+                {root: schemaWithoutServiceAuth},
+                localConfig,
+            );
+            const res2 = await api2.root.localService.login(localParams);
+
+            expect(res2.responseData).toBe(msgResult);
+            expect(getAuthHeadersInAction).not.toHaveBeenCalled();
+            expect(getAuthHeadersInService).not.toHaveBeenCalled();
+            expect(localConfig.getAuthHeaders).toHaveBeenCalledTimes(1);
+            expect((mockRequest.mock.calls[0] as any)[0].headers.token).toBe(testToket);
+        });
+
+        test('should use service-level getAuthArgs', async () => {
+            const getAuthArgsInService = jest.fn((_req: any, _res: any) => ({
+                token: 'service-token',
+                serviceData: 'service-data',
+            }));
+
+            const schemaWithServiceAuthArgs = {
+                localService: {
+                    serviceName: testServiceName,
+                    endpoints,
+                    getAuthArgs: getAuthArgsInService,
+                    actions: {
+                        login: {
+                            path: () => '/login',
+                            method: 'POST' as const,
+                        },
+                    },
+                },
+            };
+
+            const gatewayGetAuthArgs = jest.fn((_req: any, _res: any) => ({
+                token: 'gateway-token',
+            }));
+
+            const {controller} = getGatewayControllers(
+                {root: schemaWithServiceAuthArgs},
+                {
+                    ...localConfig,
+                    getAuthArgs: gatewayGetAuthArgs,
+                },
+            );
+
+            const res: any = {
+                status: jest.fn((_) => res),
+                send: jest.fn(),
+                set: jest.fn(),
+                locals: {},
+            };
+
+            await controller(
+                {
+                    params: {
+                        service: 'localService',
+                        action: 'login',
+                    },
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: mockConnection(),
+                } as any,
+                res,
+            );
+
+            expect(getAuthArgsInService).toHaveBeenCalledTimes(1);
+
+            expect(gatewayGetAuthArgs).not.toHaveBeenCalled();
+
+            expect((mockRequest.mock.calls[0] as any)[0].headers.token).toBe('service-token');
+            expect((mockRequest.mock.calls[0] as any)[0].headers.serviceData).toBe('service-data');
         });
 
         test('should use getAuthArgs if call controller', async () => {

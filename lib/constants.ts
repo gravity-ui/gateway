@@ -92,3 +92,5 @@ export const DEFAULT_VALIDATION_SCHEMA = {
 };
 
 export const AXIOS_RETRY_NAMESPACE = 'axios-retry';
+
+export const GATEWAY_INVALID_PARAM_VALUE = 'GATEWAY_INVALID_PARAM_VALUE';

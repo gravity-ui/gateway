@@ -34,6 +34,7 @@ import {
     ApiActionConfig,
     ApiServiceGrpcActionConfig,
     ApiServiceReflectGrpcActionConfig,
+    BaseSchema,
     EndpointsConfig,
     GRPCActionData,
     GatewayActionResponseData,
@@ -259,6 +260,7 @@ function createMetadata<Context extends GatewayContext>({
     serviceName,
     proxyHeadersCaller,
     ctx,
+    serviceSchema,
 }: {
     options: GatewayApiOptions<Context>;
     actionConfig: ApiActionConfig<Context, any>;
@@ -269,6 +271,7 @@ function createMetadata<Context extends GatewayContext>({
         proxyHeadersFunc: ProxyHeadersFunction,
     ) => ReturnType<ProxyHeadersFunction>;
     ctx: Context;
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>;
 }) {
     const {headers, requestId, authArgs} = actionConfig;
     const proxyHeaders = [...DEFAULT_PROXY_HEADERS];
@@ -296,7 +299,11 @@ function createMetadata<Context extends GatewayContext>({
         }
     }
 
-    const authHeaders = (config.getAuthHeaders ?? options.getAuthHeaders)({
+    const authHeaders = (
+        config.getAuthHeaders ??
+        serviceSchema?.getAuthHeaders ??
+        options.getAuthHeaders
+    )({
         actionType: 'grpc',
         serviceName,
         requestHeaders: headers,
@@ -704,6 +711,13 @@ async function getResponseData<T, R, Context extends GatewayContext>({
     return responseData;
 }
 
+// Function to generate fresh serviceOptions with updated deadline for each attempt
+function createServiceOptions(timeout: number) {
+    return {
+        deadline: Date.now() + timeout,
+    };
+}
+
 export default function createGrpcAction<Context extends GatewayContext>(
     {root, credentials}: GrpcContext,
     endpoints: EndpointsConfig | undefined,
@@ -712,6 +726,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
     actionName: string,
     options: GatewayApiOptions<Context>,
     ErrorConstructor: AppErrorConstructor,
+    serviceSchema?: Pick<BaseSchema[string], 'getAuthHeaders'>,
 ) {
     const serviceName = options?.serviceName || serviceKey;
 
@@ -961,9 +976,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
             const timeout =
                 actionConfig?.timeout ?? config?.timeout ?? options?.timeout ?? DEFAULT_TIMEOUT;
 
-            const serviceOptions: Partial<grpc.CallOptions> = {
-                deadline: Date.now() + timeout,
-            };
+            let serviceOptions: Partial<grpc.CallOptions> = createServiceOptions(timeout);
 
             const {body = null} = params ?? {body: args};
 
@@ -975,6 +988,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 serviceName,
                 proxyHeadersCaller,
                 ctx,
+                serviceSchema,
             });
 
             if (!service[action]) {
@@ -1191,6 +1205,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
 
                                     // Update service
                                     actionCall = service[action].bind(service) as UnaryAction;
+                                    // Update serviceOptions with a fresh deadline for the retry
+                                    serviceOptions = createServiceOptions(timeout);
                                     callAction();
                                     return;
                                 }

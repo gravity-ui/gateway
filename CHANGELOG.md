@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.8.0](https://github.com/gravity-ui/gateway/compare/v4.7.2...v4.8.0) (2025-07-02)
+
+
+### Features
+
+* allow set service level getAuthArgs and getAuthHeaders ([#143](https://github.com/gravity-ui/gateway/issues/143)) ([fc41d3c](https://github.com/gravity-ui/gateway/commit/fc41d3cb73c1c71d7df3603b7db4aa1fc35e125a))
+
+## [4.7.2](https://github.com/gravity-ui/gateway/compare/v4.7.1...v4.7.2) (2025-06-18)
+
+
+### Bug Fixes
+
+* update serviceOptions with a fresh deadline for each attempt ([#140](https://github.com/gravity-ui/gateway/issues/140)) ([549fae0](https://github.com/gravity-ui/gateway/commit/549fae0096463e37001cb37c5501653ca302e3de))
+
+## [4.7.1](https://github.com/gravity-ui/gateway/compare/v4.7.0...v4.7.1) (2025-06-09)
+
+
+### Bug Fixes
+
+* handle invalid unicode in path parameter encoding ([#138](https://github.com/gravity-ui/gateway/issues/138)) ([4a6bae6](https://github.com/gravity-ui/gateway/commit/4a6bae6d001d3a735c06a0c7416a6b9d67bad24d))
+
 ## [4.7.0](https://github.com/gravity-ui/gateway/compare/v4.6.0...v4.7.0) (2025-04-09)
 
 

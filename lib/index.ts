@@ -114,6 +114,7 @@ function createApiAction<
                 getAuthHeaders: config.getAuthHeaders,
             },
             config.ErrorConstructor,
+            serviceSchema,
         );
     }
 
@@ -137,6 +138,7 @@ function createApiAction<
             getAuthHeaders: config.getAuthHeaders,
         },
         config.ErrorConstructor,
+        serviceSchema,
     );
 }
 
@@ -291,12 +293,16 @@ function generateGatewayApiController<
                 }
             }
 
+            const serviceSchema = schemasByScope[scope]?.[service];
+
             const {responseData, responseHeaders, debugHeaders} = await apiAction({
                 requestId: req.id,
                 headers: req.headers,
                 ctx: req.ctx,
                 args,
-                authArgs: config.getAuthArgs(req, res),
+                authArgs: serviceSchema?.getAuthArgs
+                    ? serviceSchema.getAuthArgs(req, res)
+                    : config.getAuthArgs(req, res),
                 userId,
                 abortSignal: abortController.signal,
             });
