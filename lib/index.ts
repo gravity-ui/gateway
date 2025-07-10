@@ -377,7 +377,11 @@ export function getGatewayControllers<
         }
     }
 
-    const credentials = getCredentialsMap(config.caCertificatePath);
+    const credentials = getCredentialsMap(
+        config.caCertificatePath,
+        config.clientCertificatePath,
+        config.clientKeyPath,
+    );
 
     for (const scope of getKeys(schemasByScope)) {
         apiByScope[scope] = generateGatewayApi(
