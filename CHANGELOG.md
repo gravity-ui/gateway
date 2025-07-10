@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.9.0](https://github.com/gravity-ui/gateway/compare/v4.8.0...v4.9.0) (2025-07-10)
+
+
+### Features
+
+* add mTLS support for gRPC connections ([#137](https://github.com/gravity-ui/gateway/issues/137)) ([6fd619e](https://github.com/gravity-ui/gateway/commit/6fd619eb6c91eba2080667235ad9adfc4bb31696))
+
 ## [4.8.0](https://github.com/gravity-ui/gateway/compare/v4.7.2...v4.8.0) (2025-07-02)
 
 
