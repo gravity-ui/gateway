@@ -204,7 +204,10 @@ export default function createRestAction<Context extends GatewayContext>(
 
         for (const headerName of proxyHeaders) {
             if (actionHeaders[headerName] === undefined) {
-                actionHeaders[headerName] = requestHeaders[headerName];
+                actionHeaders[headerName] =
+                    requestHeaders[headerName] !== undefined
+                        ? requestHeaders[headerName]
+                        : requestHeaders[headerName.toLowerCase()];
             }
         }
 
