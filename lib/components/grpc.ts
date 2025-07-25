@@ -295,7 +295,10 @@ function createMetadata<Context extends GatewayContext>({
 
     for (const headerName of proxyHeaders) {
         if (metadata[headerName] === undefined) {
-            metadata[headerName] = headers[headerName];
+            metadata[headerName] =
+                headers[headerName] !== undefined
+                    ? headers[headerName]
+                    : headers[headerName.toLowerCase()];
         }
     }
 
