@@ -257,6 +257,8 @@ The `extra` parameter contains additional information about the request:
 - `protopath`: The proto path (for gRPC actions)
 - `protokey`: The proto key (for gRPC actions)
 
+When accessing headers, the gateway first tries to get the header with the exact case provided by the user. If the header doesn't exist with that exact case, it falls back to looking for the same header name in lowercase. This behavior ensures compatibility with various HTTP clients that might send headers with different casing.
+
 You can set headers for a specific action using `ApiServiceBaseActionConfig.proxyHeaders`:
 
 ```javascript
