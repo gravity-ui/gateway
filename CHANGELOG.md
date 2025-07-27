@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.0](https://github.com/gravity-ui/gateway/compare/v4.9.0...v4.10.0) (2025-07-27)
+
+
+### Features
+
+* fallback to lowercased header ([#148](https://github.com/gravity-ui/gateway/issues/148)) ([d08760f](https://github.com/gravity-ui/gateway/commit/d08760f31552d66caa672ba98050ad4b0c1fa3bc))
+
 ## [4.9.0](https://github.com/gravity-ui/gateway/compare/v4.8.0...v4.9.0) (2025-07-10)
 
 
