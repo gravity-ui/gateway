@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.1](https://github.com/gravity-ui/gateway/compare/v4.10.0...v4.10.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* fix grpc-js version ([#151](https://github.com/gravity-ui/gateway/issues/151)) ([81a438a](https://github.com/gravity-ui/gateway/commit/81a438a3dc6514f477bc504721d1823a788f0c07))
+
 ## [4.10.0](https://github.com/gravity-ui/gateway/compare/v4.9.0...v4.10.0) (2025-07-27)
 
 
