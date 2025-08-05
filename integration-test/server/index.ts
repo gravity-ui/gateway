@@ -77,7 +77,7 @@ const getEntityListServerStream: handleServerStreamingCall<any, any> = (call) =>
 };
 
 const getEntityListServerStreamWithError: handleServerStreamingCall<any, any> = (call) => {
-    call.destroy(new Error('Server has a bad mood today'));
+    call.emit('error', new Error('Server has a bad mood today'));
 };
 
 const getEntityListClientStream: handleClientStreamingCall<any, any> = (call, callback) => {
