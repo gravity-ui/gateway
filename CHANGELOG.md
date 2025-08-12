@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.2](https://github.com/gravity-ui/gateway/compare/v4.10.1...v4.10.2) (2025-08-12)
+
+
+### Bug Fixes
+
+* **rest:** fix path args validation for custom validation schema ([#153](https://github.com/gravity-ui/gateway/issues/153)) ([8e6cdfa](https://github.com/gravity-ui/gateway/commit/8e6cdfab2246d2cf7fdde7d24b776799841999bf))
+
 ## [4.10.1](https://github.com/gravity-ui/gateway/compare/v4.10.0...v4.10.1) (2025-08-05)
 
 
