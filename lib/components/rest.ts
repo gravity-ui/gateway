@@ -165,7 +165,7 @@ export default function createRestAction<Context extends GatewayContext>(
 
         const actionPath =
             typeof config.path === 'function'
-                ? config.path(getPathArgsProxy(args, options.encodePathArgs))
+                ? config.path(getPathArgsProxy(args, options.encodePathArgs, !validationSchema))
                 : config.path;
 
         const actionURL = actionEndpoint + actionPath;

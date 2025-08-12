@@ -15,10 +15,9 @@ export function getPathParam(value: string) {
 
 export function getPathArgsProxy<TParams extends {}>(
     args: TParams,
-    encodePathArgs?: boolean,
+    encodePathArgs = true,
+    validatePathArgs = true,
 ): TParams {
-    const encodePathArgsVal = encodePathArgs ?? true;
-
     if (!args) {
         return args;
     }
@@ -32,13 +31,13 @@ export function getPathArgsProxy<TParams extends {}>(
             }
 
             if (typeof value === 'object' && value !== null) {
-                return getPathArgsProxy(value);
+                return getPathArgsProxy(value, encodePathArgs, validatePathArgs);
             }
 
             if (typeof value === 'string') {
-                const pathParam = getPathParam(value);
+                const pathParam = validatePathArgs ? getPathParam(value) : value;
 
-                if (encodePathArgsVal) {
+                if (encodePathArgs) {
                     try {
                         return encodeURIComponent(pathParam);
                     } catch (error) {
