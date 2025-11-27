@@ -322,6 +322,7 @@ function clearInstancesCache<Context extends GatewayContext>(
     const cachedService = _.get(instancesMap, cachePath);
 
     if (cachedService !== service) {
+        ctx.log(`Service client not matched cached service for cachePath '${cachePath}'`);
         return;
     }
 
