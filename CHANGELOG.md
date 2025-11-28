@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.2](https://github.com/gravity-ui/gateway/compare/v3.2.1...v3.2.2) (2025-11-28)
+
+
+### Bug Fixes
+
+* add extra logging for clearing instance cache ([06b19b2](https://github.com/gravity-ui/gateway/commit/06b19b28aa23f17be3b072d7203bed9f780103b8))
+
 ## [3.2.1](https://github.com/gravity-ui/gateway/compare/v3.2.0...v3.2.1) (2025-02-20)
 
 
