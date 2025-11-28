@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.2](https://github.com/gravity-ui/gateway/compare/v3.2.1...v3.2.2) (2025-11-28)
+
+
+### Bug Fixes
+
+* update README ([63a11e1](https://github.com/gravity-ui/gateway/commit/63a11e149746893ab4501b082a47eae5f4e03f8a))
+
 ## [3.2.1](https://github.com/gravity-ui/gateway/compare/v3.2.0...v3.2.1) (2025-02-20)
 
 
