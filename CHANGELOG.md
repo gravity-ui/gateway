@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-* update README ([63a11e1](https://github.com/gravity-ui/gateway/commit/63a11e149746893ab4501b082a47eae5f4e03f8a))
+* add extra logging for clearing instance cache ([06b19b2](https://github.com/gravity-ui/gateway/commit/06b19b28aa23f17be3b072d7203bed9f780103b8))
 
 ## [3.2.1](https://github.com/gravity-ui/gateway/compare/v3.2.0...v3.2.1) (2025-02-20)
 
