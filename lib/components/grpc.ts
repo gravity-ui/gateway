@@ -1052,7 +1052,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     ctx.log(
                                         `Service client for ${config.protoKey} is going to be re-created`,
                                     );
-                                    recreateService(service, timeout * 1.5, ctx, args);
+                                    recreateService(service, 5000, ctx, args);
                                 }
 
                                 if (shouldRetry) {
