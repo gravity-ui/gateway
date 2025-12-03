@@ -1,6 +1,6 @@
 {
   "name": "@gravity-ui/gateway",
-  "version": "4.10.2",
+  "version": "4.10.3",
   "description": "",
   "license": "MIT",
   "main": "build/index.js",
