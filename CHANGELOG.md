@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.3](https://github.com/gravity-ui/gateway/compare/v4.10.2...v4.10.3) (2025-12-03)
+
+
+### Bug Fixes
+
+* decrease close timeout ([#160](https://github.com/gravity-ui/gateway/issues/160)) ([0e83b5a](https://github.com/gravity-ui/gateway/commit/0e83b5a607ceb11915ca4b9a8a2ce1d0251b973b))
+
 ## [4.10.2](https://github.com/gravity-ui/gateway/compare/v4.10.1...v4.10.2) (2025-08-12)
 
 
