@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.4](https://github.com/gravity-ui/gateway/compare/v3.2.3...v3.2.4) (2025-12-10)
+
+
+### Bug Fixes
+
+* fix removing debug info from erro details ([#163](https://github.com/gravity-ui/gateway/issues/163)) ([ea5aee9](https://github.com/gravity-ui/gateway/commit/ea5aee9d17ae0ce4cdce063ebc00676d9fa83d39))
+
 ## [3.2.3](https://github.com/gravity-ui/gateway/compare/v3.2.2...v3.2.3) (2025-12-03)
 
 
