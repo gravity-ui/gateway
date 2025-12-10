@@ -332,14 +332,16 @@ function generateGatewayApiController<
                 responseError = _.omit(error, ['debug']);
 
                 // Remove DebugInfo
-                if (responseError.details) {
-                    _.forEach(responseError.details, function (value, key) {
+                const grpcDetails = responseError.details?.details;
+                if (grpcDetails) {
+                    _.forEach(grpcDetails, function (value, key) {
                         const DEBUG_INFO_TYPE = 'type.googleapis.com/google.rpc.DebugInfo';
 
                         if (value?.['@type'] === DEBUG_INFO_TYPE) {
-                            responseError.details[key] = undefined;
+                            grpcDetails[key] = undefined;
                         }
                     });
+                    responseError.details.details = grpcDetails.filter(Boolean);
                 }
             }
 
