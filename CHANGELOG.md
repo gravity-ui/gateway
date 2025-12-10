@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.10.4](https://github.com/gravity-ui/gateway/compare/v4.10.3...v4.10.4) (2025-12-10)
+
+
+### Bug Fixes
+
+* fix removing debug info from erro details ([#163](https://github.com/gravity-ui/gateway/issues/163)) ([20e2c04](https://github.com/gravity-ui/gateway/commit/20e2c042a5b4102fc8b6530e6ce32709dedf734d))
+
 ## [4.10.3](https://github.com/gravity-ui/gateway/compare/v4.10.2...v4.10.3) (2025-12-03)
 
 
