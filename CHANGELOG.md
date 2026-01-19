@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.11.0](https://github.com/gravity-ui/gateway/compare/v4.10.4...v4.11.0) (2026-01-19)
+
+
+### Features
+
+* add custom retries when calling action ([#167](https://github.com/gravity-ui/gateway/issues/167)) ([db3ded8](https://github.com/gravity-ui/gateway/commit/db3ded8c636d0cd99d6cc96ea764b63d8c6363c3))
+
 ## [4.10.4](https://github.com/gravity-ui/gateway/compare/v4.10.3...v4.10.4) (2025-12-10)
 
 
