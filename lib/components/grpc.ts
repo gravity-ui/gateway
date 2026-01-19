@@ -1150,7 +1150,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     ctx.log('Starting unary request', {
                         debugHeaders: sanitizeDebugHeaders(debugHeaders),
                     });
-                    let retries = config.retries ?? 0;
+                    let retries = actionConfig.retries ?? config.retries ?? 0;
                     let actionCall = service[action].bind(service) as UnaryAction;
 
                     const callAction = () => {

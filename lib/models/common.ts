@@ -50,6 +50,7 @@ export interface ApiActionConfig<
     args: TRequestData;
     ctx: Context;
     timeout?: number;
+    retries?: number;
     callback?: (response: TResponseData) => void;
     authArgs?: Record<string, unknown>;
     userId?: string;
