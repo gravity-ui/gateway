@@ -297,16 +297,17 @@ export default function createRestAction<Context extends GatewayContext>(
 
         const customActionTimeout =
             actionConfig.timeout ?? config.timeout ?? endpointAxiosConfig?.timeout ?? timeout;
+        const customActionRetries = actionConfig.retries ?? config.retries;
 
-        if (actionConfig.timeout || endpointAxiosConfig) {
+        if (actionConfig.timeout || actionConfig.retries || endpointAxiosConfig) {
             const customActionAxiosConfig = {
                 ...(options?.axiosConfig || {}),
                 ...(endpointAxiosConfig || {}),
             };
             axiosClient = getAxiosClient(
                 customActionTimeout,
-                config?.retries,
-                options.axiosRetryCondition,
+                customActionRetries,
+                config?.axiosRetryCondition ?? options?.axiosRetryCondition,
                 customActionAxiosConfig,
                 options?.axiosInterceptors,
             );
