@@ -1,4 +1,5 @@
 import querystring from 'querystring';
+import {Transform} from 'stream';
 import url from 'url';
 
 import type {AxiosRequestConfig} from 'axios';
@@ -429,16 +430,30 @@ export default function createRestAction<Context extends GatewayContext>(
             }
 
             if (options?.sendStats) {
-                options.sendStats(
-                    {
-                        ...requestData,
-                        responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
-                        restStatus: 200,
-                    } as Stats,
-                    redactSensitiveHeaders(parentCtx, headers),
-                    parentCtx,
-                    {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
-                );
+                const emitStats = (responseSize: number, restStatus: number) =>
+                    options.sendStats?.(
+                        {...requestData, responseSize, restStatus} as Stats,
+                        redactSensitiveHeaders(parentCtx, headers),
+                        parentCtx,
+                        {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
+                    );
+
+                if (response.data && typeof response.data.pipe === 'function') {
+                    let streamedBytes = 0;
+                    const counter = new Transform({
+                        transform(chunk, _enc, cb) {
+                            streamedBytes += chunk.length;
+                            cb(null, chunk);
+                        },
+                        flush(cb) {
+                            emitStats(streamedBytes, 200);
+                            cb();
+                        },
+                    });
+                    response.data = response.data.pipe(counter);
+                } else {
+                    emitStats(getRestResponseSize(response?.data, ctx, ErrorConstructor), 200);
+                }
             } else {
                 ctx.stats({
                     ...requestData,
