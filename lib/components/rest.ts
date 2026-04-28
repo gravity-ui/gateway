@@ -1,5 +1,4 @@
 import querystring from 'querystring';
-import {Transform} from 'stream';
 import url from 'url';
 
 import type {AxiosRequestConfig} from 'axios';
@@ -39,6 +38,7 @@ import {
     sanitizeDebugHeaders,
 } from '../utils/common';
 import {parseRestError} from '../utils/parse-error';
+import {pipeThroughByteCounter} from '../utils/pipe-through-byte-counter';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
 import {getPathArgsProxy, validateArgs} from '../utils/validate';
 
@@ -439,18 +439,9 @@ export default function createRestAction<Context extends GatewayContext>(
                     );
 
                 if (response.data && typeof response.data.pipe === 'function') {
-                    let streamedBytes = 0;
-                    const counter = new Transform({
-                        transform(chunk, _enc, cb) {
-                            streamedBytes += chunk.length;
-                            cb(null, chunk);
-                        },
-                        flush(cb) {
-                            emitStats(streamedBytes, 200);
-                            cb();
-                        },
-                    });
-                    response.data = response.data.pipe(counter);
+                    response.data = pipeThroughByteCounter(response.data, (streamedBytes) =>
+                        emitStats(streamedBytes, 200),
+                    );
                 } else {
                     emitStats(getRestResponseSize(response?.data, ctx, ErrorConstructor), 200);
                 }
