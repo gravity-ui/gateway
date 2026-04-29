@@ -38,6 +38,7 @@ import {
     sanitizeDebugHeaders,
 } from '../utils/common';
 import {parseRestError} from '../utils/parse-error';
+import {pipeThroughByteCounter} from '../utils/pipe-through-byte-counter';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
 import {getPathArgsProxy, validateArgs} from '../utils/validate';
 
@@ -429,16 +430,21 @@ export default function createRestAction<Context extends GatewayContext>(
             }
 
             if (options?.sendStats) {
-                options.sendStats(
-                    {
-                        ...requestData,
-                        responseSize: getRestResponseSize(response?.data, ctx, ErrorConstructor),
-                        restStatus: 200,
-                    } as Stats,
-                    redactSensitiveHeaders(parentCtx, headers),
-                    parentCtx,
-                    {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
-                );
+                const emitStats = (responseSize: number, restStatus: number) =>
+                    options.sendStats?.(
+                        {...requestData, responseSize, restStatus} as Stats,
+                        redactSensitiveHeaders(parentCtx, headers),
+                        parentCtx,
+                        {debugHeaders: sanitizeDebugHeaders(debugHeaders)},
+                    );
+
+                if (response.data && typeof response.data.pipe === 'function') {
+                    response.data = pipeThroughByteCounter(response.data, (streamedBytes) =>
+                        emitStats(streamedBytes, 200),
+                    );
+                } else {
+                    emitStats(getRestResponseSize(response?.data, ctx, ErrorConstructor), 200);
+                }
             } else {
                 ctx.stats({
                     ...requestData,
