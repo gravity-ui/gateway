@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.12.0](https://github.com/gravity-ui/gateway/compare/v4.11.1...v4.12.0) (2026-05-19)
+
+
+### Features
+
+* add sendStats for mixed actions ([#173](https://github.com/gravity-ui/gateway/issues/173)) ([6ee76e5](https://github.com/gravity-ui/gateway/commit/6ee76e5e3ca7cf037f8c5b73e82b80604454b3db))
+
 ## [4.11.1](https://github.com/gravity-ui/gateway/compare/v4.11.0...v4.11.1) (2026-04-29)
 
 
