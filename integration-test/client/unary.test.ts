@@ -211,6 +211,67 @@ describe('Unary requests tests', () => {
     });
 });
 
+describe('Empty request serialization tests', () => {
+    it('should resolve a unary request whose body is omitted', async () => {
+        await expect(
+            controllers.api.local.meta
+                .getEntityOptionalBody(getApiActionConfig())
+                .then(({responseData}) => responseData),
+        ).resolves.toEqual({
+            result: 'optional-body-response',
+        });
+
+        await expectStatsToSendOk();
+    });
+
+    it('should treat an explicit body: null as an empty message', async () => {
+        await expect(
+            controllers.api.local.meta
+                .getEntityOptionalBodyExplicitNull(getApiActionConfig())
+                .then(({responseData}) => responseData),
+        ).resolves.toEqual({
+            result: 'optional-body-response',
+        });
+
+        await expectStatsToSendOk();
+    });
+
+    it('should open a serverStream when the request body is omitted', async () => {
+        const {stream} = await controllers.api.local.meta.getEntityListOptionalBodyServerStream(
+            getApiActionConfig(),
+        );
+
+        expect(stream).toBeTruthy();
+        if (!stream) {
+            return;
+        }
+        const handleError = jest.fn();
+        const handleData = jest.fn();
+        const handleEnd = jest.fn();
+        stream.on('error', handleError);
+        stream.on('data', handleData);
+        stream.on('end', handleEnd);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        expect(handleError).not.toHaveBeenCalled();
+        expect(handleData).toHaveBeenCalledTimes(3);
+        expect(handleData.mock.calls[2]).toEqual([{result: 'optional-body-item-2'}]);
+        expect(handleEnd).toHaveBeenCalled();
+    });
+
+    it('should serialize a google.protobuf.Empty request called without a body', async () => {
+        await expect(
+            controllers.api.local.meta
+                .getEntityWithEmptyRequest(getApiActionConfig())
+                .then(({responseData}) => responseData),
+        ).resolves.toEqual({
+            result: 'empty-request-response',
+        });
+
+        await expectStatsToSendOk();
+    });
+});
+
 describe('Parallel requests test', () => {
     it('request should correctly complete if re-create service', async () => {
         const request1 = controllers.api.local.meta
@@ -473,6 +534,21 @@ describe('Reflection options tests', () => {
                 .getEntityTestOptions(getApiActionConfig({queryCase: '123'}))
                 .then(({responseData}) => responseData),
         ).resolves.toEqual({status: 'STATUS_OK', testCaseResult: 'case-response-123'});
+        await expectStatsToSendOk();
+    });
+
+    // Guards the protobufjs ext/descriptor patch: without it, a `map<>` field
+    // loaded via reflection decodes as an array of {key, value} entries instead
+    // of a plain object (or fails encoding with "array expected").
+    it('should correctly decode map fields received via reflection', async () => {
+        await expect(
+            controllers.api.local.meta
+                .getEntityWithMapReflection(getApiActionConfig({query: '123'}))
+                .then(({responseData}) => responseData),
+        ).resolves.toEqual({
+            labels: {a: 'b', c: 'd'},
+            result: 'response-123',
+        });
         await expectStatsToSendOk();
     });
 });
