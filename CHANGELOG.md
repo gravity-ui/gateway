@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.12.1](https://github.com/gravity-ui/gateway/compare/v4.12.0...v4.12.1) (2026-06-23)
+
+
+### Bug Fixes
+
+* serialize empty gRPC request bodies and bump protobufjs to 7.6.4 ([#175](https://github.com/gravity-ui/gateway/issues/175)) ([d7902fc](https://github.com/gravity-ui/gateway/commit/d7902fc90a90f4702424cf56216dee4903f78d6a))
+
+## [4.12.0](https://github.com/gravity-ui/gateway/compare/v4.11.1...v4.12.0) (2026-05-19)
+
+
+### Features
+
+* add sendStats for mixed actions ([#173](https://github.com/gravity-ui/gateway/issues/173)) ([6ee76e5](https://github.com/gravity-ui/gateway/commit/6ee76e5e3ca7cf037f8c5b73e82b80604454b3db))
+
+## [4.11.1](https://github.com/gravity-ui/gateway/compare/v4.11.0...v4.11.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* correct responseSize for stream responses ([#170](https://github.com/gravity-ui/gateway/issues/170)) ([#171](https://github.com/gravity-ui/gateway/issues/171)) ([3d70edf](https://github.com/gravity-ui/gateway/commit/3d70edf60c90400cec9938e21bc82402b62adc3b))
+
 ## [4.11.0](https://github.com/gravity-ui/gateway/compare/v4.10.4...v4.11.0) (2026-01-19)
 
 

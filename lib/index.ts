@@ -88,7 +88,7 @@ function createApiAction<
             api,
             resultServiceName,
             actionName,
-            {config, grpcContext},
+            {config, grpcContext, sendStats: config.sendStats},
             config.ErrorConstructor,
         );
     }

@@ -983,6 +983,10 @@ export default function createGrpcAction<Context extends GatewayContext>(
             let serviceOptions: Partial<grpc.CallOptions> = createServiceOptions(timeout);
 
             const {body = null} = params ?? {body: args};
+            // protobufjs >=7.5.5 rejects null/undefined request payloads with
+            // ".<Type>: object expected" (any message with fields; >=8.x even for
+            // empty messages). An empty request body must be sent as {}.
+            const requestBody = body ?? {};
 
             const serviceMetadata = createMetadata({
                 options,
@@ -1013,7 +1017,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     });
                     const actionCall = service[action].bind(service) as ServerStreamAction;
                     const stream = actionCall(
-                        body,
+                        requestBody,
                         serviceMetadata as Metadata,
                         serviceOptions as CallOptions,
                     );
@@ -1157,7 +1161,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                         let trailingMetadata: Record<string, grpc.MetadataValue[]> = {};
 
                         const call = actionCall(
-                            body,
+                            requestBody,
                             serviceMetadata,
                             serviceOptions,
                             async (error, response) => {

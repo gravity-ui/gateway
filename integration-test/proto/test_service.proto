@@ -2,6 +2,8 @@ syntax = 'proto3';
 
 package v1;
 
+import "google/protobuf/empty.proto";
+
 service MetaService {
 
   rpc GetEntityUnary(GetEntityRequest) returns (GetEntityResponse) {}
@@ -25,6 +27,14 @@ service MetaService {
   rpc GetEntityListDuplexStream(stream Item) returns (stream ProcessedItem) {}
 
   rpc GetEntityTestOptions(GetEntityTestOptionsRequest) returns (GetEntityTestOptionsResponse) {}
+
+  rpc GetEntityWithMap(GetEntityRequest) returns (GetEntityWithMapResponse) {}
+
+  rpc GetEntityWithEmptyRequest(google.protobuf.Empty) returns (GetEntityResponse) {}
+
+  rpc GetEntityOptionalBody(GetEntityRequest) returns (GetEntityResponse) {}
+
+  rpc GetEntityListOptionalBodyServerStream(GetEntityRequest) returns (stream GetEntityResponse) {}
 }
 
 service Meta2Service {
@@ -93,6 +103,11 @@ message GetEntityTestOptionsResponse {
 
   string test_case_result = 1;
   Status status = 2;
+}
+
+message GetEntityWithMapResponse {
+  map<string, string> labels = 1;
+  string result = 2;
 }
 
 message GetDataWithTimeoutRequest {
