@@ -1,0 +1,182 @@
+diff --git a/node_modules/protobufjs/Oops.rej b/node_modules/protobufjs/Oops.rej
+new file mode 100644
+index 0000000..2dd05fc
+--- /dev/null
++++ b/node_modules/protobufjs/Oops.rej
+@@ -0,0 +1,78 @@
++@@ -242,31 +242,12 @@
++     if (!nested)
++         type._edition = edition;
++ 
++-    // gateway patch: record key/value types of map-entry nested types so that
++-    // map fields restored from a descriptor (reflection) become real MapFields.
++-    var mapTypes = {};
++-    if (descriptor.nestedType)
++-        for (i = 0; i < descriptor.nestedType.length; ++i)
++-            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry && descriptor.nestedType[i].field.length === 2)
++-                mapTypes[descriptor.nestedType[i].name] = [
++-                    fromDescriptorType(descriptor.nestedType[i].field[0].type),
++-                    descriptor.nestedType[i].field[1].typeName ? descriptor.nestedType[i].field[1].typeName : fromDescriptorType(descriptor.nestedType[i].field[1].type)
++-                ];
++-
++     /* Oneofs */ if (descriptor.oneofDecl)
++         for (i = 0; i < descriptor.oneofDecl.length; ++i)
++             type.add(OneOf.fromDescriptor(descriptor.oneofDecl[i]));
++     /* Fields */ if (descriptor.field)
++         for (i = 0; i < descriptor.field.length; ++i) {
++-            var fieldTypeName = descriptor.field[i].typeName;
++-            var mapKv = fieldTypeName ? mapTypes[fieldTypeName] : undefined;
++-            if (fieldTypeName && !mapKv) {
++-                // after reflection the typeName may be just the short name
++-                var nameParts = fieldTypeName.split("." + type.name + ".");
++-                if (nameParts.length === 2)
++-                    mapKv = mapTypes[nameParts[1]];
++-            }
++-            var field = Field.fromDescriptor(descriptor.field[i], edition, true, mapKv);
+++            var field = Field.fromDescriptor(descriptor.field[i], edition, true);
++             type.add(field);
++             if (descriptor.field[i].hasOwnProperty("oneofIndex")) // eslint-disable-line no-prototype-builtins
++                 type.oneofsArray[descriptor.field[i].oneofIndex].add(field);
++@@ -276,10 +257,9 @@
++             type.add(Field.fromDescriptor(descriptor.extension[i], edition, true));
++     /* Nested types */ if (descriptor.nestedType)
++         for (i = 0; i < descriptor.nestedType.length; ++i) {
++-            // map-entry types are reconstructed as MapFields above (gateway patch)
++-            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry && descriptor.nestedType[i].field.length === 2)
++-                continue;
++             type.add(Type.fromDescriptor(descriptor.nestedType[i], edition, true, depth + 1));
+++            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry)
+++                type.setOption("map_entry", true);
++         }
++     /* Nested enums */ if (descriptor.enumType)
++         for (i = 0; i < descriptor.enumType.length; ++i)
++@@ -430,10 +410,9 @@
++  * @param {IFieldDescriptorProto|Reader|Uint8Array} descriptor Descriptor
++  * @param {string} [edition="proto2"] The syntax or edition to use
++  * @param {boolean} [nested=false] Whether or not this is a top-level object
++- * @param {string[]} [mapKv] Key & value types for a map field (gateway patch)
++- * @returns {Field|MapField} Field instance
+++ * @returns {Field} Field instance
++  */
++-Field.fromDescriptor = function fromDescriptor(descriptor, edition, nested, mapKv) {
+++Field.fromDescriptor = function fromDescriptor(descriptor, edition, nested) {
++ 
++     // Decode the descriptor message if specified as a buffer:
++     if (typeof descriptor.length === "number")
++@@ -468,16 +447,8 @@
++             throw Error("illegal type name: " + extendee);
++     } else
++         extendee = undefined;
++-    // gateway patch: protobufjs expects camelCased field names, while descriptors
++-    // (reflection) carry the original proto names; build a MapField for map fields.
++-    var fieldName = $protobuf.util.camelCase(descriptor.name.length ? descriptor.name : "field" + descriptor.number);
++-    var field = mapKv ? new MapField(
++-        fieldName,
++-        descriptor.number,
++-        mapKv[0],
++-        mapKv[1]
++-    ) : new Field(
++-        fieldName,
+++    var field = new Field(
+++        descriptor.name.length ? descriptor.name : "field" + descriptor.number,
++         descriptor.number,
++         fieldType,
++         fieldRule,
+diff --git a/node_modules/protobufjs/ext/descriptor/index.js b/node_modules/protobufjs/ext/descriptor/index.js
+index 6ea795b..cdb50c1 100644
+--- a/node_modules/protobufjs/ext/descriptor/index.js
++++ b/node_modules/protobufjs/ext/descriptor/index.js
+@@ -242,12 +242,31 @@ Type.fromDescriptor = function fromDescriptor(descriptor, edition, nested, depth
+     if (!nested)
+         type._edition = edition;
+ 
++    // gateway patch: record key/value types of map-entry nested types so that
++    // map fields restored from a descriptor (reflection) become real MapFields.
++    var mapTypes = {};
++    if (descriptor.nestedType)
++        for (i = 0; i < descriptor.nestedType.length; ++i)
++            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry && descriptor.nestedType[i].field.length === 2)
++                mapTypes[descriptor.nestedType[i].name] = [
++                    fromDescriptorType(descriptor.nestedType[i].field[0].type),
++                    descriptor.nestedType[i].field[1].typeName ? descriptor.nestedType[i].field[1].typeName : fromDescriptorType(descriptor.nestedType[i].field[1].type)
++                ];
++
+     /* Oneofs */ if (descriptor.oneofDecl)
+         for (i = 0; i < descriptor.oneofDecl.length; ++i)
+             type.add(OneOf.fromDescriptor(descriptor.oneofDecl[i]));
+     /* Fields */ if (descriptor.field)
+         for (i = 0; i < descriptor.field.length; ++i) {
+-            var field = Field.fromDescriptor(descriptor.field[i], edition, true);
++            var fieldTypeName = descriptor.field[i].typeName;
++            var mapKv = fieldTypeName ? mapTypes[fieldTypeName] : undefined;
++            if (fieldTypeName && !mapKv) {
++                // after reflection the typeName may be just the short name
++                var nameParts = fieldTypeName.split("." + type.name + ".");
++                if (nameParts.length === 2)
++                    mapKv = mapTypes[nameParts[1]];
++            }
++            var field = Field.fromDescriptor(descriptor.field[i], edition, true, mapKv);
+             type.add(field);
+             if (descriptor.field[i].hasOwnProperty("oneofIndex")) // eslint-disable-line no-prototype-builtins
+                 type.oneofsArray[descriptor.field[i].oneofIndex].add(field);
+@@ -257,9 +276,10 @@ Type.fromDescriptor = function fromDescriptor(descriptor, edition, nested, depth
+             type.add(Field.fromDescriptor(descriptor.extension[i], edition, true));
+     /* Nested types */ if (descriptor.nestedType)
+         for (i = 0; i < descriptor.nestedType.length; ++i) {
++            // map-entry types are reconstructed as MapFields above (gateway patch)
++            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry && descriptor.nestedType[i].field.length === 2)
++                continue;
+             type.add(Type.fromDescriptor(descriptor.nestedType[i], edition, true, depth + 1));
+-            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry)
+-                type.setOption("map_entry", true);
+         }
+     /* Nested enums */ if (descriptor.enumType)
+         for (i = 0; i < descriptor.enumType.length; ++i)
+@@ -410,9 +430,10 @@ Type.prototype.toDescriptor = function toDescriptor(edition) {
+  * @param {IFieldDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+  * @param {string} [edition="proto2"] The syntax or edition to use
+  * @param {boolean} [nested=false] Whether or not this is a top-level object
+- * @returns {Field} Field instance
++ * @param {string[]} [mapKv] Key & value types for a map field (gateway patch)
++ * @returns {Field|MapField} Field instance
+  */
+-Field.fromDescriptor = function fromDescriptor(descriptor, edition, nested) {
++Field.fromDescriptor = function fromDescriptor(descriptor, edition, nested, mapKv) {
+ 
+     // Decode the descriptor message if specified as a buffer:
+     if (typeof descriptor.length === "number")
+@@ -447,8 +468,16 @@ Field.fromDescriptor = function fromDescriptor(descriptor, edition, nested) {
+             throw Error("illegal type name: " + extendee);
+     } else
+         extendee = undefined;
+-    var field = new Field(
+-        descriptor.name.length ? descriptor.name : "field" + descriptor.number,
++    // gateway patch: protobufjs expects camelCased field names, while descriptors
++    // (reflection) carry the original proto names; build a MapField for map fields.
++    var fieldName = $protobuf.util.camelCase(descriptor.name.length ? descriptor.name : "field" + descriptor.number);
++    var field = mapKv ? new MapField(
++        fieldName,
++        descriptor.number,
++        mapKv[0],
++        mapKv[1]
++    ) : new Field(
++        fieldName,
+         descriptor.number,
+         fieldType,
+         fieldRule,
+@@ -909,7 +938,14 @@ function fromDescriptorOptionsRecursive(obj, type) {
+ function fromDescriptorOptions(options, type) {
+     if (!options)
+         return undefined;
+-    return fromDescriptorOptionsRecursive(type.toObject(options), type);
++    var val = fromDescriptorOptionsRecursive(type.toObject(options), type);
++    // gateway patch: keep options that are not declared on the Options type
++    // (e.g. custom proto options) so they survive a reflection round-trip.
++    for (var option in options)
++        if (Object.prototype.hasOwnProperty.call(options, option) &&
++            !type._fieldsArray.some(function (f) { return f.name === option; }))
++            val[underScore(option)] = options[option];
++    return val;
+ }
+ 
+ function toDescriptorOptionsRecursive(obj, type) {

@@ -42,6 +42,14 @@ const actions = {
         reflection: GrpcReflection.OnFirstRequest,
         protoKey: 'v1.MetaService',
     },
+    // reflection action returning a `map<string, string>` field — exercises the
+    // protobufjs ext/descriptor map-field patch (Root.fromDescriptor path)
+    getEntityWithMapReflection: {
+        ...commonReflectionOptions,
+        action: 'GetEntityWithMap',
+        reflection: GrpcReflection.OnFirstRequest,
+        protoKey: 'v1.MetaService',
+    },
     getFolderStats: {
         ...config,
         action: 'GetEntityUnary',
@@ -114,6 +122,35 @@ const actions = {
         params: (data: any) => ({body: data}),
         insecure: true,
         timeout: 2000,
+    },
+    // Request type has fields but the action is called without a body. On
+    // protobufjs >=7.5.5 this fails serialization with ".<Type>: object expected"
+    // unless the null body is coerced to an empty message {}.
+    getEntityOptionalBody: {
+        ...config,
+        action: 'GetEntityOptionalBody',
+        insecure: true,
+    },
+    // caller explicitly passes body: null — must be treated as an empty message.
+    getEntityOptionalBodyExplicitNull: {
+        ...config,
+        action: 'GetEntityOptionalBody',
+        params: () => ({body: null}),
+        insecure: true,
+    },
+    // serverStream called without a body must not fail serialization either.
+    getEntityListOptionalBodyServerStream: {
+        ...config,
+        action: 'GetEntityListOptionalBodyServerStream',
+        insecure: true,
+        type: 'serverStream' as const,
+    },
+    // google.protobuf.Empty request called without a body. A fieldless message is
+    // tolerated by protobufjs 7.x but rejected by 8.x — guards the fix either way.
+    getEntityWithEmptyRequest: {
+        ...config,
+        action: 'GetEntityWithEmptyRequest',
+        insecure: true,
     },
 };
 

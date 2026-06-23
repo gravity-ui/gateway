@@ -115,6 +115,32 @@ const getEntityTestOptions: handleUnaryCall<any, any> = (call, callback) => {
     });
 };
 
+const getEntityWithMap: handleUnaryCall<any, any> = (call, callback) => {
+    callback(null, {
+        labels: {a: 'b', c: 'd'},
+        result: `response-${call.request.query}`,
+    });
+};
+
+const getEntityWithEmptyRequest: handleUnaryCall<any, any> = (_, callback) => {
+    callback(null, {
+        result: 'empty-request-response',
+    });
+};
+
+const getEntityOptionalBody: handleUnaryCall<any, any> = (_, callback) => {
+    callback(null, {
+        result: 'optional-body-response',
+    });
+};
+
+const getEntityListOptionalBodyServerStream: handleServerStreamingCall<any, any> = (call) => {
+    for (let i = 0; i < 3; i++) {
+        call.write({result: `optional-body-item-${i}`});
+    }
+    call.end();
+};
+
 const getDataWithTimeout: handleUnaryCall<any, any> = (call, callback) => {
     if (call.request.throw_error) {
         callback(
@@ -149,6 +175,10 @@ function startGrpcServer() {
         GetEntityListClientStream: getEntityListClientStream,
         GetEntityListDuplexStream: getEntityListDuplexStream,
         GetEntityTestOptions: getEntityTestOptions,
+        GetEntityWithMap: getEntityWithMap,
+        GetEntityWithEmptyRequest: getEntityWithEmptyRequest,
+        GetEntityOptionalBody: getEntityOptionalBody,
+        GetEntityListOptionalBodyServerStream: getEntityListOptionalBodyServerStream,
     });
     // @ts-ignore
     server.addService(v1Package.Meta2Service.service, {

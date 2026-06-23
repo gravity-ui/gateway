@@ -46,7 +46,7 @@
     "axios-retry": "^3.9.1",
     "lodash": "^4.17.21",
     "object-sizeof": "^2.6.5",
-    "protobufjs": "^7.2.5",
+    "protobufjs": "^7.6.4",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
