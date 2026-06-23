@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.12.1](https://github.com/gravity-ui/gateway/compare/v4.12.0...v4.12.1) (2026-06-23)
+
+
+### Bug Fixes
+
+* serialize empty gRPC request bodies and bump protobufjs to 7.6.4 ([#175](https://github.com/gravity-ui/gateway/issues/175)) ([d7902fc](https://github.com/gravity-ui/gateway/commit/d7902fc90a90f4702424cf56216dee4903f78d6a))
+
 ## [4.12.0](https://github.com/gravity-ui/gateway/compare/v4.11.1...v4.12.0) (2026-05-19)
 
 
