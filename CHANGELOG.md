@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.13.0](https://github.com/gravity-ui/gateway/compare/v4.12.1...v4.13.0) (2026-06-26)
+
+
+### Features
+
+* add ErrorInfo proto ([#177](https://github.com/gravity-ui/gateway/issues/177)) ([4a19059](https://github.com/gravity-ui/gateway/commit/4a190590d63ac518fce08bab4a7cb0af34ac60b5))
+
 ## [4.12.1](https://github.com/gravity-ui/gateway/compare/v4.12.0...v4.12.1) (2026-06-23)
 
 
