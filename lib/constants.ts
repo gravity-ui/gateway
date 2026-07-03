@@ -63,6 +63,7 @@ export const RETRYABLE_STATUS_CODES: Array<grpc.status | undefined> = [
     grpc.status.CANCELLED,
     grpc.status.ABORTED,
     grpc.status.UNKNOWN,
+    grpc.status.DEADLINE_EXCEEDED,
 ];
 
 export const RECREATE_SERVICE_CODES: Array<grpc.status | undefined> = [
