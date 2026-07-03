@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.15.0](https://github.com/gravity-ui/gateway/compare/v4.14.0...v4.15.0) (2026-07-03)
+
+
+### Features
+
+* retry before recreating grpc client ([#182](https://github.com/gravity-ui/gateway/issues/182)) ([6812cdb](https://github.com/gravity-ui/gateway/commit/6812cdb1a346aca7001c4f03398c2cb29425df26))
+
 ## [4.14.0](https://github.com/gravity-ui/gateway/compare/v4.13.0...v4.14.0) (2026-07-01)
 
 
