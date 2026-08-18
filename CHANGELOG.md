@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.0](https://github.com/gravity-ui/gateway/compare/v3.2.4...v3.3.0) (2026-08-18)
+
+
+### Features
+
+* add connectivity state log for errored requests ([16563bf](https://github.com/gravity-ui/gateway/commit/16563bfa437eab4d906ee1a213143b55c6e0556e))
+
 ## [3.2.4](https://github.com/gravity-ui/gateway/compare/v3.2.3...v3.2.4) (2025-12-10)
 
 
