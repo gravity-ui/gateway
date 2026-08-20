@@ -13,6 +13,7 @@ import {
     Metadata,
     requestCallback,
 } from '@grpc/grpc-js';
+import {ConnectivityState} from '@grpc/grpc-js/build/src/connectivity-state';
 import * as protoLoader from '@grpc/proto-loader';
 import _ from 'lodash';
 import sizeof from 'object-sizeof';
@@ -1177,6 +1178,17 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     retries &&
                                     (options.grpcRetryCondition?.(error) ??
                                         isRetryableGrpcError(error));
+
+                                if (error) {
+                                    const connectivityState = service
+                                        .getChannel()
+                                        .getConnectivityState(false);
+
+                                    ctx.log(
+                                        `Request connectivity state - code: ${connectivityState}, name: ${ConnectivityState[connectivityState]}`,
+                                    );
+                                }
+
                                 if (shouldRecreateService && !shouldRetry) {
                                     ctx.log(
                                         `Service client for ${config.protoKey} is going to be re-created`,
