@@ -1049,7 +1049,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     isRecreateServiceError(error);
                                 const shouldRetry = error && retries && isRetryableError(error);
 
-                                if (shouldRecreateService || shouldRetry) {
+                                if (error) {
                                     const connectivityState = service
                                         .getChannel()
                                         .getConnectivityState(false);
