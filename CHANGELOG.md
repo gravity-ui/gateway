@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/gravity-ui/gateway/compare/v3.3.0...v3.3.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* fix connectivity state log condition ([6ced76c](https://github.com/gravity-ui/gateway/commit/6ced76cf5e3dec3598322328e7bee070bc528f37))
+
 ## [3.3.0](https://github.com/gravity-ui/gateway/compare/v3.2.4...v3.3.0) (2026-08-18)
 
 
