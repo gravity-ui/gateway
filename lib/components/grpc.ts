@@ -1262,10 +1262,11 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     retries &&
                                     (options.grpcRetryCondition?.(error) ??
                                         isRetryableGrpcError(error));
-                                // Retrying on a channel stuck in CONNECTING/TRANSIENT_FAILURE/
-                                // SHUTDOWN is pointless, so re-create the client before such a
-                                // retry. When the channel is READY, the deadline most likely
-                                // comes from a slow backend and the client is re-created only
+                                // A connectivity error on a channel stuck in CONNECTING/
+                                // TRANSIENT_FAILURE/SHUTDOWN means the client itself is
+                                // likely broken - re-create it (before the retry, if any).
+                                // When the channel is READY, a deadline most likely comes
+                                // from a slow backend, so the client is re-created only
                                 // after retries are exhausted
                                 const isChannelBroken =
                                     connectivityState !== undefined &&
@@ -1274,8 +1275,8 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                 const shouldRecreateService =
                                     error &&
                                     options.grpcRecreateService &&
-                                    isRecreateServiceError(error) &&
-                                    (isChannelBroken || !shouldRetry);
+                                    ((isChannelBroken && isConnectivityGrpcError(error)) ||
+                                        (isRecreateServiceError(error) && !shouldRetry));
 
                                 if (shouldRecreateService) {
                                     ctx.log(
