@@ -98,6 +98,15 @@ export function isRecreateServiceError(error?: grpc.ServiceError) {
     return RECREATE_SERVICE_CODES.includes(error.code);
 }
 
+/**
+ * Whether the error looks like a connectivity problem rather than a
+ * deterministic one (unknown symbol, descriptor decoding, config errors).
+ * Deterministic errors are rejected without a grpc status code.
+ */
+export function isConnectivityGrpcError(error?: grpc.ServiceError) {
+    return isRetryableGrpcError(error) || isRecreateServiceError(error);
+}
+
 export type ListenForAbortArgs = {
     signal?: AbortSignal;
     config: {abortOnClientDisconnect?: boolean};
