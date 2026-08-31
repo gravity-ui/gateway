@@ -12,6 +12,7 @@ import * as protobufjs from 'protobufjs';
 
 import {
     DEFAULT_PROTO_LOADER_OPTIONS,
+    GatewayErrorCode,
     RECREATE_SERVICE_CODES,
     RETRYABLE_STATUS_CODES,
 } from '../constants';
@@ -194,7 +195,7 @@ export function listenForAbort({signal, config, call, reject}: ListenForAbortArg
         reject(
             new GrpcError('Request was cancelled.', {
                 status: 499,
-                code: 'REQUEST_WAS_CANCELLED',
+                code: GatewayErrorCode.REQUEST_WAS_CANCELLED,
                 message: 'Request was cancelled because the original connection was disconnected.',
             }),
         );

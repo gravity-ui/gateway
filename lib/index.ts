@@ -3,7 +3,7 @@ import _ from 'lodash';
 import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc';
 import {createMixedAction} from './components/mixed';
 import createRestAction from './components/rest';
-import {ANY_ACTION_SYMBOL} from './constants';
+import {ANY_ACTION_SYMBOL, GatewayErrorCode} from './constants';
 import {
     ApiByScope,
     ApiServiceActionConfig,
@@ -61,7 +61,7 @@ function createApiAction<
         throw new config.ErrorConstructor(
             `Gateway config error. Service "${serviceKey}" have been not found.`,
             {
-                code: 'SERVICE_NOT_FOUND',
+                code: GatewayErrorCode.SERVICE_NOT_FOUND,
             },
         );
     }
@@ -71,7 +71,7 @@ function createApiAction<
         throw new config.ErrorConstructor(
             `Gateway config error. Action "${serviceKey}.${actionName}" have been not found.`,
             {
-                code: 'ACTION_NOT_FOUND',
+                code: GatewayErrorCode.ACTION_NOT_FOUND,
             },
         );
     }
@@ -158,12 +158,14 @@ function generateGatewayApi<
 
     if (!installation) {
         throw new config.ErrorConstructor('Gateway config error', {
-            code: 'EMPTY_GATEWAY_INSTALLATION',
+            code: GatewayErrorCode.EMPTY_GATEWAY_INSTALLATION,
         });
     }
 
     if (!env) {
-        throw new config.ErrorConstructor('Gateway config error', {code: 'EMPTY_GATEWAY_ENV'});
+        throw new config.ErrorConstructor('Gateway config error', {
+            code: GatewayErrorCode.EMPTY_GATEWAY_ENV,
+        });
     }
 
     return Object.keys(schema).reduce((api, serviceKey) => {
@@ -222,7 +224,7 @@ function generateGatewayApiController<
             } else {
                 return res.status(404).send({
                     status: 404,
-                    code: 'UNKNOWN_SERVICE',
+                    code: GatewayErrorCode.UNKNOWN_SERVICE,
                     message: 'Unknown service',
                 });
             }
@@ -237,7 +239,7 @@ function generateGatewayApiController<
             } else {
                 return res.status(404).send({
                     status: 404,
-                    code: 'UNKNOWN_SERVICE_ACTION',
+                    code: GatewayErrorCode.UNKNOWN_SERVICE_ACTION,
                     message: 'Unknown service action',
                 });
             }
@@ -247,7 +249,7 @@ function generateGatewayApiController<
         if (_.startsWith(action, '_')) {
             return res.status(404).send({
                 status: 404,
-                code: 'UNKNOWN_SERVICE_ACTION',
+                code: GatewayErrorCode.UNKNOWN_SERVICE_ACTION,
                 message: 'Unknown service action',
             });
         }
@@ -260,7 +262,7 @@ function generateGatewayApiController<
         ) {
             return res.status(404).send({
                 status: 404,
-                code: 'UNKNOWN_SERVICE_ACTION',
+                code: GatewayErrorCode.UNKNOWN_SERVICE_ACTION,
                 message: 'Unknown service action',
             });
         }

@@ -16,6 +16,7 @@ jest.mock('grpc-reflection-js', () => ({
 import * as grpcReflection from 'grpc-reflection-js';
 
 import {getGatewayControllers} from '../../lib';
+import {GatewayErrorCode} from '../../lib/constants';
 
 import {ErrorConstructor, createCoreContext} from './create-core-context';
 import {schema} from './schema/meta';
@@ -93,7 +94,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 500,
                 details: {
                     grpcCode: 15,
@@ -112,7 +113,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 500,
                 details: {
                     grpcCode: 15,
@@ -130,7 +131,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 504,
                 details: {
                     grpcCode: 4,
@@ -153,7 +154,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 504,
                 details: {
                     grpcCode: 4,
@@ -174,7 +175,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 501,
                 details: {
                     grpcCode: 12,
@@ -202,7 +203,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'REQUEST_WAS_CANCELLED',
+                code: GatewayErrorCode.REQUEST_WAS_CANCELLED,
                 status: 499,
             },
         });
@@ -283,7 +284,7 @@ describe('Invalid request body tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'INVALID_PARAMS',
+                code: GatewayErrorCode.INVALID_PARAMS,
                 status: 400,
                 details: {
                     title: 'Invalid params',
@@ -322,7 +323,7 @@ describe('Parallel requests test', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 504,
                 details: {
                     grpcCode: 4,
@@ -403,7 +404,7 @@ describe('Client stream requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'ACTION_CALLBACK_REQUIRED',
+                code: GatewayErrorCode.ACTION_CALLBACK_REQUIRED,
                 status: 400,
             },
         });

@@ -2,20 +2,19 @@ import * as grpc from '@grpc/grpc-js';
 import _ from 'lodash';
 import * as protobufjs from 'protobufjs';
 
-import {Lang} from '../constants';
+import {GatewayErrorCode, Lang} from '../constants';
 import {GatewayError} from '../models/common';
 import {AppErrorConstructor} from '../models/error';
 
 import {decodeAnyMessageRecursively, isGrpcRequestSerializationError} from './grpc';
 
-const DEFAULT_GATEWAY_CODE = 'GATEWAY_REQUEST_ERROR';
 const DEFAULT_GATEWAY_MESSAGE = 'Gateway request error';
 
 export function parseMixedError(e: Error & {code?: string}) {
     return {
         status: 500,
         message: String(e.message || DEFAULT_GATEWAY_MESSAGE),
-        code: String(e.code || DEFAULT_GATEWAY_CODE),
+        code: String(e.code || GatewayErrorCode.GATEWAY_REQUEST_ERROR),
         debug: {
             originalError: e,
             stack: e.stack,
@@ -146,7 +145,7 @@ export function parseRestError(error: any, lang?: string): GatewayError {
     return {
         status,
         message: String(description || DEFAULT_GATEWAY_MESSAGE),
-        code: String(code || DEFAULT_GATEWAY_CODE),
+        code: String(code || GatewayErrorCode.GATEWAY_REQUEST_ERROR),
         details: {
             type,
             title,
@@ -226,7 +225,7 @@ export function parseGrpcError(
         return {
             status: 400,
             message: String(description || DEFAULT_GATEWAY_MESSAGE),
-            code: 'INVALID_PARAMS',
+            code: GatewayErrorCode.INVALID_PARAMS,
             details: {
                 title: lang === Lang.Ru ? 'Некорректные параметры' : 'Invalid params',
                 description,
@@ -248,7 +247,7 @@ export function parseGrpcError(
     return {
         status,
         message: String(description || DEFAULT_GATEWAY_MESSAGE),
-        code: DEFAULT_GATEWAY_CODE,
+        code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
         details: {
             title,
             description,
