@@ -35,6 +35,8 @@ service MetaService {
   rpc GetEntityOptionalBody(GetEntityRequest) returns (GetEntityResponse) {}
 
   rpc GetEntityListOptionalBodyServerStream(GetEntityRequest) returns (stream GetEntityResponse) {}
+
+  rpc GetEntityWithNested(GetEntityWithNestedRequest) returns (GetEntityResponse) {}
 }
 
 service Meta2Service {
@@ -118,4 +120,12 @@ message GetDataWithTimeoutRequest {
 
 message GetDataWithTimeoutResponse {
   string result = 1;
+}
+
+message NestedItem {
+  string name = 1;
+}
+
+message GetEntityWithNestedRequest {
+  NestedItem item = 1;
 }

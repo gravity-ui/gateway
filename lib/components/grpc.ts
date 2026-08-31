@@ -61,6 +61,7 @@ import {
     isRecreateServiceError,
     isRetryableGrpcError,
     listenForAbort,
+    validateGrpcRequestBody,
 } from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
@@ -988,6 +989,28 @@ export default function createGrpcAction<Context extends GatewayContext>(
             // ".<Type>: object expected" (any message with fields; >=8.x even for
             // empty messages). An empty request body must be sent as {}.
             const requestBody = body ?? {};
+
+            if (config.validateProtoRequest && 'protoPath' in config) {
+                const packageObject = loadAndCachePackageObject(root, config.protoPath);
+                const protoValidationError: string | null = validateGrpcRequestBody(
+                    root,
+                    packageObject,
+                    config.protoKey,
+                    config.action,
+                    requestBody,
+                );
+                if (protoValidationError) {
+                    throw new GrpcError('Invalid params', {
+                        status: 400,
+                        code: 'INVALID_PARAMS',
+                        message: 'Validation failed',
+                        details: {
+                            title: 'Invalid params',
+                            description: protoValidationError,
+                        },
+                    });
+                }
+            }
 
             const serviceMetadata = createMetadata({
                 options,

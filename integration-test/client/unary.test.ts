@@ -272,6 +272,42 @@ describe('Empty request serialization tests', () => {
     });
 });
 
+describe('Invalid request body tests', () => {
+    it('should reject JSON whose field types do not match the proto message', async () => {
+        await expect(
+            controllers.api.local.meta.getEntityWithNested(
+                getApiActionConfig({item: 'not-a-nested-object'}),
+            ),
+        ).rejects.toMatchObject({
+            debugHeaders: {
+                'x-request-id': requestId,
+            },
+            error: {
+                code: 'INVALID_PARAMS',
+                status: 400,
+                details: {
+                    title: 'Invalid params',
+                    description: '.v1.GetEntityWithNestedRequest.item: object expected',
+                },
+            },
+        });
+
+        await expectStatsToSendError();
+    });
+
+    it('should accept JSON that matches the proto nested message shape', async () => {
+        await expect(
+            controllers.api.local.meta
+                .getEntityWithNested(getApiActionConfig({item: {name: 'test'}}))
+                .then(({responseData}) => responseData),
+        ).resolves.toEqual({
+            result: 'nested-response-test',
+        });
+
+        await expectStatsToSendOk();
+    });
+});
+
 describe('Parallel requests test', () => {
     it('request should correctly complete if re-create service', async () => {
         const request1 = controllers.api.local.meta
