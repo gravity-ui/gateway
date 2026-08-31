@@ -123,6 +123,28 @@ const actions = {
         insecure: true,
         timeout: 2000,
     },
+    // Fails with DEADLINE_EXCEEDED when called with throwError: the client has to be
+    // re-created before the retry is performed
+    getDataWithTimeoutRetries: {
+        ...config,
+        protoKey: 'v1.TimeoutService',
+        action: 'GetDataWithTimeout',
+        params: (data: any) => ({body: data}),
+        insecure: true,
+        timeout: 2000,
+        retries: 1,
+    },
+    // Same as above, but the client is cached as a promise in reflectionServiceInstancesMap
+    getDataWithTimeoutReflectionRetries: {
+        endpoint: 'endpoint',
+        protoKey: 'v1.TimeoutService',
+        action: 'GetDataWithTimeout',
+        params: (data: any) => ({body: data}),
+        insecure: true,
+        timeout: 2000,
+        retries: 1,
+        reflection: GrpcReflection.OnFirstRequest,
+    },
     // Request type has fields but the action is called without a body. On
     // protobufjs >=7.5.5 this fails serialization with ".<Type>: object expected"
     // unless the null body is coerced to an empty message {}.

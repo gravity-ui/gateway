@@ -607,6 +607,7 @@ The **default** retry condition for gRPC-actions includes the certain gRPC statu
 - `CANCELLED`
 - `ABORTED`
 - `UNKNOWN`
+- `DEADLINE_EXCEEDED`
 
 You can customize retry behavior using the `grpcRetryCondition` config option:
 
@@ -631,7 +632,7 @@ const customGrpcRetryCondition = (error) => {
 };
 ```
 
-For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated before retrying if config option `grpcRecreateService` is not set to `false`.
+For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated if config option `grpcRecreateService` is not set to `false`. The cached client is dropped before the request is retried, so the retry is performed on a newly created connection. Requests that fail with other retryable codes are retried on the same connection.
 
 ### Request Cancellation
 

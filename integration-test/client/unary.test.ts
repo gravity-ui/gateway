@@ -24,7 +24,7 @@ const mockGrpcRetryCondition = jest.fn((error) => {
     return Boolean(error?.details === 'Error details here');
 });
 
-function getControllers() {
+function getControllers({useDefaultGrpcRetryCondition = false} = {}) {
     return getGatewayControllers(
         {local: schema},
         {
@@ -37,7 +37,7 @@ function getControllers() {
             getAuthHeaders: () => undefined,
             proxyHeaders: [],
             withDebugHeaders: false,
-            grpcRetryCondition: mockGrpcRetryCondition,
+            grpcRetryCondition: useDefaultGrpcRetryCondition ? undefined : mockGrpcRetryCondition,
         },
     );
 }
@@ -47,9 +47,9 @@ const controllers = getControllers();
 let stats: ReturnType<typeof jest.fn>;
 
 const requestId = 'test';
-function getApiActionConfig(args?: any) {
+function getApiActionConfig(args?: any, log?: jest.Mock) {
     stats = jest.fn();
-    const coreContextStub = createCoreContext(stats);
+    const coreContextStub = createCoreContext(stats, log);
     return {
         requestId,
         headers: {},
@@ -524,6 +524,70 @@ describe('Cache reflection tests', () => {
         await expectStatsToSendOk();
 
         expect(mockFileContainingSymbol).toHaveBeenCalledTimes(2);
+    });
+});
+
+// The server always answers GetDataWithTimeout({throwError: true}) with
+// DEADLINE_EXCEEDED, which is both a "recreate" and a retryable code. Every failed
+// attempt must therefore drop the cached client, so the retry runs on a new connection.
+describe('Re-create service before retry tests', () => {
+    // default retry condition, so DEADLINE_EXCEEDED is retryable
+    const localControllers = getControllers({useDefaultGrpcRetryCondition: true});
+
+    function getLogMessages(log: jest.Mock) {
+        return log.mock.calls.map(([message]) => String(message));
+    }
+
+    function countMessages(log: jest.Mock, part: string) {
+        return getLogMessages(log).filter((message) => message.includes(part)).length;
+    }
+
+    it('should re-create service before retrying', async () => {
+        const log = jest.fn();
+
+        await expect(
+            localControllers.api.local.meta.getDataWithTimeoutRetries(
+                getApiActionConfig({timeout: 0, id: 1, throwError: true}, log),
+            ),
+        ).rejects.toMatchObject({
+            error: {
+                code: 'GATEWAY_REQUEST_ERROR',
+                status: 504,
+                details: {
+                    grpcCode: 4,
+                },
+            },
+        });
+
+        // once for the initial attempt, once for the retried one
+        expect(
+            countMessages(log, 'Service client for v1.TimeoutService is going to be re-created'),
+        ).toEqual(2);
+        expect(countMessages(log, 'Service client not matched cached service')).toEqual(0);
+    });
+
+    it('should re-create reflection service before retrying', async () => {
+        const log = jest.fn();
+
+        await expect(
+            localControllers.api.local.meta.getDataWithTimeoutReflectionRetries(
+                getApiActionConfig({timeout: 0, id: 1, throwError: true}, log),
+            ),
+        ).rejects.toMatchObject({
+            error: {
+                code: 'GATEWAY_REQUEST_ERROR',
+                status: 504,
+                details: {
+                    grpcCode: 4,
+                },
+            },
+        });
+
+        // reflection instances are cached as promises — the cached client must still be matched
+        expect(countMessages(log, 'Service client not matched cached service')).toEqual(0);
+        expect(
+            countMessages(log, 'Service client for v1.TimeoutService is going to be re-created'),
+        ).toEqual(2);
     });
 });
 

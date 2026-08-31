@@ -59,11 +59,11 @@ export class CoreContext implements GatewayContext {
     }
 }
 
-export function createCoreContext(stats: () => void) {
+export function createCoreContext(stats: () => void, log?: GatewayContext['log']) {
     return new CoreContext('test', {
         utils: {
             stats,
-            log: logFactory('log'),
+            log: log ?? logFactory('log'),
             logError: logFactory('logError'),
         },
     });

@@ -349,7 +349,7 @@ const packageObjectsMap: Map<protobufjs.Root, Record<string, grpc.GrpcObject>> =
 const serviceInstancesMap: Record<string, Record<string, ServiceClient>> = {};
 const reflectionServiceInstancesMap: Record<string, Record<string, Promise<ServiceClient>>> = {};
 
-function clearInstancesCache<Context extends GatewayContext>(
+async function clearInstancesCache<Context extends GatewayContext>(
     service: ServiceClient,
     instancesMap: typeof serviceInstancesMap | typeof reflectionServiceInstancesMap,
     cachePath: [string, string],
@@ -357,9 +357,18 @@ function clearInstancesCache<Context extends GatewayContext>(
     ctx: Context,
 ) {
     const cachedService = _.get(instancesMap, cachePath);
+    // Reflection instances are cached as promises, so the cached client has to be
+    // resolved before it can be compared with the client used for the request
+    const cachedClient = await Promise.resolve(cachedService).catch(() => undefined);
 
-    if (cachedService !== service) {
+    if (cachedClient !== service) {
         ctx.log(`Service client not matched cached service for cachePath '${cachePath}'`);
+        return;
+    }
+
+    // Cache could have been refreshed while the cached client was being resolved
+    if (_.get(instancesMap, cachePath) !== cachedService) {
+        ctx.log(`Service client was already re-created for cachePath '${cachePath}'`);
         return;
     }
 
@@ -369,17 +378,15 @@ function clearInstancesCache<Context extends GatewayContext>(
     // Try to close service connection (prevent memory leak)
     // Bug in node >= 18.15.0 https://github.com/grpc/grpc-node/issues/2091
     // use setTimeout
-    Promise.resolve(cachedService).then((client) => {
-        setTimeout(() => {
-            try {
-                client?.close?.();
-            } catch (error) {
-                ctx.logError('Failed to close connection during clearing instances cache', error, {
-                    cachePath,
-                });
-            }
-        }, closeTimeout);
-    });
+    setTimeout(() => {
+        try {
+            cachedClient?.close?.();
+        } catch (error) {
+            ctx.logError('Failed to close connection during clearing instances cache', error, {
+                cachePath,
+            });
+        }
+    }, closeTimeout);
 }
 
 function getChannelCredential(
@@ -741,7 +748,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
         closeTimeout: number,
         ctx: Context,
         args?: unknown,
-    ) => void;
+    ) => Promise<void>;
     let getActionEndpoint: (args: unknown) => string;
     const grpcOptions = options?.grpcOptions || {};
 
@@ -771,7 +778,13 @@ export default function createGrpcAction<Context extends GatewayContext>(
             const serviceInstancesCache =
                 'reflection' in config ? reflectionServiceInstancesMap : serviceInstancesMap;
             const cachePath = [config.protoKey, actionEndpoint] as [string, string];
-            clearInstancesCache(service, serviceInstancesCache, cachePath, closeTimeout, ctx);
+            return clearInstancesCache(
+                service,
+                serviceInstancesCache,
+                cachePath,
+                closeTimeout,
+                ctx,
+            );
         };
     } else if (endpoints) {
         let endpointData = endpoints.grpcEndpoint || endpoints.endpoint;
@@ -792,7 +805,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     getServiceInstanceReflectCached(config, endpointData, grpcOptions, credentials);
                 recreateService = (service, closeTimeout, ctx) => {
                     const cachePath = [config.protoKey, actionEndpoint] as [string, string];
-                    clearInstancesCache(
+                    return clearInstancesCache(
                         service,
                         reflectionServiceInstancesMap,
                         cachePath,
@@ -809,7 +822,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                             ? reflectionServiceInstancesMap
                             : serviceInstancesMap;
                     const cachePath = [config.protoKey, actionEndpoint] as [string, string];
-                    clearInstancesCache(
+                    return clearInstancesCache(
                         service,
                         serviceInstancesCache,
                         cachePath,
@@ -1189,11 +1202,13 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                     );
                                 }
 
-                                if (shouldRecreateService && !shouldRetry) {
+                                if (shouldRecreateService) {
                                     ctx.log(
                                         `Service client for ${config.protoKey} is going to be re-created`,
                                     );
-                                    recreateService(service, 5000, ctx, args);
+                                    // Await to make sure the cached client is dropped
+                                    // before the retry asks for a service instance
+                                    await recreateService(service, 5000, ctx, args);
                                 }
 
                                 if (shouldRetry) {
@@ -1209,6 +1224,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                                         },
                                     );
                                     // Update pointer to re-created client in local service variable
+                                    // (the cache was cleared above, so a fresh client is created)
                                     try {
                                         service = await getService(args);
                                     } catch (error) {
