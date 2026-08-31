@@ -58,6 +58,30 @@ function getCachedClient(
 }
 
 /**
+ * Drops cached reflection clients for the endpoint and closes their
+ * connections. Used when the service client for the endpoint is re-created:
+ * the reflection client channel points to the same endpoint and may be
+ * stuck in the same broken state.
+ */
+export function clearReflectionClientCache(actionEndpoint: string) {
+    const clientsByOptions = reflectionClientsMap[actionEndpoint];
+
+    if (!clientsByOptions) {
+        return;
+    }
+
+    delete reflectionClientsMap[actionEndpoint];
+
+    Object.values(clientsByOptions).forEach(({client}) => {
+        try {
+            (client.grpcClient as unknown as {close?: () => void})?.close?.();
+        } catch {
+            // Best effort: the channel may already be closed
+        }
+    });
+}
+
+/**
  * @param actionEndpoint
  * @param protoKey
  * @param credentials

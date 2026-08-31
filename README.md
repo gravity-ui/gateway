@@ -631,7 +631,10 @@ const customGrpcRetryCondition = (error) => {
 };
 ```
 
-For gRPC-requests that fail with `DEADLINE_EXCEEDED`, the service connection is recreated before retrying if config option `grpcRecreateService` is not set to `false`.
+Unless config option `grpcRecreateService` is set to `false`, the service connection is recreated when it is likely broken:
+
+- the request failed with a connectivity error (`UNAVAILABLE`, `CANCELLED`, `ABORTED`, `UNKNOWN` or `DEADLINE_EXCEEDED`) while the channel is in a broken state (`CONNECTING`, `TRANSIENT_FAILURE` or `SHUTDOWN`) — the connection is recreated before retrying, so retries don't reuse a stuck channel;
+- the request failed with `DEADLINE_EXCEEDED` while the channel is `READY` (the deadline was most likely caused by a slow backend) — the connection is recreated only after all retries are exhausted.
 
 ### Request Cancellation
 
