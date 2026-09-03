@@ -994,7 +994,6 @@ export default function createGrpcAction<Context extends GatewayContext>(
             if (config.validateProtoRequest && 'protoPath' in config) {
                 const packageObject = loadAndCachePackageObject(root, config.protoPath);
                 const protoValidationError: string | null = validateGrpcRequestBody(
-                    root,
                     packageObject,
                     config.protoKey,
                     config.action,

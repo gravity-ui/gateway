@@ -101,76 +101,24 @@ export function isRecreateServiceError(error?: grpc.ServiceError) {
 }
 
 export function validateGrpcRequestBody(
-    root: protobufjs.Root,
     packageObject: grpc.GrpcObject,
     protoKey: string,
     action: string,
     requestBody: unknown,
 ): string | null {
     const Service = _.get(packageObject, protoKey) as grpc.ServiceClientConstructor | undefined;
+    const methodDefinition = Service?.service?.[action];
 
-    if (!Service?.service?.[action]) {
+    if (!methodDefinition?.requestSerialize) {
         return null;
     }
 
     try {
-        const service = root.lookupService(protoKey);
-        const method = service.methods[action];
-
-        if (!method) {
-            return null;
-        }
-
-        if (!method.resolved) {
-            method.resolve();
-        }
-
-        const requestType = method.resolvedRequestType;
-
-        if (!requestType) {
-            return null;
-        }
-
-        return validateRequestBodyWithFromObject(requestType, requestBody);
-    } catch {
-        return null;
-    }
-}
-
-function validateRequestBodyWithFromObject(
-    requestType: protobufjs.Type,
-    requestBody: unknown,
-): string | null {
-    if (Array.isArray(requestBody)) {
-        return `Failed to serialize message: expected object with ${requestType.name} structure, got array instead`;
-    }
-
-    if (requestBody === null || typeof requestBody !== 'object') {
-        return `Failed to serialize message: expected object with ${
-            requestType.name
-        } structure, got ${requestBody === null ? 'null' : typeof requestBody} instead`;
-    }
-
-    try {
-        // Same normalization step as @grpc/proto-loader createSerializer (without encode):
-        // https://github.com/grpc/grpc-node/blob/master/packages/proto-loader/src/index.ts
-        requestType.fromObject(requestBody as object);
+        methodDefinition.requestSerialize(requestBody);
         return null;
     } catch (error) {
         return error instanceof Error ? error.message : String(error);
     }
-}
-
-export function isGrpcRequestSerializationError(error: grpc.ServiceError): boolean {
-    if (error.code !== grpc.status.INTERNAL) {
-        return false;
-    }
-
-    const text = `${error.details || ''} ${error.message || ''}`;
-
-    return /Request message serialization failure|\.[\w.]+: (object|string|integer|number|array|enum value) expected/i.test(
-        text,
-    );
 }
 
 export type ListenForAbortArgs = {

@@ -6,7 +6,7 @@ import {GatewayErrorCode, Lang} from '../constants';
 import {GatewayError} from '../models/common';
 import {AppErrorConstructor} from '../models/error';
 
-import {decodeAnyMessageRecursively, isGrpcRequestSerializationError} from './grpc';
+import {decodeAnyMessageRecursively} from './grpc';
 
 const DEFAULT_GATEWAY_MESSAGE = 'Gateway request error';
 
@@ -219,19 +219,6 @@ export function parseGrpcError(
     // Always redefine description for Timeout exceeded errors
     if (error.code === 4) {
         description = lang === Lang.Ru ? 'Превышено время ожидания ответа' : 'Timeout exceeded';
-    }
-
-    if (isGrpcRequestSerializationError(error)) {
-        return {
-            status: 400,
-            message: String(description || DEFAULT_GATEWAY_MESSAGE),
-            code: GatewayErrorCode.INVALID_PARAMS,
-            details: {
-                title: lang === Lang.Ru ? 'Некорректные параметры' : 'Invalid params',
-                description,
-                grpcCode: code,
-            },
-        };
     }
 
     // Use default description if description is undefined, but not for Access denied errors

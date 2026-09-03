@@ -236,7 +236,7 @@ export interface ApiServiceBaseGrpcActionConfig<
     encodedFields?: string[];
     type?: HandlerType;
     decodeAnyMessageProtoLoaderOptions?: protobufjs.IConversionOptions;
-    /** Validate request body against proto via fromObject before the gRPC call. Off by default. */
+    /** Validate request body against proto via requestSerialize before the gRPC call. Off by default. See docs/grpc-proto-validation.md. */
     validateProtoRequest?: boolean;
 }
 
