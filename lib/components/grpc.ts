@@ -991,7 +991,12 @@ export default function createGrpcAction<Context extends GatewayContext>(
             // empty messages). An empty request body must be sent as {}.
             const requestBody = body ?? {};
 
-            if (config.validateProtoRequest && 'protoPath' in config) {
+            if (
+                'protoPath' in config &&
+                config.validateProtoRequest &&
+                config.type !== 'clientStream' &&
+                config.type !== 'bidi'
+            ) {
                 const packageObject = loadAndCachePackageObject(root, config.protoPath);
                 const protoValidationError: string | null = validateGrpcRequestBody(
                     packageObject,
