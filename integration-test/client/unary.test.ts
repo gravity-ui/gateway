@@ -16,6 +16,7 @@ jest.mock('grpc-reflection-js', () => ({
 import * as grpcReflection from 'grpc-reflection-js';
 
 import {getGatewayControllers} from '../../lib';
+import {GatewayErrorCode} from '../../lib/constants';
 
 import {ErrorConstructor, createCoreContext} from './create-core-context';
 import {schema} from './schema/meta';
@@ -93,7 +94,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 500,
                 details: {
                     grpcCode: 15,
@@ -112,7 +113,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 500,
                 details: {
                     grpcCode: 15,
@@ -130,7 +131,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 504,
                 details: {
                     grpcCode: 4,
@@ -153,7 +154,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 504,
                 details: {
                     grpcCode: 4,
@@ -174,7 +175,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 501,
                 details: {
                     grpcCode: 12,
@@ -202,7 +203,7 @@ describe('Unary requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'REQUEST_WAS_CANCELLED',
+                code: GatewayErrorCode.REQUEST_WAS_CANCELLED,
                 status: 499,
             },
         });
@@ -272,6 +273,42 @@ describe('Empty request serialization tests', () => {
     });
 });
 
+describe('Invalid request body tests', () => {
+    it('should reject JSON whose field types do not match the proto message', async () => {
+        await expect(
+            controllers.api.local.meta.getEntityWithNested(
+                getApiActionConfig({item: 'not-a-nested-object'}),
+            ),
+        ).rejects.toMatchObject({
+            debugHeaders: {
+                'x-request-id': requestId,
+            },
+            error: {
+                code: GatewayErrorCode.INVALID_PARAMS,
+                status: 400,
+                details: {
+                    title: 'Invalid params',
+                    description: '.v1.GetEntityWithNestedRequest.item: object expected',
+                },
+            },
+        });
+
+        await expectStatsToSendError();
+    });
+
+    it('should accept JSON that matches the proto nested message shape', async () => {
+        await expect(
+            controllers.api.local.meta
+                .getEntityWithNested(getApiActionConfig({item: {name: 'test'}}))
+                .then(({responseData}) => responseData),
+        ).resolves.toEqual({
+            result: 'nested-response-test',
+        });
+
+        await expectStatsToSendOk();
+    });
+});
+
 describe('Parallel requests test', () => {
     it('request should correctly complete if re-create service', async () => {
         const request1 = controllers.api.local.meta
@@ -286,7 +323,7 @@ describe('Parallel requests test', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'GATEWAY_REQUEST_ERROR',
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
                 status: 504,
                 details: {
                     grpcCode: 4,
@@ -367,7 +404,7 @@ describe('Client stream requests tests', () => {
                 'x-request-id': requestId,
             },
             error: {
-                code: 'ACTION_CALLBACK_REQUIRED',
+                code: GatewayErrorCode.ACTION_CALLBACK_REQUIRED,
                 status: 400,
             },
         });

@@ -245,6 +245,8 @@ export interface ApiServiceFileGrpcActionConfig<
     TTransformed,
 > extends ApiServiceBaseGrpcActionConfig<Context, TOutput, TParams, TTransformed> {
     protoPath: string;
+    /** Validate request body against proto via requestSerialize before the gRPC call. File-based actions only; unary and serverStream. */
+    validateProtoRequest?: boolean;
 }
 
 export enum GrpcReflection {

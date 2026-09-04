@@ -141,6 +141,12 @@ const getEntityListOptionalBodyServerStream: handleServerStreamingCall<any, any>
     call.end();
 };
 
+const getEntityWithNested: handleUnaryCall<any, any> = (call, callback) => {
+    callback(null, {
+        result: `nested-response-${call.request.item?.name ?? ''}`,
+    });
+};
+
 const getDataWithTimeout: handleUnaryCall<any, any> = (call, callback) => {
     if (call.request.throw_error) {
         callback(
@@ -179,6 +185,7 @@ function startGrpcServer() {
         GetEntityWithEmptyRequest: getEntityWithEmptyRequest,
         GetEntityOptionalBody: getEntityOptionalBody,
         GetEntityListOptionalBodyServerStream: getEntityListOptionalBodyServerStream,
+        GetEntityWithNested: getEntityWithNested,
     });
     // @ts-ignore
     server.addService(v1Package.Meta2Service.service, {

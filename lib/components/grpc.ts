@@ -27,6 +27,7 @@ import {
     DEFAULT_PROTO_LOADER_OPTIONS,
     DEFAULT_PROXY_HEADERS,
     DEFAULT_TIMEOUT,
+    GatewayErrorCode,
     Lang,
     VERSION,
 } from '../constants';
@@ -61,6 +62,7 @@ import {
     isRecreateServiceError,
     isRetryableGrpcError,
     listenForAbort,
+    validateGrpcRequestBody,
 } from '../utils/grpc';
 import {getCachedReflectionRoot, getReflectionRoot} from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
@@ -956,7 +958,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 const errorText = `Gateway config error. Endpoint has been not found in service "${serviceKey}"`;
                 throw new GrpcError(errorText, {
                     status: 400,
-                    code: 'ENDPOINT_NOT_FOUND',
+                    code: GatewayErrorCode.ENDPOINT_NOT_FOUND,
                     message: errorText,
                 });
             }
@@ -970,7 +972,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
             if (invalidParams) {
                 throw new GrpcError('Invalid params', {
                     status: 400,
-                    code: 'INVALID_PARAMS',
+                    code: GatewayErrorCode.INVALID_PARAMS,
                     message: 'Validation failed',
                     details: {
                         title: 'Invalid params',
@@ -989,6 +991,32 @@ export default function createGrpcAction<Context extends GatewayContext>(
             // empty messages). An empty request body must be sent as {}.
             const requestBody = body ?? {};
 
+            if (
+                'protoPath' in config &&
+                config.validateProtoRequest &&
+                config.type !== 'clientStream' &&
+                config.type !== 'bidi'
+            ) {
+                const packageObject = loadAndCachePackageObject(root, config.protoPath);
+                const protoValidationError: string | null = validateGrpcRequestBody(
+                    packageObject,
+                    config.protoKey,
+                    config.action,
+                    requestBody,
+                );
+                if (protoValidationError) {
+                    throw new GrpcError('Invalid params', {
+                        status: 400,
+                        code: GatewayErrorCode.INVALID_PARAMS,
+                        message: 'Validation failed',
+                        details: {
+                            title: 'Invalid params',
+                            description: protoValidationError,
+                        },
+                    });
+                }
+            }
+
             const serviceMetadata = createMetadata({
                 options,
                 actionConfig,
@@ -1004,7 +1032,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 reject(
                     new GrpcError('Not found action', {
                         status: 400,
-                        code: 'GRPC_ACTION_NOT_FOUND',
+                        code: GatewayErrorCode.GRPC_ACTION_NOT_FOUND,
                         message: `Not found action ${action} in ${serviceKey}`,
                     }),
                 );
@@ -1071,7 +1099,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     if (!actionConfig.callback) {
                         throw new GrpcError('Invalid action type', {
                             status: 400,
-                            code: 'ACTION_CALLBACK_REQUIRED',
+                            code: GatewayErrorCode.ACTION_CALLBACK_REQUIRED,
                             message: `Client stream actions require callback function`,
                         });
                     }
