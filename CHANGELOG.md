@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.16.0](https://github.com/gravity-ui/gateway/compare/v4.15.1...v4.16.0) (2026-09-04)
+
+
+### Features
+
+* **request validation:** added message validation before sending ([#191](https://github.com/gravity-ui/gateway/issues/191)) ([e25d868](https://github.com/gravity-ui/gateway/commit/e25d8680bdad25c474fe87af6c9773787b13f889))
+
 ## [4.15.1](https://github.com/gravity-ui/gateway/compare/v4.15.0...v4.15.1) (2026-08-20)
 
 
