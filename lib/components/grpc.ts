@@ -1320,7 +1320,10 @@ export default function createGrpcAction<Context extends GatewayContext>(
 
                                 sendStats(200, {
                                     ...requestData,
-                                    responseSize: sizeof(response),
+                                    responseSize:
+                                        config.calculateResponseSize === false
+                                            ? 0
+                                            : sizeof(response),
                                     grpcStatus: 0,
                                 });
 

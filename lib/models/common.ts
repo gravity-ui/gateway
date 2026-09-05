@@ -73,6 +73,7 @@ export interface Stats {
     action: string;
     restStatus: number;
     grpcStatus?: number;
+    /** Zero when response size calculation is disabled. */
     responseSize: number;
     requestId: string;
     requestTime: number;
@@ -228,6 +229,8 @@ export interface ApiServiceBaseGrpcActionConfig<
 > extends ApiServiceBaseActionConfig<Context, TOutput, TParams, TTransformed> {
     action: string;
     protoKey: string;
+    /** Calculate the size of successful unary responses for statistics. Defaults to true. */
+    calculateResponseSize?: boolean;
     insecure?: boolean;
     secureWithoutRootCert?: boolean;
     caCertificatePath?: string;

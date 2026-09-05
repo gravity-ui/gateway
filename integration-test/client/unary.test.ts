@@ -13,7 +13,10 @@ jest.mock('grpc-reflection-js', () => ({
     }),
 }));
 
+jest.mock('object-sizeof', () => jest.fn(jest.requireActual<typeof sizeof>('object-sizeof')));
+
 import * as grpcReflection from 'grpc-reflection-js';
+import sizeof from 'object-sizeof';
 
 import {getGatewayControllers} from '../../lib';
 import {GatewayErrorCode} from '../../lib/constants';
@@ -25,9 +28,26 @@ const mockGrpcRetryCondition = jest.fn((error) => {
     return Boolean(error?.details === 'Error details here');
 });
 
-function getControllers() {
+function getControllers(
+    actionOptions: {calculateResponseSize?: boolean} = {},
+    sendStats?: ReturnType<typeof jest.fn>,
+) {
     return getGatewayControllers(
-        {local: schema},
+        {
+            local: {
+                ...schema,
+                meta: {
+                    ...schema.meta,
+                    actions: {
+                        ...schema.meta.actions,
+                        getFolderStats: {
+                            ...schema.meta.actions.getFolderStats,
+                            ...actionOptions,
+                        },
+                    },
+                },
+            },
+        },
         {
             installation: 'external',
             env: 'production',
@@ -39,6 +59,7 @@ function getControllers() {
             proxyHeaders: [],
             withDebugHeaders: false,
             grpcRetryCondition: mockGrpcRetryCondition,
+            sendStats,
         },
     );
 }
@@ -209,6 +230,52 @@ describe('Unary requests tests', () => {
         });
 
         await expectStatsToSendError();
+    });
+});
+
+describe('Response size calculation', () => {
+    const mockSizeof = jest.mocked(sizeof);
+    const expectedResponse = {result: 'response-123'};
+
+    beforeEach(() => {
+        mockSizeof.mockClear();
+    });
+
+    it.each([
+        {name: 'omitted', options: {}},
+        {name: 'true', options: {calculateResponseSize: true}},
+    ])('calculates the size when calculateResponseSize is $name', async ({options}) => {
+        const sendStats = jest.fn();
+        const localControllers = getControllers(options, sendStats);
+
+        const {responseData} = await localControllers.api.local.meta.getFolderStats(
+            getApiActionConfig({query: '123'}),
+        );
+
+        expect(responseData).toEqual(expectedResponse);
+        expect(mockSizeof).toHaveBeenCalledTimes(1);
+        expect(mockSizeof).toHaveBeenCalledWith(expectedResponse);
+        expect(sendStats).toHaveBeenCalledTimes(1);
+        expect(sendStats.mock.calls[0][0]).toMatchObject({
+            responseSize: Buffer.byteLength(JSON.stringify(expectedResponse)),
+            grpcStatus: 0,
+            restStatus: 200,
+        });
+    });
+
+    it('skips the calculation when calculateResponseSize is false', async () => {
+        const sendStats = jest.fn();
+        const localControllers = getControllers({calculateResponseSize: false}, sendStats);
+
+        const {responseData} = await localControllers.api.local.meta.getFolderStats(
+            getApiActionConfig({query: '123'}),
+        );
+
+        expect(responseData).toEqual(expectedResponse);
+        expect(mockSizeof).not.toHaveBeenCalled();
+        expect(sendStats).toHaveBeenCalledTimes(1);
+        expect(sendStats.mock.calls[0][0]).toMatchObject({grpcStatus: 0, restStatus: 200});
+        expect(sendStats.mock.calls[0][0].responseSize).toBe(0);
     });
 });
 

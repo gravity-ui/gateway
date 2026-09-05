@@ -20,6 +20,7 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
     - [gRPC-actions](#grpc-actions)
   - [Request Cancellation](#request-cancellation)
   - [Response Content Type Validation](#response-content-type-validation)
+  - [gRPC Response Size Calculation](#grpc-response-size-calculation)
   - [gRPC Reflection for gRPC Actions](#grpc-reflection-for-grpc-actions)
 - [Development](#development)
   - [Running Tests](#running-tests)
@@ -707,6 +708,31 @@ const schema = {
 ```
 
 You can specify either a single content type or an array of acceptable content types. If the response content type doesn't match any of the expected types, an error will be thrown.
+
+### gRPC Response Size Calculation
+
+For successful unary gRPC actions, the gateway calculates `responseSize` for `sendStats` using `object-sizeof`. This serializes the decoded response to JSON and can add significant processing time for large responses.
+
+Set `calculateResponseSize: false` on an action to skip this calculation when you do not need the size statistic:
+
+```javascript
+const schema = {
+  exportService: {
+    serviceName: 'exports',
+    endpoints: {...},
+    actions: {
+      getExport: {
+        protoPath: 'exports/v1/export_service.proto',
+        protoKey: 'exports.v1.ExportService',
+        action: 'GetExport',
+        calculateResponseSize: false,
+      },
+    },
+  },
+};
+```
+
+The option defaults to `true`. When disabled, successful unary calls still invoke `sendStats`, but `responseSize` is `0` to indicate that the size was not calculated. The response data and headers are unchanged. The option works with both proto files and reflection and does not affect streaming calls or error statistics.
 
 ### gRPC Reflection for gRPC Actions
 
