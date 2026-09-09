@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.17.0](https://github.com/gravity-ui/gateway/compare/v4.16.0...v4.17.0) (2026-09-09)
+
+
+### Features
+
+* **grpc:** add response size calculation option ([#196](https://github.com/gravity-ui/gateway/issues/196)) ([7c3817e](https://github.com/gravity-ui/gateway/commit/7c3817ebf72bd6792fea2c371a7adfbaf4f423e7))
+
 ## [4.16.0](https://github.com/gravity-ui/gateway/compare/v4.15.1...v4.16.0) (2026-09-04)
 
 
