@@ -7,10 +7,12 @@ import {
     ClientUnaryCall,
     ClientWritableStream,
 } from '@grpc/grpc-js';
+import _ from 'lodash';
 import * as protobufjs from 'protobufjs';
 
 import {
     DEFAULT_PROTO_LOADER_OPTIONS,
+    GatewayErrorCode,
     RECREATE_SERVICE_CODES,
     RETRYABLE_STATUS_CODES,
 } from '../constants';
@@ -107,6 +109,27 @@ export function isConnectivityGrpcError(error?: grpc.ServiceError) {
     return isRetryableGrpcError(error) || isRecreateServiceError(error);
 }
 
+export function validateGrpcRequestBody(
+    packageObject: grpc.GrpcObject,
+    protoKey: string,
+    action: string,
+    requestBody: unknown,
+): string | null {
+    const Service = _.get(packageObject, protoKey) as grpc.ServiceClientConstructor | undefined;
+    const methodDefinition = Service?.service?.[action];
+
+    if (!methodDefinition?.requestSerialize) {
+        return null;
+    }
+
+    try {
+        methodDefinition.requestSerialize(requestBody);
+        return null;
+    } catch (error) {
+        return error instanceof Error ? error.message : String(error);
+    }
+}
+
 export type ListenForAbortArgs = {
     signal?: AbortSignal;
     config: {abortOnClientDisconnect?: boolean};
@@ -129,7 +152,7 @@ export function listenForAbort({signal, config, call, reject}: ListenForAbortArg
         reject(
             new GrpcError('Request was cancelled.', {
                 status: 499,
-                code: 'REQUEST_WAS_CANCELLED',
+                code: GatewayErrorCode.REQUEST_WAS_CANCELLED,
                 message: 'Request was cancelled because the original connection was disconnected.',
             }),
         );

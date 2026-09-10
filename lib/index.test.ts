@@ -4,6 +4,8 @@ import {EventEmitter} from 'stream';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
+import {GatewayErrorCode} from './constants';
+
 import {GetAuthHeadersParams, ProxyHeadersFunction, getGatewayControllers} from './index';
 
 const mock = new MockAdapter(axios);
@@ -350,7 +352,7 @@ describe('getGatewayControllers', () => {
             expect(res.status.mock.calls[0][0]).toBe(404);
             expect(res.send.mock.calls[0][0]).toEqual({
                 status: 404,
-                code: 'UNKNOWN_SERVICE',
+                code: GatewayErrorCode.UNKNOWN_SERVICE,
                 message: 'Unknown service',
             });
 
@@ -366,7 +368,7 @@ describe('getGatewayControllers', () => {
             expect(res.status.mock.calls[1][0]).toBe(404);
             expect(res.send.mock.calls[1][0]).toEqual({
                 status: 404,
-                code: 'UNKNOWN_SERVICE_ACTION',
+                code: GatewayErrorCode.UNKNOWN_SERVICE_ACTION,
                 message: 'Unknown service action',
             });
         });
@@ -395,7 +397,7 @@ describe('getGatewayControllers', () => {
             expect(res.status.mock.calls[0][0]).toBe(404);
             expect(res.send.mock.calls[0][0]).toEqual({
                 status: 404,
-                code: 'UNKNOWN_SERVICE_ACTION',
+                code: GatewayErrorCode.UNKNOWN_SERVICE_ACTION,
                 message: 'Unknown service action',
             });
         });
@@ -503,7 +505,7 @@ describe('getGatewayControllers', () => {
             );
             expect(res.send.mock.calls[1][0]).toEqual({
                 status: 404,
-                code: 'UNKNOWN_SERVICE_ACTION',
+                code: GatewayErrorCode.UNKNOWN_SERVICE_ACTION,
                 message: 'Unknown service action',
             });
 
@@ -750,7 +752,7 @@ describe('getGatewayControllers', () => {
             const {api} = getGatewayControllers({root: grpcSchema}, config);
             await expect(api.rootService.getRoot(params)).rejects.toMatchObject({
                 error: {
-                    code: 'GRPC_ACTION_NOT_FOUND',
+                    code: GatewayErrorCode.GRPC_ACTION_NOT_FOUND,
                     status: 400,
                     message: 'Not found action NotExistAction in rootService',
                 },

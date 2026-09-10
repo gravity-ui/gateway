@@ -10,6 +10,7 @@ import {
     DEFAULT_PROXY_HEADERS,
     DEFAULT_TIMEOUT,
     ECMA_STRING_SIZE,
+    GatewayErrorCode,
     Lang,
     VERSION,
 } from '../constants';
@@ -124,7 +125,7 @@ export default function createRestAction<Context extends GatewayContext>(
                     error: {
                         status: 400,
                         message: 'Validation failed',
-                        code: 'INVALID_PARAMS',
+                        code: GatewayErrorCode.INVALID_PARAMS,
                         details: {
                             title: 'Invalid params',
                             description: invalidParams,
@@ -151,7 +152,7 @@ export default function createRestAction<Context extends GatewayContext>(
             return Promise.reject({
                 error: {
                     status: 400,
-                    code: 'ENDPOINT_NOT_FOUND',
+                    code: GatewayErrorCode.ENDPOINT_NOT_FOUND,
                     message: errorText,
                 },
             });
@@ -385,7 +386,7 @@ export default function createRestAction<Context extends GatewayContext>(
                         error: {
                             status: 415,
                             message: 'Response content type validation failed',
-                            code: 'INVALID_RESPONSE_CONTENT_TYPE',
+                            code: GatewayErrorCode.INVALID_RESPONSE_CONTENT_TYPE,
                             details: {
                                 title: 'Invalid response content type',
                                 description: `Expected to get ${expectedResponseContentType} but got ${actualResponseContentType}`,

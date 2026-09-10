@@ -152,6 +152,15 @@ const actions = {
         action: 'GetEntityWithEmptyRequest',
         insecure: true,
     },
+    // Nested message field: a scalar where a sub-message is expected fails
+    // protobuf serialization with ".<Type>: object expected".
+    getEntityWithNested: {
+        ...config,
+        action: 'GetEntityWithNested',
+        params: (data: any) => ({body: data}),
+        insecure: true,
+        validateProtoRequest: true,
+    },
 };
 
 export const schema = {
