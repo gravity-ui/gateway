@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.17.1](https://github.com/gravity-ui/gateway/compare/v4.17.0...v4.17.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* **grpc:** recreate stuck clients before retries and fix reflection client recreation ([#190](https://github.com/gravity-ui/gateway/issues/190)) ([c1e9280](https://github.com/gravity-ui/gateway/commit/c1e928030c2428b18c47dea26ab1eebd2b7dc79b))
+
 ## [4.17.0](https://github.com/gravity-ui/gateway/compare/v4.16.0...v4.17.0) (2026-09-09)
 
 
