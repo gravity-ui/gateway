@@ -47,7 +47,7 @@
     "lodash": "^4.17.21",
     "object-sizeof": "^2.6.5",
     "protobufjs": "^7.6.4",
-    "uuid": "^9.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.3",
