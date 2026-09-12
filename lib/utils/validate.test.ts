@@ -1,5 +1,3 @@
-import {GATEWAY_INVALID_PARAM_VALUE} from '../constants';
-
 import {getPathArgsProxy, validateArgs} from './validate';
 
 describe('validate: getPathArgsProxy', () => {
@@ -11,7 +9,12 @@ describe('validate: getPathArgsProxy', () => {
             nestedObject: {
                 numberId: 2,
                 validNestedPath: 'long-long_field',
-                arrayWithPaths: [{pathId: 123}, {pathId: null}, {pathId: 'empty/null'}],
+                arrayWithPaths: [
+                    {pathId: 123},
+                    {pathId: null},
+                    {pathId: 'empty/null'},
+                    {pathId: '\uD800'},
+                ],
                 urlWithQuery: 'localhost?p=1',
                 booleanFlag: true,
             },
@@ -26,15 +29,20 @@ describe('validate: getPathArgsProxy', () => {
 
         expect(pathArgsProxy.numberId).toBe(123);
         expect(pathArgsProxy.validPath).toBe('abc');
-        expect(pathArgsProxy.pathWithSlash).toBe(GATEWAY_INVALID_PARAM_VALUE);
+        expect(() => pathArgsProxy.pathWithSlash).toThrow('Invalid path params: pathWithSlash');
         expect(pathArgsProxy.nestedObject.numberId).toBe(2);
         expect(pathArgsProxy.nestedObject.validNestedPath).toBe('long-long_field');
         expect(pathArgsProxy.nestedObject.arrayWithPaths[0].pathId).toBe(123);
         expect(pathArgsProxy.nestedObject.arrayWithPaths[1].pathId).toBe(null);
-        expect(pathArgsProxy.nestedObject.arrayWithPaths[2].pathId).toBe(
-            GATEWAY_INVALID_PARAM_VALUE,
+        expect(() => pathArgsProxy.nestedObject.arrayWithPaths[2].pathId).toThrow(
+            'Invalid path params: nestedObject.arrayWithPaths[2].pathId',
         );
-        expect(pathArgsProxy.nestedObject.urlWithQuery).toBe(GATEWAY_INVALID_PARAM_VALUE);
+        expect(() => pathArgsProxy.nestedObject.arrayWithPaths[3].pathId).toThrow(
+            'Invalid path params: nestedObject.arrayWithPaths[3].pathId',
+        );
+        expect(() => pathArgsProxy.nestedObject.urlWithQuery).toThrow(
+            'Invalid path params: nestedObject.urlWithQuery',
+        );
         expect(pathArgsProxy.nestedObject.booleanFlag).toBe(true);
         expect(pathArgsProxy.booleanValue).toBe(false);
         expect(pathArgsProxy.mixedArray[0]).toBe('a');
@@ -42,7 +50,7 @@ describe('validate: getPathArgsProxy', () => {
         expect(pathArgsProxy.mixedArray[2]).toBe(true);
         expect(pathArgsProxy.pathWithSpaces).toBe('hello%20world');
         expect(pathArgsProxy.emailPath).toBe('test%40example.com');
-        expect(pathArgsProxy.invalidUnicode).toBe(GATEWAY_INVALID_PARAM_VALUE);
+        expect(() => pathArgsProxy.invalidUnicode).toThrow('Invalid path params: invalidUnicode');
     });
 
     test('should not encode URI components when encodePathArgs is false', () => {
@@ -63,11 +71,13 @@ describe('validate: getPathArgsProxy', () => {
 
         expect(pathArgsProxy.pathWithSpaces).toBe('hello world');
         expect(pathArgsProxy.emailPath).toBe('test@example.com');
-        expect(pathArgsProxy.pathWithSlash).toBe(GATEWAY_INVALID_PARAM_VALUE);
+        expect(() => pathArgsProxy.pathWithSlash).toThrow('Invalid path params: pathWithSlash');
         expect(pathArgsProxy.invalidUnicode).toBe('\uDCE2');
         expect(pathArgsProxy.nestedObject.pathWithSpaces).toBe('hello world');
         expect(pathArgsProxy.nestedObject.emailPath).toBe('test@example.com');
-        expect(pathArgsProxy.nestedObject.pathWithSlash).toBe(GATEWAY_INVALID_PARAM_VALUE);
+        expect(() => pathArgsProxy.nestedObject.pathWithSlash).toThrow(
+            'Invalid path params: nestedObject.pathWithSlash',
+        );
         expect(pathArgsProxy.nestedObject.invalidUnicode).toBe('\uDCE2');
     });
 
@@ -92,7 +102,7 @@ describe('validate: getPathArgsProxy', () => {
 
         const pathArgsProxy = getPathArgsProxy(args, true, false);
 
-        // When validatePathArgs = false, all strings should be encoded but NOT replaced with INVALID_PARAM_VALUE
+        // When validatePathArgs = false, all strings should be encoded without validation
         expect(pathArgsProxy.normalPath).toBe('normal-path_123');
         expect(pathArgsProxy.pathWithSlash).toBe('path%2Fwith%2Fslash');
         expect(pathArgsProxy.pathWithQuestion).toBe('path%3Fquery%3Dvalue');
@@ -110,6 +120,22 @@ describe('validate: getPathArgsProxy', () => {
         // Nested objects should also be encoded without validation
         expect(pathArgsProxy.nestedObject.nestedPath).toBe('nested%2Fpath');
         expect(pathArgsProxy.nestedObject.nestedSpecial).toBe('nested%3Fvalue');
+    });
+});
+
+describe('validate: path parameter errors', () => {
+    test.each([
+        'path/part',
+        'path?query',
+        'path#fragment',
+        'path\\part',
+        'path..part',
+        '\uD800',
+        '\uDCE2',
+    ])('should reject invalid path parameter %s', (value) => {
+        const args = getPathArgsProxy({value});
+
+        expect(() => args.value).toThrow('Invalid path params: value');
     });
 });
 
