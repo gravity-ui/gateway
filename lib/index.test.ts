@@ -164,6 +164,108 @@ const overrideRootServiceSchema = {
 };
 
 describe('getGatewayControllers', () => {
+    describe('REST path validation', () => {
+        const pathSchema = {
+            rootService: {
+                endpoints,
+                actions: {
+                    getPath: {
+                        method: 'GET' as const,
+                        path: (args: {id: string}) => `/${args.id}`,
+                    },
+                },
+            },
+        };
+
+        test.each([
+            {id: 'invalid/path', options: {encodePathArgs: true}},
+            {id: 'invalid/path', options: {encodePathArgs: false}},
+            {id: '\uDCE2', options: {}},
+            {id: '\uDCE2', options: {validationSchema: {type: 'object'}}},
+        ])('rejects invalid params before sending a request (%j)', async ({id, options}) => {
+            const {api} = getGatewayControllers({root: pathSchema}, {...config, ...options});
+            const ctx = generateContext();
+            const end = jest.spyOn(ctx, 'end');
+            jest.spyOn(ctx, 'create').mockReturnValue(ctx);
+            mock.resetHistory();
+
+            await expect(api.rootService.getPath({...params, ctx, args: {id}})).rejects.toEqual({
+                error: {
+                    status: 400,
+                    message: 'Validation failed',
+                    code: GatewayErrorCode.INVALID_PARAMS,
+                    details: {
+                        title: 'Invalid path params',
+                        description: 'id',
+                    },
+                },
+                debugHeaders: {},
+            });
+            expect(mock.history.get).toHaveLength(0);
+            expect(end).toHaveBeenCalledTimes(1);
+        });
+
+        test('preserves validation schema errors', async () => {
+            const {api} = getGatewayControllers(
+                {root: pathSchema},
+                {...config, validationSchema: {type: 'object', required: ['missing']}},
+            );
+
+            await expect(
+                api.rootService.getPath({...params, args: {id: 'valid'}}),
+            ).rejects.toMatchObject({
+                error: {
+                    status: 400,
+                    message: 'Validation failed',
+                    code: GatewayErrorCode.INVALID_PARAMS,
+                    details: {
+                        title: 'Invalid params',
+                        description: "data must have required property 'missing'",
+                    },
+                },
+            });
+        });
+
+        test('uses the custom validation schema instead of the default path pattern', async () => {
+            const {api} = getGatewayControllers(
+                {root: pathSchema},
+                {...config, validationSchema: {type: 'object'}},
+            );
+            mock.onGet('https://example.com/allowed%2Fpath').reply(200, 'allowed');
+
+            const result = await api.rootService.getPath({
+                ...params,
+                args: {id: 'allowed/path'},
+            });
+
+            expect(result.responseData).toBe('allowed');
+        });
+
+        test('preserves unrelated errors thrown by the path function', async () => {
+            const error = new Error('Path function failed');
+            const {api} = getGatewayControllers(
+                {
+                    root: {
+                        rootService: {
+                            endpoints,
+                            actions: {
+                                getPath: {
+                                    method: 'GET' as const,
+                                    path: () => {
+                                        throw error;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                config,
+            );
+
+            await expect(api.rootService.getPath(params)).rejects.toBe(error);
+        });
+    });
+
     describe('api', () => {
         test('correct call by scope', async () => {
             const {api} = getGatewayControllers({root: rootSchema, example: exampleSchema}, config);
