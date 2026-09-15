@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.17.2](https://github.com/gravity-ui/gateway/compare/v4.17.1...v4.17.2) (2026-09-15)
+
+
+### Bug Fixes
+
+* reject invalid REST path params with descriptive validation errors ([#202](https://github.com/gravity-ui/gateway/issues/202)) ([8a1de89](https://github.com/gravity-ui/gateway/commit/8a1de89cbb6390d090ec2fd401e313afc8920203))
+
 ## [4.17.1](https://github.com/gravity-ui/gateway/compare/v4.17.0...v4.17.1) (2026-09-11)
 
 
