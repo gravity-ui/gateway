@@ -113,26 +113,30 @@ export default function createRestAction<Context extends GatewayContext>(
         });
         ctx.log('Initiating request');
 
+        const handleInvalidParams = (invalidParams: string, title = 'Invalid params') => {
+            ctx.log(title, {invalidParams});
+            ctx.end();
+
+            return {
+                error: {
+                    status: 400,
+                    message: 'Validation failed',
+                    code: GatewayErrorCode.INVALID_PARAMS,
+                    details: {
+                        title,
+                        description: invalidParams,
+                    },
+                },
+                debugHeaders,
+            };
+        };
+
         const validationSchema = config.validationSchema || options.validationSchema;
         if (validationSchema) {
             const invalidParams = validateArgs(args, validationSchema);
 
             if (invalidParams) {
-                ctx.log('Invalid params', {invalidParams});
-                ctx.end();
-
-                return Promise.reject({
-                    error: {
-                        status: 400,
-                        message: 'Validation failed',
-                        code: GatewayErrorCode.INVALID_PARAMS,
-                        details: {
-                            title: 'Invalid params',
-                            description: invalidParams,
-                        },
-                    },
-                    debugHeaders,
-                });
+                return Promise.reject(handleInvalidParams(invalidParams));
             }
         }
 
@@ -167,7 +171,11 @@ export default function createRestAction<Context extends GatewayContext>(
 
         const actionPath =
             typeof config.path === 'function'
-                ? config.path(getPathArgsProxy(args, options.encodePathArgs, !validationSchema))
+                ? config.path(
+                      getPathArgsProxy(args, options.encodePathArgs, !validationSchema, (param) => {
+                          throw handleInvalidParams(param, 'Invalid path params');
+                      }),
+                  )
                 : config.path;
 
         const actionURL = actionEndpoint + actionPath;

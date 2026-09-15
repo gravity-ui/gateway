@@ -1,7 +1,5 @@
 import Ajv from 'ajv';
 
-import {GATEWAY_INVALID_PARAM_VALUE} from '../constants';
-
 export function validateArgs<TParams>(args: TParams, schema: object) {
     const ajv = new Ajv();
     const validate = ajv.compile(schema);
@@ -9,14 +7,16 @@ export function validateArgs<TParams>(args: TParams, schema: object) {
     return validate(args) ? false : ajv.errorsText(validate.errors);
 }
 
-export function getPathParam(value: string) {
-    return /^((?!(\.\.|\?|#|\\|\/)).)*$/i.test(value) ? value : GATEWAY_INVALID_PARAM_VALUE;
-}
+const PATH_PARAM_PATTERN = /^((?!(\.\.|\?|#|\\|\/)).)*$/i;
 
 export function getPathArgsProxy<TParams extends {}>(
     args: TParams,
     encodePathArgs = true,
     validatePathArgs = true,
+    onInvalidPathParam: (param: string) => never = (param) => {
+        throw new Error(`Invalid path params: ${param}`);
+    },
+    parentPath = '',
 ): TParams {
     if (!args) {
         return args;
@@ -30,25 +30,39 @@ export function getPathArgsProxy<TParams extends {}>(
                 return value;
             }
 
+            const paramPath = Array.isArray(object)
+                ? `${parentPath}[${String(key)}]`
+                : parentPath
+                ? `${parentPath}.${String(key)}`
+                : String(key);
+
             if (typeof value === 'object' && value !== null) {
-                return getPathArgsProxy(value, encodePathArgs, validatePathArgs);
+                return getPathArgsProxy(
+                    value,
+                    encodePathArgs,
+                    validatePathArgs,
+                    onInvalidPathParam,
+                    paramPath,
+                );
             }
 
             if (typeof value === 'string') {
-                const pathParam = validatePathArgs ? getPathParam(value) : value;
+                if (validatePathArgs && !PATH_PARAM_PATTERN.test(value)) {
+                    return onInvalidPathParam(paramPath);
+                }
 
                 if (encodePathArgs) {
                     try {
-                        return encodeURIComponent(pathParam);
-                    } catch (error) {
-                        return GATEWAY_INVALID_PARAM_VALUE;
+                        return encodeURIComponent(value);
+                    } catch {
+                        return onInvalidPathParam(paramPath);
                     }
                 }
 
-                return pathParam;
+                return value;
             }
 
-            return value; // TODO return error INVALID_PARAMS
+            return value;
         },
     }) as unknown as TParams;
 }

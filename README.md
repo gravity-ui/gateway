@@ -285,7 +285,8 @@ It is recommended to use `GatewayConfig.proxyHeaders` for assigning headers that
 ### Validation Schema
 
 By default, for path params in REST actions, the following regexp is used: `/^((?!(\.\.|\?|#|\\|\/)).)*$/i`.
-If the parameter value does not pass validation, the `GATEWAY_INVALID_PARAM_VALUE` error is returned.
+
+If the parameter value does not pass validation, the request is rejected with status `400` and code `INVALID_PARAMS`. The error details contain the title `Invalid path params` and the path of the first invalid parameter in `description` (for example, `items[0].id`). No request is sent to the upstream service.
 
 You can use the `DEFAULT_VALIDATION_SCHEMA` from `lib/constants.ts` as a starting point:
 
