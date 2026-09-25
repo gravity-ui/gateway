@@ -206,8 +206,9 @@ interface GatewayConfig {
   grpcRecreateService?: boolean;
 
   // Load .proto files of gRPC actions on their first call instead of on gateway creation (default is false).
-  // Speeds up startup, but an invalid protoPath is reported only when the action is called,
-  // and google.protobuf.Any values can be decoded only with types from protos loaded by then.
+  // Speeds up startup, but moves the parsing onto the first request of each action, and a broken proto
+  // no longer fails gateway creation: it fails that call, and can fail later loads into the same scope.
+  // google.protobuf.Any values decode only with types from protos loaded by then; others stay undecoded.
   grpcLazyProtoLoading?: boolean;
 
   // Customize retry behavior for grpc requests
