@@ -708,12 +708,13 @@ async function getServiceInstance(
         return getServiceInstanceReflectCached(config, endpointData, grpcOptions, credentials);
     }
 
+    // Service instances are shared across scopes, so a cached one does not mean this root has the proto
+    const packageObject = loadAndCachePackageObject(root, config.protoPath);
     const actionEndpoint = createActionEndpoint(endpointData);
     const cacheKey = [config.protoKey, actionEndpoint];
     let serviceInstance = _.get(serviceInstancesMap, cacheKey);
 
     if (!serviceInstance) {
-        const packageObject = loadAndCachePackageObject(root, config.protoPath);
         const Service = _.get(packageObject, config.protoKey) as typeof grpc.Client;
         const creds = getChannelCredential(config, endpointData, credentials);
         const endpointGrpcOptions = isExtendedGrpcActionEndpoint(endpointData)
@@ -1003,10 +1004,6 @@ export default function createGrpcAction<Context extends GatewayContext>(
 
         let service: ServiceClient;
         try {
-            // getService reusing another scope's client would not load the proto into this root
-            if (!('reflection' in config) && options.grpcLazyProtoLoading) {
-                loadAndCachePackageObject(root, config.protoPath);
-            }
             service = await getService(args);
         } catch (error) {
             handleError(ErrorConstructor, error, ctx, 'getService failed');
