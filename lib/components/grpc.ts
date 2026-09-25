@@ -840,7 +840,7 @@ export default function createGrpcAction<Context extends GatewayContext>(
         }
     };
 
-    if (!('reflection' in config)) {
+    if (!('reflection' in config) && !options.grpcLazyProtoLoading) {
         loadAndCachePackageObject(root, config.protoPath);
     }
 
@@ -1003,6 +1003,10 @@ export default function createGrpcAction<Context extends GatewayContext>(
 
         let service: ServiceClient;
         try {
+            // getService reusing another scope's client would not load the proto into this root
+            if (!('reflection' in config) && options.grpcLazyProtoLoading) {
+                loadAndCachePackageObject(root, config.protoPath);
+            }
             service = await getService(args);
         } catch (error) {
             handleError(ErrorConstructor, error, ctx, 'getService failed');

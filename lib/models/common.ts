@@ -140,6 +140,7 @@ export interface GatewayApiOptions<Context extends GatewayContext> {
     sendStats?: SendStats<Context>;
     grpcOptions?: object;
     grpcRecreateService?: boolean;
+    grpcLazyProtoLoading?: boolean;
     axiosConfig?: AxiosRequestConfig;
     axiosInterceptors?: AxiosInterceptorsConfig;
     proxyHeaders?: ProxyHeaders;
@@ -488,6 +489,7 @@ export interface GatewayConfig<
     axiosRetryCondition?: AxiosRetryCondition;
     grpcOptions?: object;
     grpcRecreateService?: boolean;
+    grpcLazyProtoLoading?: boolean;
     axiosConfig?: AxiosRequestConfig;
     axiosInterceptors?: AxiosInterceptorsConfig;
     onUnknownAction?: (req: Req, res: Res, data: OnUnknownActionData) => any;
