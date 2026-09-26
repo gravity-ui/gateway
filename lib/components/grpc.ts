@@ -1013,9 +1013,9 @@ export default function createGrpcAction<Context extends GatewayContext>(
             service = await getService(args);
         } catch (error) {
             handleError(ErrorConstructor, error, ctx, 'getService failed');
-            if (!('reflection' in config)) {
-                // With lazy proto loading the proto is parsed here: fail like any other request,
-                // without the loader's message, which names files on the server
+            if (options.grpcLazyProtoLoading && !('reflection' in config)) {
+                // The proto is parsed here: fail like any other request, without the loader's
+                // message, which names files on the server
                 const grpcError = isGrpcError(error as Error)
                     ? (error as GrpcError)
                     : grpcErrorFactory(new Error('Failed to create the gRPC client'));
