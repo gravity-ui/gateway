@@ -135,6 +135,7 @@ function createApiAction<
             grpcRetryCondition: config.grpcRetryCondition,
             grpcOptions: config.grpcOptions,
             grpcRecreateService,
+            grpcLazyProtoLoading: config.grpcLazyProtoLoading,
             getAuthHeaders: config.getAuthHeaders,
         },
         config.ErrorConstructor,

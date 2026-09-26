@@ -1,6 +1,8 @@
 import path from 'path';
 import {EventEmitter} from 'stream';
 
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -858,6 +860,109 @@ describe('getGatewayControllers', () => {
                     status: 400,
                     message: 'Not found action NotExistAction in rootService',
                 },
+            });
+        });
+
+        describe('grpcLazyProtoLoading', () => {
+            const greeterProtoPath = path.resolve(__dirname, '../testProto/greeter.proto');
+            let server: grpc.Server;
+            let grpcEndpoints: typeof endpoints;
+            let loadSyncSpy: jest.SpyInstance;
+
+            const getGreeterSchema = (protoPath = greeterProtoPath) => ({
+                greeterService: {
+                    serviceName: 'greeter',
+                    actions: {
+                        sayHello: {
+                            protoPath,
+                            protoKey: 'test.v1.Greeter',
+                            action: 'SayHello',
+                            insecure: true,
+                        },
+                    },
+                    endpoints: grpcEndpoints,
+                },
+            });
+            const getProtoLoads = () =>
+                loadSyncSpy.mock.calls.filter(([filename]) => filename === greeterProtoPath).length;
+
+            beforeAll(async () => {
+                const packageObject = grpc.loadPackageDefinition(
+                    protoLoader.loadSync(greeterProtoPath),
+                ) as any;
+                server = new grpc.Server();
+                server.addService(packageObject.test.v1.Greeter.service, {
+                    SayHello: (
+                        call: grpc.ServerUnaryCall<{name: string}, unknown>,
+                        callback: grpc.sendUnaryData<{message: string}>,
+                    ) => callback(null, {message: `Hello, ${call.request.name}`}),
+                });
+                const port = await new Promise<number>((resolve, reject) =>
+                    server.bindAsync(
+                        '127.0.0.1:0',
+                        grpc.ServerCredentials.createInsecure(),
+                        (error, boundPort) => (error ? reject(error) : resolve(boundPort)),
+                    ),
+                );
+                grpcEndpoints = {external: {testing: {endpoint: `127.0.0.1:${port}`}}};
+            });
+
+            afterAll(() => {
+                server.forceShutdown();
+            });
+
+            beforeEach(() => {
+                loadSyncSpy = jest.spyOn(protoLoader, 'loadSync');
+            });
+
+            afterEach(() => {
+                loadSyncSpy.mockRestore();
+            });
+
+            test('loads the proto on the first call instead of gateway creation', async () => {
+                const {api} = getGatewayControllers(
+                    {root: getGreeterSchema()},
+                    {...config, grpcLazyProtoLoading: true},
+                );
+                expect(getProtoLoads()).toBe(0);
+
+                const {responseData} = await api.greeterService.sayHello({
+                    ...params,
+                    args: {name: 'lazy'},
+                });
+                expect(responseData).toEqual({message: 'Hello, lazy'});
+                expect(getProtoLoads()).toBe(1);
+
+                await api.greeterService.sayHello({...params, args: {name: 'again'}});
+                expect(getProtoLoads()).toBe(1);
+            });
+
+            test('loads the proto on gateway creation by default', async () => {
+                const {api} = getGatewayControllers({root: getGreeterSchema()}, config);
+                expect(getProtoLoads()).toBe(1);
+
+                const {responseData} = await api.greeterService.sayHello({
+                    ...params,
+                    args: {name: 'eager'},
+                });
+                expect(responseData).toEqual({message: 'Hello, eager'});
+                expect(getProtoLoads()).toBe(1);
+            });
+
+            test('reports a missing proto on the first call', async () => {
+                const missingProtoPath = path.resolve(__dirname, '../testProto/missing.proto');
+
+                expect(() =>
+                    getGatewayControllers({root: getGreeterSchema(missingProtoPath)}, config),
+                ).toThrow();
+
+                const {api} = getGatewayControllers(
+                    {root: getGreeterSchema(missingProtoPath)},
+                    {...config, grpcLazyProtoLoading: true},
+                );
+                await expect(api.greeterService.sayHello(params)).rejects.toMatchObject({
+                    error: {status: 500, message: 'Failed to create the gRPC client'},
+                });
             });
         });
     });

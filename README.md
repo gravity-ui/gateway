@@ -205,6 +205,13 @@ interface GatewayConfig {
   // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is true).
   grpcRecreateService?: boolean;
 
+  // Load .proto files of gRPC actions on their first call instead of on gateway creation (default is false).
+  // Speeds up startup, but moves the parsing onto the first request of each action, and a broken proto
+  // no longer fails gateway creation: it fails that call, and can fail later loads into the same scope.
+  // The scope root (also given to mixed actions as grpcContext.root) holds only the protos loaded by then,
+  // so google.protobuf.Any values of other types stay undecoded and lookups of them fail.
+  grpcLazyProtoLoading?: boolean;
+
   // Customize retry behavior for grpc requests
   grpcRetryCondition?: GrpcRetryCondition;
 
