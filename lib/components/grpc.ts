@@ -1006,6 +1006,13 @@ export default function createGrpcAction<Context extends GatewayContext>(
         try {
             service = await getService(args);
         } catch (error) {
+            if (!('reflection' in config)) {
+                // With lazy proto loading the proto is parsed here: fail like any other request
+                const loadError = error as Error | GrpcError;
+                const grpcError = isGrpcError(loadError) ? loadError : grpcErrorFactory(loadError);
+                processError(grpcError);
+                return Promise.reject({error: grpcError.getGatewayError(), debugHeaders});
+            }
             handleError(ErrorConstructor, error, ctx, 'getService failed');
             // The reflection client may be the cause of a connectivity failure
             // (e.g. its channel is stuck), drop it so the next request creates

@@ -960,7 +960,9 @@ describe('getGatewayControllers', () => {
                     {root: getGreeterSchema(missingProtoPath)},
                     {...config, grpcLazyProtoLoading: true},
                 );
-                await expect(api.greeterService.sayHello(params)).rejects.toThrow();
+                await expect(api.greeterService.sayHello(params)).rejects.toMatchObject({
+                    error: {status: 500, message: expect.stringContaining('missing.proto')},
+                });
             });
         });
     });
