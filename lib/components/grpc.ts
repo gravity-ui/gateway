@@ -179,6 +179,7 @@ const grpcLoaderOptions = {
     ...DEFAULT_PROTO_LOADER_OPTIONS,
     includeDirs: [path.join(__dirname, '../../proto')],
 };
+const loaderOptionsByRoot = new WeakMap<protobufjs.Root, typeof grpcLoaderOptions>();
 
 export interface GrpcContext {
     root: protobufjs.Root;
@@ -196,6 +197,8 @@ export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
 
     grpcLoaderOptions.includeDirs = [...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])];
     patchProtoPathResolver(root, grpcLoaderOptions.includeDirs);
+    // A lazy load must resolve imports as the root does, not with dirs added by later gateways
+    loaderOptionsByRoot.set(root, {...grpcLoaderOptions});
 
     return root;
 }
@@ -684,7 +687,10 @@ function loadAndCachePackageObject(root: protobufjs.Root, protoPath: string): gr
     }
 
     root.loadSync(protoPath);
-    const definition = protoLoader.loadSync(protoPath, grpcLoaderOptions);
+    const definition = protoLoader.loadSync(
+        protoPath,
+        loaderOptionsByRoot.get(root) ?? grpcLoaderOptions,
+    );
     const packageObject = grpc.loadPackageDefinition(definition);
 
     let packageObjectsByRoot = packageObjectsMap.get(root);
@@ -1006,14 +1012,16 @@ export default function createGrpcAction<Context extends GatewayContext>(
         try {
             service = await getService(args);
         } catch (error) {
+            handleError(ErrorConstructor, error, ctx, 'getService failed');
             if (!('reflection' in config)) {
-                // With lazy proto loading the proto is parsed here: fail like any other request
-                const loadError = error as Error | GrpcError;
-                const grpcError = isGrpcError(loadError) ? loadError : grpcErrorFactory(loadError);
+                // With lazy proto loading the proto is parsed here: fail like any other request,
+                // without the loader's message, which names files on the server
+                const grpcError = isGrpcError(error as Error)
+                    ? (error as GrpcError)
+                    : grpcErrorFactory(new Error('Failed to create the gRPC client'));
                 processError(grpcError);
                 return Promise.reject({error: grpcError.getGatewayError(), debugHeaders});
             }
-            handleError(ErrorConstructor, error, ctx, 'getService failed');
             // The reflection client may be the cause of a connectivity failure
             // (e.g. its channel is stuck), drop it so the next request creates
             // a fresh one. On deterministic errors (unknown protoKey, decoding)

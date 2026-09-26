@@ -961,7 +961,7 @@ describe('getGatewayControllers', () => {
                     {...config, grpcLazyProtoLoading: true},
                 );
                 await expect(api.greeterService.sayHello(params)).rejects.toMatchObject({
-                    error: {status: 500, message: expect.stringContaining('missing.proto')},
+                    error: {status: 500, message: 'Failed to create the gRPC client'},
                 });
             });
         });
