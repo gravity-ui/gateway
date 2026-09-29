@@ -53,7 +53,7 @@
     "@arethetypeswrong/cli": "^0.17.3",
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
-    "@gravity-ui/eslint-config": "^2.0.0",
+    "@gravity-ui/eslint-config": "^4.3.2",
     "@gravity-ui/prettier-config": "^1.0.1",
     "@gravity-ui/tsconfig": "^1.0.0",
     "@types/express": "^4.17.17",
