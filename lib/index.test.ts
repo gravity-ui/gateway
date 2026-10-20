@@ -1,6 +1,7 @@
 import path from 'path';
 import {EventEmitter} from 'stream';
 
+import * as protoLoader from '@grpc/proto-loader';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -858,6 +859,85 @@ describe('getGatewayControllers', () => {
                     status: 400,
                     message: 'Not found action NotExistAction in rootService',
                 },
+            });
+        });
+
+        describe('proto loading', () => {
+            const greeterProtoPath = path.resolve(__dirname, '../testProto/greeter.proto');
+            const farewellProtoPath = path.resolve(__dirname, '../testProto/farewell.proto');
+            const grpcSchema = {
+                greeterService: {
+                    serviceName: 'test',
+                    actions: {
+                        notExist: {
+                            protoPath: greeterProtoPath,
+                            protoKey: 'test.v1.Greeter',
+                            action: 'NotExistAction',
+                        },
+                    },
+                    endpoints,
+                },
+                farewellService: {
+                    serviceName: 'test',
+                    actions: {
+                        notExist: {
+                            protoPath: farewellProtoPath,
+                            protoKey: 'test.v2.Farewell',
+                            action: 'NotExistAction',
+                        },
+                    },
+                    endpoints,
+                },
+            };
+            const actionNotFoundError = {
+                error: {code: GatewayErrorCode.GRPC_ACTION_NOT_FOUND},
+            };
+
+            test('loads all protos of a scope in a single pass', () => {
+                const loadSync = jest.spyOn(protoLoader, 'loadSync');
+
+                getGatewayControllers({root: grpcSchema}, config);
+
+                expect(loadSync).toHaveBeenCalledTimes(1);
+                expect(loadSync).toHaveBeenCalledWith(
+                    [greeterProtoPath, farewellProtoPath],
+                    expect.anything(),
+                );
+
+                loadSync.mockRestore();
+            });
+
+            test('resolves services from batch loaded protos', async () => {
+                const {api} = getGatewayControllers({root: grpcSchema}, config);
+
+                await expect(api.greeterService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+                await expect(api.farewellService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+            });
+
+            test('falls back to per-file loading when batch loading fails', async () => {
+                const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+                const loadSync = jest.spyOn(protoLoader, 'loadSync').mockImplementationOnce(() => {
+                    throw new Error('Batch loading error');
+                });
+
+                const {api} = getGatewayControllers({root: grpcSchema}, config);
+
+                expect(consoleWarnMock).toHaveBeenCalledTimes(1);
+                expect(loadSync).toHaveBeenCalledTimes(3);
+
+                loadSync.mockRestore();
+                consoleWarnMock.mockRestore();
+
+                await expect(api.greeterService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+                await expect(api.farewellService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
             });
         });
     });

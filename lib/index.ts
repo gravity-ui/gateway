@@ -1,6 +1,11 @@
 import _ from 'lodash';
 
-import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc';
+import createGrpcAction, {
+    GrpcContext,
+    createRoot,
+    getCredentialsMap,
+    preloadPackageObjects,
+} from './components/grpc';
 import {createMixedAction} from './components/mixed';
 import createRestAction from './components/rest';
 import {ANY_ACTION_SYMBOL, GatewayErrorCode} from './constants';
@@ -40,6 +45,25 @@ function isRestActionConfig(
     actionConfig: ApiServiceActionConfig<any, any, any, any, any, any>,
 ): actionConfig is ApiServiceRestActionConfig<any, any, any> {
     return Boolean((actionConfig as ApiServiceRestActionConfig<any, any>).method);
+}
+
+function collectProtoPaths(schema: BaseSchema) {
+    const protoPaths: string[] = [];
+
+    for (const serviceSchema of Object.values(schema)) {
+        for (const action of Object.values(serviceSchema.actions)) {
+            if (
+                !isMixedActionConfig(action) &&
+                !isRestActionConfig(action) &&
+                !('reflection' in action) &&
+                action.protoPath
+            ) {
+                protoPaths.push(action.protoPath);
+            }
+        }
+    }
+
+    return protoPaths;
 }
 
 function createApiAction<
@@ -388,10 +412,12 @@ export function getGatewayControllers<
     );
 
     for (const scope of getKeys(schemasByScope)) {
+        const root = createRoot(config.includeProtoRoots);
+        preloadPackageObjects(root, collectProtoPaths(schemasByScope[scope]));
         apiByScope[scope] = generateGatewayApi(
             schemasByScope[scope],
             config,
-            {root: createRoot(config.includeProtoRoots), credentials},
+            {root, credentials},
             apiByScope,
         );
     }

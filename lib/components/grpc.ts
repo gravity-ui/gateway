@@ -194,7 +194,9 @@ export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
     root.loadSync('google/protobuf/struct.proto');
     root.loadSync('google/protobuf/wrappers.proto');
 
-    grpcLoaderOptions.includeDirs = [...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])];
+    grpcLoaderOptions.includeDirs = [
+        ...new Set([...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])]),
+    ];
     patchProtoPathResolver(root, grpcLoaderOptions.includeDirs);
 
     return root;
@@ -695,6 +697,30 @@ function loadAndCachePackageObject(root: protobufjs.Root, protoPath: string): gr
     packageObjectsByRoot[protoPath] = packageObject;
 
     return packageObject;
+}
+
+// Loads all protos in one pass: per-file loading re-parses shared imports for every file
+export function preloadPackageObjects(root: protobufjs.Root, protoPaths: string[]) {
+    const packageObjectsByRoot = packageObjectsMap.get(root) ?? {};
+    const paths = [...new Set(protoPaths)].filter((protoPath) => !packageObjectsByRoot[protoPath]);
+
+    if (paths.length < 2) {
+        return;
+    }
+
+    let packageObject: grpc.GrpcObject;
+    try {
+        root.loadSync(paths);
+        packageObject = grpc.loadPackageDefinition(protoLoader.loadSync(paths, grpcLoaderOptions));
+    } catch (error) {
+        console.warn('Batch proto loading failed, falling back to per-file loading', error);
+        return;
+    }
+
+    packageObjectsMap.set(root, packageObjectsByRoot);
+    for (const protoPath of paths) {
+        packageObjectsByRoot[protoPath] = packageObject;
+    }
 }
 
 async function getServiceInstance(
