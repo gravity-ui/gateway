@@ -710,12 +710,14 @@ export function preloadPackageObjects(root: protobufjs.Root, protoPaths: string[
 
     let packageObject: grpc.GrpcObject;
     try {
-        root.loadSync(paths);
         packageObject = grpc.loadPackageDefinition(protoLoader.loadSync(paths, grpcLoaderOptions));
     } catch (error) {
         console.warn('Batch proto loading failed, falling back to per-file loading', error);
         return;
     }
+
+    // Shared root is filled only after successful batch so failed files are not marked as loaded
+    root.loadSync(paths);
 
     packageObjectsMap.set(root, packageObjectsByRoot);
     for (const protoPath of paths) {

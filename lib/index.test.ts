@@ -865,6 +865,14 @@ describe('getGatewayControllers', () => {
         describe('proto loading', () => {
             const greeterProtoPath = path.resolve(__dirname, '../testProto/greeter.proto');
             const farewellProtoPath = path.resolve(__dirname, '../testProto/farewell.proto');
+            // Unique endpoint so service clients cached by other tests are not reused
+            const protoLoadingEndpoints = {
+                external: {
+                    testing: {
+                        endpoint: 'proto-loading.example.com',
+                    },
+                },
+            };
             const grpcSchema = {
                 greeterService: {
                     serviceName: 'test',
@@ -875,7 +883,7 @@ describe('getGatewayControllers', () => {
                             action: 'NotExistAction',
                         },
                     },
-                    endpoints,
+                    endpoints: protoLoadingEndpoints,
                 },
                 farewellService: {
                     serviceName: 'test',
@@ -886,7 +894,7 @@ describe('getGatewayControllers', () => {
                             action: 'NotExistAction',
                         },
                     },
-                    endpoints,
+                    endpoints: protoLoadingEndpoints,
                 },
             };
             const actionNotFoundError = {
@@ -938,6 +946,30 @@ describe('getGatewayControllers', () => {
                 await expect(api.farewellService.notExist(params)).rejects.toMatchObject(
                     actionNotFoundError,
                 );
+            });
+
+            test('throws on conflicting definitions within a scope like per-file loading', () => {
+                const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+                const conflictingSchema = {
+                    greeterService: grpcSchema.greeterService,
+                    greeter2Service: {
+                        serviceName: 'test',
+                        actions: {
+                            notExist: {
+                                protoPath: path.resolve(__dirname, '../testProto/greeter2.proto'),
+                                protoKey: 'test.v1.Greeter',
+                                action: 'NotExistAction',
+                            },
+                        },
+                        endpoints: protoLoadingEndpoints,
+                    },
+                };
+
+                expect(() => getGatewayControllers({root: conflictingSchema}, config)).toThrow(
+                    /duplicate name/,
+                );
+
+                consoleWarnMock.mockRestore();
             });
         });
     });
