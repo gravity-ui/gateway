@@ -511,6 +511,11 @@ export interface GatewayConfig<
     withDebugHeaders?: boolean | ((req: Req, res: Res) => boolean);
     validationSchema?: object;
     encodePathArgs?: boolean;
+    /**
+     * Experimental: load protos of a scope with a single proto-loader call when type resolution is the same
+     * as with per-file loading. Speeds up startup with large schemas. Disabled by default.
+     */
+    experimentalBatchProtoLoading?: boolean;
     getAuthArgs: (req: Req, res: Res) => Record<string, unknown> | undefined;
     getAuthHeaders: GetAuthHeaders;
     ErrorConstructor: AppErrorConstructor;

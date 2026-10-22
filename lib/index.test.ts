@@ -865,10 +865,11 @@ describe('getGatewayControllers', () => {
         describe('proto loading', () => {
             const testProtoRoot = path.resolve(__dirname, '../testProto');
             const batchProtoRoot = path.join(testProtoRoot, 'batch');
-            const protoLoadingConfig = {
+            const perFileConfig = {
                 ...config,
                 includeProtoRoots: [testProtoRoot, batchProtoRoot],
             };
+            const protoLoadingConfig = {...perFileConfig, experimentalBatchProtoLoading: true};
             const greeterProtoPath = path.join(testProtoRoot, 'greeter.proto');
             const farewellProtoPath = path.join(testProtoRoot, 'farewell.proto');
             const actionNotFoundError = {
@@ -886,6 +887,18 @@ describe('getGatewayControllers', () => {
             const createSchema = (endpoint: string) => ({
                 greeterService: createService(greeterProtoPath, 'test.v1.Greeter', endpoint),
                 farewellService: createService(farewellProtoPath, 'test.v2.Farewell', endpoint),
+            });
+
+            test('loads protos per file by default', () => {
+                const loadSync = jest.spyOn(protoLoader, 'loadSync');
+
+                getGatewayControllers({root: createSchema('per-file.example.com')}, perFileConfig);
+
+                expect(loadSync).toHaveBeenCalledTimes(2);
+                expect(loadSync).toHaveBeenCalledWith(greeterProtoPath, expect.anything());
+                expect(loadSync).toHaveBeenCalledWith(farewellProtoPath, expect.anything());
+
+                loadSync.mockRestore();
             });
 
             test('loads all protos of a scope in a single pass', () => {

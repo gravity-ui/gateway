@@ -22,6 +22,7 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
   - [Response Content Type Validation](#response-content-type-validation)
   - [gRPC Response Size Calculation](#grpc-response-size-calculation)
   - [gRPC Reflection for gRPC Actions](#grpc-reflection-for-grpc-actions)
+  - [Batch Proto Loading (experimental)](#batch-proto-loading-experimental)
 - [Development](#development)
   - [Running Tests](#running-tests)
   - [Contributing](#contributing)
@@ -201,6 +202,10 @@ interface GatewayConfig {
 
   // Enables encoding of REST path arguments (default is true).
   encodePathArgs?: boolean;
+
+  // Experimental: loads protos of a scope with a single proto-loader call (default is false).
+  // See Batch Proto Loading.
+  experimentalBatchProtoLoading?: boolean;
 
   // Configuration for automatic connection re-establishment upon connection error through L3 load balancer (default is true).
   grpcRecreateService?: boolean;
@@ -800,6 +805,29 @@ For development, you need to apply the patch locally using the command `npx patc
 **ChannelCredentials Type Mismatch Error**
 
 This error can occur due to duplicate installations of the `@grpc/grpc-js` library. It's recommended to ensure that all versions of this library are aligned and consistent to avoid this issue.
+
+### Batch Proto Loading (experimental)
+
+By default every gRPC action loads its proto file with a separate `@grpc/proto-loader` call. Each call parses the file with all its imports again, so startup time grows with the schema size.
+
+Set `experimentalBatchProtoLoading: true` to load protos of a scope with a single call:
+
+```javascript
+const {controller, api} = getGatewayControllers(schemasByScope, {
+  ...config,
+  experimentalBatchProtoLoading: true,
+});
+```
+
+In a single protobufjs root an unqualified type name can be resolved to a type from a file which is not imported, so batch loading can change request and response types. The gateway batches only proto files where type resolution is guaranteed to be the same as with per-file loading, other files are loaded per file:
+
+- every type reference in the file imports resolves to an imported type by a direct match in one of the enclosing scopes;
+- no type in the file imports gets extensions from files which are not imported;
+- `protoKey` points to a service from the file imports.
+
+If batch loading fails, a warning is logged and protos are loaded per file.
+
+The mode is experimental: the check relies on protobufjs name resolution rules. Verify your schemas before enabling it in production.
 
 ## Development
 

@@ -414,7 +414,9 @@ export function getGatewayControllers<
 
     for (const scope of getKeys(schemasByScope)) {
         const root = createRoot(config.includeProtoRoots);
-        preloadPackageObjects(root, collectProtoActions(schemasByScope[scope]));
+        if (config.experimentalBatchProtoLoading) {
+            preloadPackageObjects(root, collectProtoActions(schemasByScope[scope]));
+        }
         apiByScope[scope] = generateGatewayApi(
             schemasByScope[scope],
             config,
