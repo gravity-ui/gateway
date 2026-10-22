@@ -863,48 +863,38 @@ describe('getGatewayControllers', () => {
         });
 
         describe('proto loading', () => {
-            const greeterProtoPath = path.resolve(__dirname, '../testProto/greeter.proto');
-            const farewellProtoPath = path.resolve(__dirname, '../testProto/farewell.proto');
-            // Unique endpoint so service clients cached by other tests are not reused
-            const protoLoadingEndpoints = {
-                external: {
-                    testing: {
-                        endpoint: 'proto-loading.example.com',
-                    },
-                },
+            const testProtoRoot = path.resolve(__dirname, '../testProto');
+            const batchProtoRoot = path.join(testProtoRoot, 'batch');
+            const protoLoadingConfig = {
+                ...config,
+                includeProtoRoots: [testProtoRoot, batchProtoRoot],
             };
-            const grpcSchema = {
-                greeterService: {
-                    serviceName: 'test',
-                    actions: {
-                        notExist: {
-                            protoPath: greeterProtoPath,
-                            protoKey: 'test.v1.Greeter',
-                            action: 'NotExistAction',
-                        },
-                    },
-                    endpoints: protoLoadingEndpoints,
-                },
-                farewellService: {
-                    serviceName: 'test',
-                    actions: {
-                        notExist: {
-                            protoPath: farewellProtoPath,
-                            protoKey: 'test.v2.Farewell',
-                            action: 'NotExistAction',
-                        },
-                    },
-                    endpoints: protoLoadingEndpoints,
-                },
-            };
+            const greeterProtoPath = path.join(testProtoRoot, 'greeter.proto');
+            const farewellProtoPath = path.join(testProtoRoot, 'farewell.proto');
             const actionNotFoundError = {
                 error: {code: GatewayErrorCode.GRPC_ACTION_NOT_FOUND},
             };
 
+            // Unique endpoint for every test so service clients cached by other tests are not reused
+            const createService = (protoPath: string, protoKey: string, endpoint: string) => ({
+                serviceName: 'test',
+                actions: {
+                    notExist: {protoPath, protoKey, action: 'NotExistAction'},
+                },
+                endpoints: {external: {testing: {endpoint}}},
+            });
+            const createSchema = (endpoint: string) => ({
+                greeterService: createService(greeterProtoPath, 'test.v1.Greeter', endpoint),
+                farewellService: createService(farewellProtoPath, 'test.v2.Farewell', endpoint),
+            });
+
             test('loads all protos of a scope in a single pass', () => {
                 const loadSync = jest.spyOn(protoLoader, 'loadSync');
 
-                getGatewayControllers({root: grpcSchema}, config);
+                getGatewayControllers(
+                    {root: createSchema('single-pass.example.com')},
+                    protoLoadingConfig,
+                );
 
                 expect(loadSync).toHaveBeenCalledTimes(1);
                 expect(loadSync).toHaveBeenCalledWith(
@@ -916,7 +906,10 @@ describe('getGatewayControllers', () => {
             });
 
             test('resolves services from batch loaded protos', async () => {
-                const {api} = getGatewayControllers({root: grpcSchema}, config);
+                const {api} = getGatewayControllers(
+                    {root: createSchema('batch-services.example.com')},
+                    protoLoadingConfig,
+                );
 
                 await expect(api.greeterService.notExist(params)).rejects.toMatchObject(
                     actionNotFoundError,
@@ -926,15 +919,50 @@ describe('getGatewayControllers', () => {
                 );
             });
 
+            test('loads protos with types resolved differently in the batch per file', () => {
+                const loadSync = jest.spyOn(protoLoader, 'loadSync');
+                const endpoint = 'shadowed-types.example.com';
+                const servicePath = path.join(batchProtoRoot, 'service.proto');
+                const shadowPath = path.join(batchProtoRoot, 'shadow-direct.proto');
+                const otherPath = path.join(batchProtoRoot, 'other.proto');
+
+                getGatewayControllers(
+                    {
+                        root: {
+                            service: createService(servicePath, 'batch.v1.Service', endpoint),
+                            shadow: createService(
+                                shadowPath,
+                                'batch.v1.DirectShadowService',
+                                endpoint,
+                            ),
+                            other: createService(otherPath, 'batch.other.OtherService', endpoint),
+                        },
+                    },
+                    protoLoadingConfig,
+                );
+
+                expect(loadSync).toHaveBeenCalledTimes(2);
+                expect(loadSync).toHaveBeenCalledWith([shadowPath, otherPath], expect.anything());
+                expect(loadSync).toHaveBeenCalledWith(servicePath, expect.anything());
+
+                loadSync.mockRestore();
+            });
+
             test('falls back to per-file loading when batch loading fails', async () => {
                 const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
                 const loadSync = jest.spyOn(protoLoader, 'loadSync').mockImplementationOnce(() => {
                     throw new Error('Batch loading error');
                 });
 
-                const {api} = getGatewayControllers({root: grpcSchema}, config);
+                const {api} = getGatewayControllers(
+                    {root: createSchema('fallback.example.com')},
+                    protoLoadingConfig,
+                );
 
                 expect(consoleWarnMock).toHaveBeenCalledTimes(1);
+                expect(consoleWarnMock).toHaveBeenCalledWith(
+                    expect.stringContaining('Batch loading error'),
+                );
                 expect(loadSync).toHaveBeenCalledTimes(3);
 
                 loadSync.mockRestore();
@@ -949,27 +977,19 @@ describe('getGatewayControllers', () => {
             });
 
             test('throws on conflicting definitions within a scope like per-file loading', () => {
-                const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+                const endpoint = 'conflict.example.com';
                 const conflictingSchema = {
-                    greeterService: grpcSchema.greeterService,
-                    greeter2Service: {
-                        serviceName: 'test',
-                        actions: {
-                            notExist: {
-                                protoPath: path.resolve(__dirname, '../testProto/greeter2.proto'),
-                                protoKey: 'test.v1.Greeter',
-                                action: 'NotExistAction',
-                            },
-                        },
-                        endpoints: protoLoadingEndpoints,
-                    },
+                    greeterService: createService(greeterProtoPath, 'test.v1.Greeter', endpoint),
+                    greeter2Service: createService(
+                        path.join(testProtoRoot, 'greeter2.proto'),
+                        'test.v1.Greeter',
+                        endpoint,
+                    ),
                 };
 
-                expect(() => getGatewayControllers({root: conflictingSchema}, config)).toThrow(
-                    /duplicate name/,
-                );
-
-                consoleWarnMock.mockRestore();
+                expect(() =>
+                    getGatewayControllers({root: conflictingSchema}, protoLoadingConfig),
+                ).toThrow(/duplicate name/);
             });
         });
     });

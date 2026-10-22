@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package batch.v1;
+
+message Wrapper {
+    message Request {
+        int32 replacement = 1;
+    }
+}
+
+service NestedShadowService {
+    rpc Do (Wrapper) returns (Wrapper) {}
+}

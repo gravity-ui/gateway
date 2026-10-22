@@ -49,6 +49,7 @@ import {
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
+import {ProtoActionRef, loadBatchSafeProtoPaths} from '../utils/batch-proto-loading';
 import {
     getHeadersFromMetadata,
     getProxyHeadersArgs,
@@ -699,11 +700,15 @@ function loadAndCachePackageObject(root: protobufjs.Root, protoPath: string): gr
     return packageObject;
 }
 
-// Loads all protos in one pass: per-file loading re-parses shared imports for every file
-export function preloadPackageObjects(root: protobufjs.Root, protoPaths: string[]) {
+// Loads protos in one pass: per-file loading re-parses shared imports for every file
+export function preloadPackageObjects(root: protobufjs.Root, actions: ProtoActionRef[]) {
     const packageObjectsByRoot = packageObjectsMap.get(root) ?? {};
-    const paths = [...new Set(protoPaths)].filter((protoPath) => !packageObjectsByRoot[protoPath]);
+    const pendingActions = actions.filter(({protoPath}) => !packageObjectsByRoot[protoPath]);
+    if (new Set(pendingActions.map(({protoPath}) => protoPath)).size < 2) {
+        return;
+    }
 
+    const paths = loadBatchSafeProtoPaths(root, pendingActions);
     if (paths.length < 2) {
         return;
     }
@@ -712,12 +717,10 @@ export function preloadPackageObjects(root: protobufjs.Root, protoPaths: string[
     try {
         packageObject = grpc.loadPackageDefinition(protoLoader.loadSync(paths, grpcLoaderOptions));
     } catch (error) {
-        console.warn('Batch proto loading failed, falling back to per-file loading', error);
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Batch proto loading failed, protos are loaded per file: ${message}`);
         return;
     }
-
-    // Shared root is filled only after successful batch so failed files are not marked as loaded
-    root.loadSync(paths);
 
     packageObjectsMap.set(root, packageObjectsByRoot);
     for (const protoPath of paths) {

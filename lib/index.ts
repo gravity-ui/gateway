@@ -23,6 +23,7 @@ import {
     SchemasByScope,
 } from './models/common';
 import {GatewayContext} from './models/context';
+import {ProtoActionRef} from './utils/batch-proto-loading';
 import {getKeys, handleError} from './utils/common';
 import overrideEndpoints from './utils/overrideEndpoints';
 
@@ -47,8 +48,8 @@ function isRestActionConfig(
     return Boolean((actionConfig as ApiServiceRestActionConfig<any, any>).method);
 }
 
-function collectProtoPaths(schema: BaseSchema) {
-    const protoPaths: string[] = [];
+function collectProtoActions(schema: BaseSchema) {
+    const protoActions: ProtoActionRef[] = [];
 
     for (const serviceSchema of Object.values(schema)) {
         for (const action of Object.values(serviceSchema.actions)) {
@@ -58,12 +59,12 @@ function collectProtoPaths(schema: BaseSchema) {
                 !('reflection' in action) &&
                 action.protoPath
             ) {
-                protoPaths.push(action.protoPath);
+                protoActions.push({protoPath: action.protoPath, protoKey: action.protoKey});
             }
         }
     }
 
-    return protoPaths;
+    return protoActions;
 }
 
 function createApiAction<
@@ -413,7 +414,7 @@ export function getGatewayControllers<
 
     for (const scope of getKeys(schemasByScope)) {
         const root = createRoot(config.includeProtoRoots);
-        preloadPackageObjects(root, collectProtoPaths(schemasByScope[scope]));
+        preloadPackageObjects(root, collectProtoActions(schemasByScope[scope]));
         apiByScope[scope] = generateGatewayApi(
             schemasByScope[scope],
             config,
