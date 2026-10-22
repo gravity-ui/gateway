@@ -1,5 +1,7 @@
 import * as protobufjs from 'protobufjs';
 
+import {GatewayRoot} from './proto-path-resolver';
+
 export interface ProtoActionRef {
     protoPath: string;
     protoKey: string;
@@ -22,36 +24,13 @@ interface TypeReference {
  * in any root that contains these imports: to an imported type, by a direct match in one of
  * the enclosing scopes, with no other candidates in the inner scopes.
  */
-export function loadBatchSafeProtoPaths(
-    root: protobufjs.Root,
-    actions: ProtoActionRef[],
-): string[] {
-    const imports = new Map<string, Set<string>>();
+export function loadBatchSafeProtoPaths(root: GatewayRoot, actions: ProtoActionRef[]): string[] {
     const files = new Map<string, string | null>();
-    const originalResolvePath = root.resolvePath;
-
-    root.resolvePath = (origin, target) => {
-        const resolved = originalResolvePath.call(root, origin, target);
-        if (origin && resolved) {
-            let fileImports = imports.get(origin);
-            if (!fileImports) {
-                fileImports = new Set();
-                imports.set(origin, fileImports);
-            }
-            fileImports.add(resolved);
+    for (const {protoPath} of actions) {
+        if (!files.has(protoPath)) {
+            files.set(protoPath, root.resolvePath('', protoPath));
+            root.loadSync(protoPath);
         }
-        return resolved;
-    };
-
-    try {
-        for (const {protoPath} of actions) {
-            if (!files.has(protoPath)) {
-                files.set(protoPath, root.resolvePath('', protoPath));
-                root.loadSync(protoPath);
-            }
-        }
-    } finally {
-        root.resolvePath = originalResolvePath;
     }
 
     try {
@@ -66,7 +45,7 @@ export function loadBatchSafeProtoPaths(
         if (!closure) {
             closure = new Set([file]);
             closures.set(file, closure);
-            for (const importedFile of imports.get(file) ?? []) {
+            for (const importedFile of root.imports.get(file) ?? []) {
                 for (const closureFile of getClosure(importedFile)) {
                     closure.add(closureFile);
                 }
