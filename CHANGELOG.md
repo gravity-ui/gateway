@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.17.3](https://github.com/gravity-ui/gateway/compare/v4.17.2...v4.17.3) (2026-10-22)
+
+
+### Bug Fixes
+
+* clean up connection close listeners on request failure ([#206](https://github.com/gravity-ui/gateway/issues/206)) ([eece594](https://github.com/gravity-ui/gateway/commit/eece594ffcf65bcfb7e2688896b7f7e6d3181a95))
+
 ## [4.17.2](https://github.com/gravity-ui/gateway/compare/v4.17.1...v4.17.2) (2026-09-15)
 
 
