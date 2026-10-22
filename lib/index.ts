@@ -269,13 +269,12 @@ function generateGatewayApiController<
 
         const args = req.method === 'GET' ? req.query : req.body;
 
+        const abortController = new AbortController();
+        const handleCloseConnection = () => {
+            abortController.abort();
+        };
+
         try {
-            const abortController = new AbortController();
-
-            const handleCloseConnection = () => {
-                abortController.abort();
-            };
-
             req.connection.once('close', handleCloseConnection);
 
             const apiAction = Api[scope][service][action];
@@ -308,8 +307,6 @@ function generateGatewayApiController<
                 userId,
                 abortSignal: abortController.signal,
             });
-
-            req.connection.removeListener('close', handleCloseConnection);
 
             if (withDebugHeaders) {
                 res.set(debugHeaders);
@@ -352,6 +349,8 @@ function generateGatewayApiController<
             } else {
                 return res.status(_.get(error, 'status', 500)).send(responseError);
             }
+        } finally {
+            req.connection.removeListener('close', handleCloseConnection);
         }
     };
 }
