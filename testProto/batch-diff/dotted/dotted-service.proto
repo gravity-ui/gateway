@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package dotted;
+
+import "dotted-bar.proto";
+
+message Request {
+    foo.Bar bar = 1;
+}
+
+service Service {
+    rpc Do (Request) returns (Request) {}
+}

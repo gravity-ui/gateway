@@ -701,13 +701,7 @@ function loadAndCachePackageObject(root: protobufjs.Root, protoPath: string): gr
 
 // Loads protos in one pass: per-file loading re-parses shared imports for every file
 export function preloadPackageObjects(root: GatewayRoot, actions: ProtoActionRef[]) {
-    const packageObjectsByRoot = packageObjectsMap.get(root) ?? {};
-    const pendingActions = actions.filter(({protoPath}) => !packageObjectsByRoot[protoPath]);
-    if (new Set(pendingActions.map(({protoPath}) => protoPath)).size < 2) {
-        return;
-    }
-
-    const paths = loadBatchSafeProtoPaths(root, pendingActions);
+    const paths = loadBatchSafeProtoPaths(root, actions);
     if (paths.length < 2) {
         return;
     }
@@ -721,10 +715,10 @@ export function preloadPackageObjects(root: GatewayRoot, actions: ProtoActionRef
         return;
     }
 
-    packageObjectsMap.set(root, packageObjectsByRoot);
-    for (const protoPath of paths) {
-        packageObjectsByRoot[protoPath] = packageObject;
-    }
+    packageObjectsMap.set(
+        root,
+        Object.fromEntries(paths.map((protoPath) => [protoPath, packageObject])),
+    );
 }
 
 async function getServiceInstance(

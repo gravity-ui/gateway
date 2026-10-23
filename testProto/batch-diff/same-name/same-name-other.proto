@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package same.other;
+
+message Get {
+    int32 o = 1;
+}
+
+service OtherService {
+    rpc Get (Get) returns (Get) {}
+}

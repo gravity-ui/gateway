@@ -819,13 +819,18 @@ const {controller, api} = getGatewayControllers(schemasByScope, {
 });
 ```
 
-In a single protobufjs root an unqualified type name can be resolved to a type from a file which is not imported, so batch loading can change request and response types. The gateway batches only proto files where type resolution is guaranteed to be the same as with per-file loading, other files are loaded per file:
+In a single protobufjs root an unqualified type name can be resolved to a type from a file which is not imported, and an extension can be attached to another type, so batch loading can change request and response types. The gateway batches only proto files where type resolution is guaranteed to be the same as with per-file loading, other files are loaded per file:
 
-- every type reference in the file imports resolves to an imported type by a direct match in one of the enclosing scopes;
-- no type in the file imports gets extensions from files which are not imported;
+- every type reachable from the methods of the `protoKey` service resolves to the same imported type in any root containing the file imports: there is no other type with the same fully qualified name, the type is found by a direct match in one of the enclosing scopes, and there are no other candidates in the inner scopes;
+- every extension in the file imports has the only possible target, and no extension from a file which is not imported can be attached to a reachable type;
 - `protoKey` points to a service from the file imports.
 
-If batch loading fails, a warning is logged and protos are loaded per file.
+Errors in proto files are thrown on startup as with per-file loading. Only if the batch `@grpc/proto-loader` call fails, a warning is logged and protos are loaded per file.
+
+Known differences from per-file loading:
+
+- `fileDescriptorProtos` of batch-loaded definitions contain descriptors of all batched files;
+- `google.protobuf.Any` with `@type` in a request is encoded if the type is in any batched file, while per-file loading can encode only imported types.
 
 The mode is experimental: the check relies on protobufjs name resolution rules. Verify your schemas before enabling it in production.
 

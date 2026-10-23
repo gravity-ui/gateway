@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package x.a;
+
+message B {
+    string s = 1;
+}
