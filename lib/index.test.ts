@@ -1,6 +1,7 @@
 import path from 'path';
 import {EventEmitter} from 'stream';
 
+import * as protoLoader from '@grpc/proto-loader';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -858,6 +859,150 @@ describe('getGatewayControllers', () => {
                     status: 400,
                     message: 'Not found action NotExistAction in rootService',
                 },
+            });
+        });
+
+        describe('proto loading', () => {
+            const testProtoRoot = path.resolve(__dirname, '../testProto');
+            const batchProtoRoot = path.join(testProtoRoot, 'batch');
+            const perFileConfig = {
+                ...config,
+                includeProtoRoots: [testProtoRoot, batchProtoRoot],
+            };
+            const protoLoadingConfig = {...perFileConfig, experimentalBatchProtoLoading: true};
+            const greeterProtoPath = path.join(testProtoRoot, 'greeter.proto');
+            const farewellProtoPath = path.join(testProtoRoot, 'farewell.proto');
+            const actionNotFoundError = {
+                error: {code: GatewayErrorCode.GRPC_ACTION_NOT_FOUND},
+            };
+
+            // Unique endpoint for every test so service clients cached by other tests are not reused
+            const createService = (protoPath: string, protoKey: string, endpoint: string) => ({
+                serviceName: 'test',
+                actions: {
+                    notExist: {protoPath, protoKey, action: 'NotExistAction'},
+                },
+                endpoints: {external: {testing: {endpoint}}},
+            });
+            const createSchema = (endpoint: string) => ({
+                greeterService: createService(greeterProtoPath, 'test.v1.Greeter', endpoint),
+                farewellService: createService(farewellProtoPath, 'test.v2.Farewell', endpoint),
+            });
+
+            test('loads protos per file by default', () => {
+                const loadSync = jest.spyOn(protoLoader, 'loadSync');
+
+                getGatewayControllers({root: createSchema('per-file.example.com')}, perFileConfig);
+
+                expect(loadSync).toHaveBeenCalledTimes(2);
+                expect(loadSync).toHaveBeenCalledWith(greeterProtoPath, expect.anything());
+                expect(loadSync).toHaveBeenCalledWith(farewellProtoPath, expect.anything());
+
+                loadSync.mockRestore();
+            });
+
+            test('loads all protos of a scope in a single pass', () => {
+                const loadSync = jest.spyOn(protoLoader, 'loadSync');
+
+                getGatewayControllers(
+                    {root: createSchema('single-pass.example.com')},
+                    protoLoadingConfig,
+                );
+
+                expect(loadSync).toHaveBeenCalledTimes(1);
+                expect(loadSync).toHaveBeenCalledWith(
+                    [greeterProtoPath, farewellProtoPath],
+                    expect.anything(),
+                );
+
+                loadSync.mockRestore();
+            });
+
+            test('resolves services from batch loaded protos', async () => {
+                const {api} = getGatewayControllers(
+                    {root: createSchema('batch-services.example.com')},
+                    protoLoadingConfig,
+                );
+
+                await expect(api.greeterService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+                await expect(api.farewellService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+            });
+
+            test('loads protos with types resolved differently in the batch per file', () => {
+                const loadSync = jest.spyOn(protoLoader, 'loadSync');
+                const endpoint = 'shadowed-types.example.com';
+                const servicePath = path.join(batchProtoRoot, 'service.proto');
+                const shadowPath = path.join(batchProtoRoot, 'shadow-direct.proto');
+                const otherPath = path.join(batchProtoRoot, 'other.proto');
+
+                getGatewayControllers(
+                    {
+                        root: {
+                            service: createService(servicePath, 'batch.v1.Service', endpoint),
+                            shadow: createService(
+                                shadowPath,
+                                'batch.v1.DirectShadowService',
+                                endpoint,
+                            ),
+                            other: createService(otherPath, 'batch.other.OtherService', endpoint),
+                        },
+                    },
+                    protoLoadingConfig,
+                );
+
+                expect(loadSync).toHaveBeenCalledTimes(2);
+                expect(loadSync).toHaveBeenCalledWith([shadowPath, otherPath], expect.anything());
+                expect(loadSync).toHaveBeenCalledWith(servicePath, expect.anything());
+
+                loadSync.mockRestore();
+            });
+
+            test('falls back to per-file loading when batch loading fails', async () => {
+                const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation();
+                const loadSync = jest.spyOn(protoLoader, 'loadSync').mockImplementationOnce(() => {
+                    throw new Error('Batch loading error');
+                });
+
+                const {api} = getGatewayControllers(
+                    {root: createSchema('fallback.example.com')},
+                    protoLoadingConfig,
+                );
+
+                expect(consoleWarnMock).toHaveBeenCalledTimes(1);
+                expect(consoleWarnMock).toHaveBeenCalledWith(
+                    expect.stringContaining('Batch loading error'),
+                );
+                expect(loadSync).toHaveBeenCalledTimes(3);
+
+                loadSync.mockRestore();
+                consoleWarnMock.mockRestore();
+
+                await expect(api.greeterService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+                await expect(api.farewellService.notExist(params)).rejects.toMatchObject(
+                    actionNotFoundError,
+                );
+            });
+
+            test('throws on conflicting definitions within a scope like per-file loading', () => {
+                const endpoint = 'conflict.example.com';
+                const conflictingSchema = {
+                    greeterService: createService(greeterProtoPath, 'test.v1.Greeter', endpoint),
+                    greeter2Service: createService(
+                        path.join(testProtoRoot, 'greeter2.proto'),
+                        'test.v1.Greeter',
+                        endpoint,
+                    ),
+                };
+
+                expect(() =>
+                    getGatewayControllers({root: conflictingSchema}, protoLoadingConfig),
+                ).toThrow(/duplicate name/);
             });
         });
     });

@@ -49,6 +49,7 @@ import {
 } from '../models/common';
 import {Dict, GatewayContext} from '../models/context';
 import {AppErrorConstructor} from '../models/error';
+import {ProtoActionRef, loadBatchSafeProtoPaths} from '../utils/batch-proto-loading';
 import {
     getHeadersFromMetadata,
     getProxyHeadersArgs,
@@ -71,7 +72,7 @@ import {
     getReflectionRoot,
 } from '../utils/grpc-reflection';
 import {GrpcError, grpcErrorFactory, isGrpcError, parseGrpcError} from '../utils/parse-error';
-import {patchProtoPathResolver} from '../utils/proto-path-resolver';
+import {GatewayRoot} from '../utils/proto-path-resolver';
 import {redactSensitiveHeaders} from '../utils/redact-sensitive-headers';
 import {validateArgs} from '../utils/validate';
 
@@ -185,17 +186,18 @@ export interface GrpcContext {
     credentials: CredentialsMap;
 }
 
-export function createRoot(includeGrpcPaths?: string[]): protobufjs.Root {
-    const root = new protobufjs.Root();
+export function createRoot(includeGrpcPaths?: string[]): GatewayRoot {
+    grpcLoaderOptions.includeDirs = [
+        ...new Set([...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])]),
+    ];
+
+    const root = new GatewayRoot(grpcLoaderOptions.includeDirs);
     root.loadSync(path.resolve(__dirname, '../../proto/google/rpc/code.proto'));
     root.loadSync(path.resolve(__dirname, '../../proto/google/rpc/error_details.proto'));
     root.loadSync(path.resolve(__dirname, '../../proto/google/rpc/status.proto'));
     // Load well-known internal protobufjs types
     root.loadSync('google/protobuf/struct.proto');
     root.loadSync('google/protobuf/wrappers.proto');
-
-    grpcLoaderOptions.includeDirs = [...grpcLoaderOptions.includeDirs, ...(includeGrpcPaths ?? [])];
-    patchProtoPathResolver(root, grpcLoaderOptions.includeDirs);
 
     return root;
 }
@@ -695,6 +697,28 @@ function loadAndCachePackageObject(root: protobufjs.Root, protoPath: string): gr
     packageObjectsByRoot[protoPath] = packageObject;
 
     return packageObject;
+}
+
+// Loads protos in one pass: per-file loading re-parses shared imports for every file
+export function preloadPackageObjects(root: GatewayRoot, actions: ProtoActionRef[]) {
+    const paths = loadBatchSafeProtoPaths(root, actions);
+    if (paths.length < 2) {
+        return;
+    }
+
+    let packageObject: grpc.GrpcObject;
+    try {
+        packageObject = grpc.loadPackageDefinition(protoLoader.loadSync(paths, grpcLoaderOptions));
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Batch proto loading failed, protos are loaded per file: ${message}`);
+        return;
+    }
+
+    packageObjectsMap.set(
+        root,
+        Object.fromEntries(paths.map((protoPath) => [protoPath, packageObject])),
+    );
 }
 
 async function getServiceInstance(

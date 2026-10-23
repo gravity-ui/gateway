@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+package batch.ext;
+
+message Extendable {
+    optional string value = 1;
+    extensions 100 to 200;
+}
+
+service ExtendableService {
+    rpc Do (Extendable) returns (Extendable) {}
+}

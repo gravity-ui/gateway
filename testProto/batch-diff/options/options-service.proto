@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package options;
+
+import "google/protobuf/descriptor.proto";
+
+service Service {
+    rpc Do (google.protobuf.FileDescriptorSet) returns (google.protobuf.FileDescriptorSet) {}
+}
