@@ -575,6 +575,10 @@ Retries use exponential backoff with jitter and respect the `Retry-After` respon
 as seconds or an HTTP date. The timeout covers all attempts and retry delays; if there is not enough
 time left for the next retry, the request fails with the last error.
 
+Retries reuse the original request body. A readable stream that has been partially or fully consumed
+cannot be replayed automatically, so a retry may send an incomplete or empty body. Set `retries: 0`
+for requests with one-shot stream bodies.
+
 You can customize retry behavior using the `axiosRetryCondition` config option:
 
 ```javascript
