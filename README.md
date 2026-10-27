@@ -566,7 +566,14 @@ const config = {
 The **default** retry condition for REST-actions includes the following conditions:
 
 - Network errors (detected by `axiosRetry.isNetworkError`)
-- Other retryable errors (detected by `axiosRetry.isRetryableError`)
+- HTTP 429 and 5xx responses (detected by `axiosRetry.isRetryableError`), including for POST requests
+
+Retries are disabled by default. Set `retries` in the action schema or in an API call to enable them.
+The value is the number of additional attempts: `retries: 2` allows up to three requests.
+
+Retries use exponential backoff with jitter and respect the `Retry-After` response header, expressed
+as seconds or an HTTP date. The timeout covers all attempts and retry delays; if there is not enough
+time left for the next retry, the request fails with the last error.
 
 You can customize retry behavior using the `axiosRetryCondition` config option:
 
@@ -580,7 +587,9 @@ const config = {
 };
 ```
 
-You can also set retry conditions at the action level:
+You can also set retry conditions at the action level. The action's condition takes precedence over
+the global condition. A custom condition replaces the default condition, so returning `false` also
+prevents retries for HTTP 429 and 5xx responses:
 
 ```javascript
 const schema = {
@@ -591,6 +600,7 @@ const schema = {
       getProfile: {
         path: () => '/profile',
         method: 'GET',
+        retries: 2,
         axiosRetryCondition: (error) => {
           // Custom logic for this specific action
           return error.code === 'ECONNRESET';

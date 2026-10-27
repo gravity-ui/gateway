@@ -164,6 +164,49 @@ const overrideRootServiceSchema = {
 };
 
 describe('getGatewayControllers', () => {
+    describe('REST retry overrides', () => {
+        const retrySchema = {
+            retryService: {
+                endpoints,
+                actions: {
+                    retry: {
+                        method: 'GET' as const,
+                        path: () => '/retry',
+                        retries: 2,
+                    },
+                },
+            },
+        };
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            mock.resetHistory();
+            mock.onGet('https://example.com/retry').reply(503);
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        test('disables retries for one call without changing the schema defaults', async () => {
+            const {api} = getGatewayControllers({root: retrySchema}, config);
+
+            const response = expect(
+                api.retryService.retry({...params, retries: 0}),
+            ).rejects.toMatchObject({error: {status: 503}});
+            await Promise.all([response, jest.runAllTimersAsync()]);
+            expect(mock.history.get).toHaveLength(1);
+
+            // A per-call override must not change the shared client's retry settings.
+            mock.resetHistory();
+            const nextResponse = expect(api.retryService.retry(params)).rejects.toMatchObject({
+                error: {status: 503},
+            });
+            await Promise.all([nextResponse, jest.runAllTimersAsync()]);
+            expect(mock.history.get).toHaveLength(3);
+        });
+    });
+
     describe('REST path validation', () => {
         const pathSchema = {
             rootService: {
