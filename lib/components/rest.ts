@@ -251,6 +251,18 @@ export default function createRestAction<Context extends GatewayContext>(
             } catch (error) {
                 handleError(ErrorConstructor, error, ctx, 'Getting config params failed');
             }
+
+            if (!params) {
+                ctx.end();
+                return Promise.reject({
+                    error: {
+                        status: 500,
+                        code: GatewayErrorCode.GETTING_PARAMS_FAILED,
+                        message: 'Getting config params failed',
+                    },
+                    debugHeaders,
+                });
+            }
         }
 
         const {body = undefined, query = undefined, headers = actionHeaders} = params ?? {};

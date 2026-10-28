@@ -991,13 +991,24 @@ export default function createGrpcAction<Context extends GatewayContext>(
             ctx.end();
         }
 
-        let params: ParamsOutput;
+        let params: ParamsOutput | undefined;
 
         if (config.params) {
             try {
                 params = await config.params(args, headers, {ctx});
             } catch (error) {
                 handleError(ErrorConstructor, error, ctx, 'Getting config params failed');
+            }
+
+            // Fail closed: never fall back to the raw args below
+            if (!params) {
+                const grpcError = new GrpcError('Getting config params failed', {
+                    status: 500,
+                    code: GatewayErrorCode.GETTING_PARAMS_FAILED,
+                    message: 'Getting config params failed',
+                });
+                processError(grpcError);
+                return Promise.reject({error: grpcError.getGatewayError(), debugHeaders});
             }
         }
 
