@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.17.4](https://github.com/gravity-ui/gateway/compare/v4.17.3...v4.17.4) (2026-10-28)
+
+
+### Bug Fixes
+
+* retry HTTP 429 responses and respect retries: 0 ([#209](https://github.com/gravity-ui/gateway/issues/209)) ([bd7a8f5](https://github.com/gravity-ui/gateway/commit/bd7a8f5932e07ecb94f90a6dd7bbff16e027af08))
+
 ## [4.17.3](https://github.com/gravity-ui/gateway/compare/v4.17.2...v4.17.3) (2026-10-22)
 
 
