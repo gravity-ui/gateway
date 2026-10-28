@@ -310,10 +310,9 @@ export default function createRestAction<Context extends GatewayContext>(
         const customActionRetries = actionConfig.retries ?? config.retries;
 
         if (actionConfig.timeout || actionConfig.retries !== undefined || endpointAxiosConfig) {
-            const customActionAxiosConfig = {
-                ...(options?.axiosConfig || {}),
-                ...(endpointAxiosConfig || {}),
-            };
+            const customActionAxiosConfig = endpointAxiosConfig
+                ? {...options?.axiosConfig, ...endpointAxiosConfig}
+                : options?.axiosConfig;
             axiosClient = getAxiosClient(
                 customActionTimeout,
                 customActionRetries,

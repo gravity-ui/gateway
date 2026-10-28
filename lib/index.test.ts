@@ -4,7 +4,7 @@ import {EventEmitter} from 'stream';
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
-import {GatewayErrorCode} from './constants';
+import {DEFAULT_AXIOS_OPTIONS, GatewayErrorCode} from './constants';
 
 import {GetAuthHeadersParams, ProxyHeadersFunction, getGatewayControllers} from './index';
 
@@ -196,6 +196,11 @@ describe('getGatewayControllers', () => {
             ).rejects.toMatchObject({error: {status: 503}});
             await Promise.all([response, jest.runAllTimersAsync()]);
             expect(mock.history.get).toHaveLength(1);
+            expect(mock.history.get[0].maxContentLength).toBe(
+                DEFAULT_AXIOS_OPTIONS.maxContentLength,
+            );
+            expect(mock.history.get[0].httpAgent).toBe(DEFAULT_AXIOS_OPTIONS.httpAgent);
+            expect(mock.history.get[0].httpsAgent).toBe(DEFAULT_AXIOS_OPTIONS.httpsAgent);
 
             // A per-call override must not change the shared client's retry settings.
             mock.resetHistory();
