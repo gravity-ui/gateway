@@ -559,7 +559,7 @@ const config = {
 };
 ```
 
-3. **Failing closed on `params` errors**: if an action defines the `params` handler and it throws, the request is rejected with status `500` and code `GETTING_PARAMS_FAILED`; the upstream service is not called. For gRPC actions the same applies when `params` returns no value, since the request would otherwise fall back to the raw `args`. Actions without the `params` handler are not affected.
+3. **Failing closed on `params` errors**: if an action defines the `params` handler and it throws, the request is rejected with status `500` and code `GETTING_PARAMS_FAILED`; the upstream service is not called. Actions without the `params` handler are not affected.
 
 ### Retryable Errors
 

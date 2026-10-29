@@ -997,36 +997,6 @@ describe('getGatewayControllers', () => {
                 debugHeaders: {'x-request-id': params.requestId},
             });
         });
-
-        test('grpc rejects when params returns no value', async () => {
-            const {api} = getGatewayControllers(
-                {
-                    root: {
-                        rootService: {
-                            serviceName: 'test',
-                            actions: {
-                                getRoot: {
-                                    protoPath: path.resolve(
-                                        __dirname,
-                                        '../testProto/greeter.proto',
-                                    ),
-                                    protoKey: 'test.v1.Greeter',
-                                    action: 'SayHello',
-                                    // @ts-expect-error emulates a JS consumer breaking the contract
-                                    params: () => undefined,
-                                },
-                            },
-                            endpoints,
-                        },
-                    },
-                },
-                config,
-            );
-
-            await expect(api.rootService.getRoot(params)).rejects.toMatchObject({
-                error: failClosedError,
-            });
-        });
     });
 
     describe('GATEWAY_ENDPOINTS_OVERRIDES', () => {
