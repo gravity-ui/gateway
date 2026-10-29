@@ -250,9 +250,6 @@ export default function createRestAction<Context extends GatewayContext>(
                 params = await config.params(args, actionHeaders, {ctx});
             } catch (error) {
                 handleError(ErrorConstructor, error, ctx, 'Getting config params failed');
-            }
-
-            if (!params) {
                 ctx.end();
                 return Promise.reject({
                     error: {

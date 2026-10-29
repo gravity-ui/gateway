@@ -945,7 +945,7 @@ describe('getGatewayControllers', () => {
             expect(mock.history.post).toHaveLength(0);
         });
 
-        test('rest rejects when params returns no value', async () => {
+        test('rest sends no body when params returns no value', async () => {
             mock.resetHistory();
             const {api} = getGatewayControllers(
                 {
@@ -967,10 +967,10 @@ describe('getGatewayControllers', () => {
                 config,
             );
 
-            await expect(api.rootService.postInfo(params)).rejects.toMatchObject({
-                error: failClosedError,
-            });
-            expect(mock.history.post).toHaveLength(0);
+            // the /info mock fails on an empty body, only the sent request matters here
+            await api.rootService.postInfo(params).catch(() => {});
+            expect(mock.history.post).toHaveLength(1);
+            expect(mock.history.post[0].data).toBeUndefined();
         });
 
         test('grpc rejects when params throws', async () => {
@@ -995,6 +995,36 @@ describe('getGatewayControllers', () => {
             await expect(api.rootService.getRoot(params)).rejects.toMatchObject({
                 error: failClosedError,
                 debugHeaders: {'x-request-id': params.requestId},
+            });
+        });
+
+        test('grpc rejects when params returns no value', async () => {
+            const {api} = getGatewayControllers(
+                {
+                    root: {
+                        rootService: {
+                            serviceName: 'test',
+                            actions: {
+                                getRoot: {
+                                    protoPath: path.resolve(
+                                        __dirname,
+                                        '../testProto/greeter.proto',
+                                    ),
+                                    protoKey: 'test.v1.Greeter',
+                                    action: 'SayHello',
+                                    // @ts-expect-error emulates a JS consumer breaking the contract
+                                    params: () => undefined,
+                                },
+                            },
+                            endpoints,
+                        },
+                    },
+                },
+                config,
+            );
+
+            await expect(api.rootService.getRoot(params)).rejects.toMatchObject({
+                error: failClosedError,
             });
         });
     });
