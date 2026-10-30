@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.17.5](https://github.com/gravity-ui/gateway/compare/v4.17.4...v4.17.5) (2026-10-30)
+
+
+### Bug Fixes
+
+* reject requests when params handler fails ([#212](https://github.com/gravity-ui/gateway/issues/212)) ([b983625](https://github.com/gravity-ui/gateway/commit/b98362579a591ba68cf62a1c615616ef7787b86a))
+
 ## [4.17.4](https://github.com/gravity-ui/gateway/compare/v4.17.3...v4.17.4) (2026-10-28)
 
 
