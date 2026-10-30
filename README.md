@@ -559,6 +559,8 @@ const config = {
 };
 ```
 
+3. **Failing closed on `params` errors**: if an action defines the `params` handler and it throws, the request is rejected with status `500` and code `GETTING_PARAMS_FAILED`; the upstream service is not called. Actions without the `params` handler are not affected.
+
 ### Retryable Errors
 
 #### REST-actions

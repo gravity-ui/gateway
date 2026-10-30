@@ -910,6 +910,95 @@ describe('getGatewayControllers', () => {
         });
     });
 
+    describe('params failure', () => {
+        const failClosedError = {
+            status: 500,
+            code: GatewayErrorCode.GETTING_PARAMS_FAILED,
+        };
+
+        test('rest rejects without sending the request when params throws', async () => {
+            mock.resetHistory();
+            const {api} = getGatewayControllers(
+                {
+                    root: {
+                        rootService: {
+                            serviceName: 'test',
+                            actions: {
+                                postInfo: {
+                                    path: () => '/info',
+                                    method: 'POST' as const,
+                                    params: () => {
+                                        throw new Error('boom');
+                                    },
+                                },
+                            },
+                            endpoints,
+                        },
+                    },
+                },
+                config,
+            );
+
+            await expect(api.rootService.postInfo(params)).rejects.toMatchObject({
+                error: failClosedError,
+            });
+            expect(mock.history.post).toHaveLength(0);
+        });
+
+        test('rest sends no body when params returns no value', async () => {
+            mock.resetHistory();
+            const {api} = getGatewayControllers(
+                {
+                    root: {
+                        rootService: {
+                            serviceName: 'test',
+                            actions: {
+                                postInfo: {
+                                    path: () => '/info',
+                                    method: 'POST' as const,
+                                    // @ts-expect-error emulates a JS consumer breaking the contract
+                                    params: () => undefined,
+                                },
+                            },
+                            endpoints,
+                        },
+                    },
+                },
+                config,
+            );
+
+            // the /info mock fails on an empty body, only the sent request matters here
+            await api.rootService.postInfo(params).catch(() => {});
+            expect(mock.history.post).toHaveLength(1);
+            expect(mock.history.post[0].data).toBeUndefined();
+        });
+
+        test('grpc rejects when params throws', async () => {
+            const grpcSchema = {
+                rootService: {
+                    serviceName: 'test',
+                    actions: {
+                        getRoot: {
+                            protoPath: path.resolve(__dirname, '../testProto/greeter.proto'),
+                            protoKey: 'test.v1.Greeter',
+                            action: 'SayHello',
+                            params: () => {
+                                throw new Error('boom');
+                            },
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const {api} = getGatewayControllers({root: grpcSchema}, config);
+            await expect(api.rootService.getRoot(params)).rejects.toMatchObject({
+                error: failClosedError,
+                debugHeaders: {'x-request-id': params.requestId},
+            });
+        });
+    });
+
     describe('GATEWAY_ENDPOINTS_OVERRIDES', () => {
         const OLD_ENV = process.env;
 

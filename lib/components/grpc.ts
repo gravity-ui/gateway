@@ -998,6 +998,14 @@ export default function createGrpcAction<Context extends GatewayContext>(
                 params = await config.params(args, headers, {ctx});
             } catch (error) {
                 handleError(ErrorConstructor, error, ctx, 'Getting config params failed');
+                // Fail closed: a failed params must not fall back to the raw args below
+                const grpcError = new GrpcError('Getting config params failed', {
+                    status: 500,
+                    code: GatewayErrorCode.GETTING_PARAMS_FAILED,
+                    message: 'Getting config params failed',
+                });
+                processError(grpcError);
+                return Promise.reject({error: grpcError.getGatewayError(), debugHeaders});
             }
         }
 
