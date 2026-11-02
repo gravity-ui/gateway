@@ -296,7 +296,7 @@ function generateGatewayApiController<
 
             const serviceSchema = schemasByScope[scope]?.[service];
 
-            const {responseData, responseHeaders, debugHeaders} = await apiAction({
+            const response = await apiAction({
                 requestId: req.id,
                 headers: req.headers,
                 ctx: req.ctx,
@@ -307,6 +307,8 @@ function generateGatewayApiController<
                 userId,
                 abortSignal: abortController.signal,
             });
+            const {debugHeaders} = response;
+            const {responseData, responseHeaders} = 'responseData' in response ? response : {};
 
             if (withDebugHeaders) {
                 res.set(debugHeaders);
