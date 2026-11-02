@@ -9,7 +9,6 @@ import {
     ContextApi,
     ContextApiByScope,
     ContextApiWithRoot,
-    GatewayActionServerStreamResponse,
     GatewayApi,
     GatewayRequest,
     GatewayResponse,
@@ -38,11 +37,8 @@ function createContextApiForScope<
                         action({
                             ...requestContext,
                             args,
-                        }).then(
-                            (response) =>
-                                response.responseData ||
-                                (response as unknown as GatewayActionServerStreamResponse<unknown>)
-                                    .stream,
+                        }).then((response) =>
+                            'stream' in response ? response.stream : response.responseData,
                         );
                     return accService;
                 },
