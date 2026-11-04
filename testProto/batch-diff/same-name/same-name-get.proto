@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package same;
+
+message Get {
+    string s = 1;
+}
+
+service Service {
+    rpc Get (Get) returns (Get) {}
+}

@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+package ext.v1;
+
+message Base {
+    optional string other = 1;
+    extensions 100 to 200;
+}
+
+service OtherService {
+    rpc Do (Base) returns (Base) {}
+}

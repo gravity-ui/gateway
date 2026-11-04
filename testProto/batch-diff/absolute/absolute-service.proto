@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package absolute;
+
+import "absolute-x.proto";
+
+message Request {
+    .a.B ref = 1;
+}
+
+service Service {
+    rpc Do (Request) returns (Request) {}
+}

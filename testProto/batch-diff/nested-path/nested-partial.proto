@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package nested.Request;
+
+message a {
+    int32 v = 1;
+}
+
+service PartialService {
+    rpc Do (a) returns (a) {}
+}

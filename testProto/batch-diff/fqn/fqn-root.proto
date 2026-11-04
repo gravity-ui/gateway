@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message Foo {
+    string b = 2;
+}
+
+service RootService {
+    rpc Do (Foo) returns (Foo) {}
+}

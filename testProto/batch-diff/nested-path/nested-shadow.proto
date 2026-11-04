@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package nested.Request.x;
+
+message a {
+    message X {
+        message B {
+            int32 u = 1;
+        }
+    }
+}
+
+service ShadowService {
+    rpc Do (a) returns (a) {}
+}

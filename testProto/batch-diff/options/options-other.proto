@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package options.other;
+
+message Message {
+    string value = 1;
+}
+
+service OtherService {
+    rpc Do (Message) returns (Message) {}
+}

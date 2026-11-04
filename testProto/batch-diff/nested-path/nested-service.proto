@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package nested;
+
+import "nested-b.proto";
+
+message Request {
+    a.B ref = 1;
+}
+
+service Service {
+    rpc Do (Request) returns (Request) {}
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package y.a;
+
+message B {
+    int32 y = 1;
+}
+
+service YService {
+    rpc Do (B) returns (B) {}
+}

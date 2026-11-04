@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package batch.ext;
+
+import "extendable.proto";
+
+extend Extendable {
+    optional int32 extra = 100;
+}
+
+service ExtensionService {
+    rpc Do (Extendable) returns (Extendable) {}
+}

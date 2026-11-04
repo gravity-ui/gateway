@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package fqn;
+
+message Foo {
+    string a = 1;
+}
+
+message Request {
+    Foo foo = 1;
+}
+
+service Service {
+    rpc Do (Request) returns (Request) {}
+}

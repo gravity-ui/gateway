@@ -1,0 +1,10 @@
+// farewell.proto
+syntax = "proto3";
+
+package test.v2;
+
+import "greeter.proto";
+
+service Farewell {
+    rpc SayGoodbye (test.v1.HelloRequest) returns (test.v1.HelloReply) {}
+}

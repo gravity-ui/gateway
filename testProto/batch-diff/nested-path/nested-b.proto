@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package nested.a;
+
+message B {
+    string s = 1;
+}

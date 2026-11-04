@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package options.ext;
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FieldOptions {
+    string extra = 51000;
+}
+
+message Message {
+    string value = 1 [(extra) = "value"];
+}
+
+service ExtensionService {
+    rpc Do (Message) returns (Message) {}
+}

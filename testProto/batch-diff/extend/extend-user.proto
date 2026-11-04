@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package ext.v1;
+
+import "extend-base.proto";
+
+extend Base {
+    optional string extra = 100;
+}
+
+service Service {
+    rpc Do (ext.Base) returns (ext.Base) {}
+}

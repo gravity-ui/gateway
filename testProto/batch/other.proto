@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package batch.other;
+
+message Request {
+    bool other = 1;
+}
+
+service OtherService {
+    rpc Do (Request) returns (Request) {}
+}
