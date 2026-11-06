@@ -1,4 +1,4 @@
-import {Transform} from 'stream';
+import {Transform, pipeline} from 'stream';
 import type {Readable} from 'stream';
 
 export function pipeThroughByteCounter(
@@ -26,5 +26,6 @@ export function pipeThroughByteCounter(
         },
     });
 
-    return source.pipe(counter);
+    // pipeline forwards source errors to counter, so consumers see a broken upstream stream
+    return pipeline(source, counter, () => {});
 }

@@ -1,5 +1,6 @@
 import path from 'path';
-import {EventEmitter} from 'stream';
+import {EventEmitter, PassThrough, Readable} from 'stream';
+import {finished} from 'stream/promises';
 
 import axios, {AxiosRequestConfig} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
@@ -735,6 +736,93 @@ describe('getGatewayControllers', () => {
                 code: 'ERR_CANCELED',
                 message: 'Запрос был отменен.',
             });
+        });
+
+        test('pipes stream response to client', async () => {
+            mock.onGet('https://example.com/stream').replyOnce(() => [
+                200,
+                Readable.from(['chunk1', 'chunk2']),
+            ]);
+
+            const rootSchema = {
+                rootService: {
+                    serviceName: 'rootService',
+                    actions: {
+                        getStream: {
+                            path: () => '/stream',
+                            method: 'GET' as const,
+                            responseType: 'stream' as const,
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const res: any = new PassThrough();
+            res.status = jest.fn(() => res);
+            res.send = jest.fn();
+            res.set = jest.fn();
+
+            const chunks: string[] = [];
+            res.on('data', (chunk: Buffer) => chunks.push(chunk.toString()));
+
+            const {controller} = getGatewayControllers({root: rootSchema as any}, config);
+
+            await controller(
+                {
+                    params: {service: 'rootService', action: 'getStream'},
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: mockConnection(),
+                } as any,
+                res,
+            );
+            await finished(res);
+
+            expect(res.send).not.toHaveBeenCalled();
+            expect(chunks.join('')).toBe('chunk1chunk2');
+        });
+
+        test('destroys upstream stream when client disconnects mid-stream', async () => {
+            const upstream = new Readable({read() {}});
+            mock.onGet('https://example.com/stream').replyOnce(() => [200, upstream]);
+
+            const rootSchema = {
+                rootService: {
+                    serviceName: 'rootService',
+                    actions: {
+                        getStream: {
+                            path: () => '/stream',
+                            method: 'GET' as const,
+                            responseType: 'stream' as const,
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const res: any = new PassThrough();
+            res.status = jest.fn(() => res);
+            res.send = jest.fn();
+            res.set = jest.fn();
+            res.resume();
+
+            const {controller} = getGatewayControllers({root: rootSchema as any}, config);
+
+            await controller(
+                {
+                    params: {service: 'rootService', action: 'getStream'},
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: mockConnection(),
+                } as any,
+                res,
+            );
+            upstream.push('chunk1');
+            res.destroy();
+            await sleep(0);
+
+            expect(upstream.destroyed).toBe(true);
         });
 
         test('abort rest abortOnClientDisconnect=false', async () => {

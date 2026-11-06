@@ -1,3 +1,5 @@
+import {pipeline} from 'stream';
+
 import _ from 'lodash';
 
 import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc';
@@ -320,6 +322,12 @@ function generateGatewayApiController<
 
             if (onRequestSuccess) {
                 return onRequestSuccess(req, res, responseData);
+            } else if (responseData && typeof responseData.pipe === 'function') {
+                return pipeline(responseData, res, (error) => {
+                    if (error) {
+                        req.ctx.logError('Response stream failed', error);
+                    }
+                });
             } else {
                 return res.send(responseData);
             }
