@@ -75,4 +75,18 @@ describe('pipeThroughByteCounter', () => {
         expect(Buffer.concat(chunks)).toEqual(a);
         expect(onFlush).toHaveBeenCalledWith(3);
     });
+
+    test('forwards source errors and reports bytes streamed before the error', async () => {
+        const onFlush = jest.fn();
+        const source = new Readable({read() {}});
+
+        const out = pipeThroughByteCounter(source, onFlush);
+        const drained = drain(out);
+        source.push('abc');
+        setImmediate(() => source.destroy(new Error('upstream failed')));
+
+        await expect(drained).rejects.toThrow('upstream failed');
+        expect(onFlush).toHaveBeenCalledTimes(1);
+        expect(onFlush).toHaveBeenCalledWith(3);
+    });
 });

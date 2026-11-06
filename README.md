@@ -20,6 +20,7 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
     - [gRPC-actions](#grpc-actions)
   - [Request Cancellation](#request-cancellation)
   - [Response Content Type Validation](#response-content-type-validation)
+  - [Streaming REST Responses](#streaming-rest-responses)
   - [gRPC Response Size Calculation](#grpc-response-size-calculation)
   - [gRPC Reflection for gRPC Actions](#grpc-reflection-for-grpc-actions)
 - [Development](#development)
@@ -728,6 +729,30 @@ const schema = {
 ```
 
 You can specify either a single content type or an array of acceptable content types. If the response content type doesn't match any of the expected types, an error will be thrown.
+
+### Streaming REST Responses
+
+Set `responseType: 'stream'` on a REST action to receive the upstream response body as a Node.js readable stream. The default controller pipes these responses to the client as they arrive instead of buffering them. Use `proxyResponseHeaders` to forward headers such as `Content-Type`.
+
+```javascript
+const schema = {
+  events: {
+    serviceName: 'events',
+    endpoints: {production: 'https://events.example.com'},
+    actions: {
+      subscribe: {
+        method: 'GET',
+        path: () => '/subscribe',
+        responseType: 'stream',
+        abortOnClientDisconnect: true,
+        proxyResponseHeaders: ['content-type'],
+      },
+    },
+  },
+};
+```
+
+If the upstream stream fails mid-response, the client connection is closed and the error is logged. When `onRequestSuccess` is set, it receives the stream and is responsible for piping it to `res`.
 
 ### gRPC Response Size Calculation
 
