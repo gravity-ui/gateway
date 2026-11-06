@@ -34,7 +34,6 @@ export function pipeThroughByteCounter(
         },
     });
 
-    // Unlike .pipe, pipeline forwards source errors to counter. flush does not run
-    // after an error, so the callback reports stats for failed streams
+    // flush does not run after a source error, so the pipeline callback reports failed streams
     return pipeline(source, counter, report);
 }
