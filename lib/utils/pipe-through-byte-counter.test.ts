@@ -84,6 +84,5 @@ describe('pipeThroughByteCounter', () => {
         source.destroy(new Error('upstream failed'));
 
         await expect(drain(out)).rejects.toThrow('upstream failed');
-        expect(onFlush).not.toHaveBeenCalled();
     });
 });

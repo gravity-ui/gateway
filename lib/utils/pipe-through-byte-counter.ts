@@ -26,6 +26,6 @@ export function pipeThroughByteCounter(
         },
     });
 
-    // pipeline forwards source errors to counter, so consumers see a broken upstream stream
+    // Unlike .pipe, pipeline forwards source errors to counter; the consumer handles them
     return pipeline(source, counter, () => {});
 }
