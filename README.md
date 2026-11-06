@@ -732,7 +732,7 @@ You can specify either a single content type or an array of acceptable content t
 
 ### Streaming REST Responses
 
-Set `responseType: 'stream'` on a REST action to receive the upstream response body as a Node.js readable stream. The default controller pipes stream responses to the client as they arrive instead of buffering them. Use `proxyResponseHeaders` to forward headers such as `Content-Type`.
+Set `responseType: 'stream'` on a REST action to receive the upstream response body as a Node.js readable stream. The default controller pipes these responses to the client as they arrive instead of buffering them. Use `proxyResponseHeaders` to forward headers such as `Content-Type`.
 
 ```javascript
 const schema = {
