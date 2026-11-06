@@ -324,7 +324,9 @@ function generateGatewayApiController<
                 return onRequestSuccess(req, res, responseData);
             } else if (responseData && typeof responseData.pipe === 'function') {
                 return pipeline(responseData, res, (error) => {
-                    if (error) {
+                    if (error?.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+                        req.ctx.log('Client disconnected during response stream');
+                    } else if (error) {
                         req.ctx.logError('Response stream failed', error);
                     }
                 });

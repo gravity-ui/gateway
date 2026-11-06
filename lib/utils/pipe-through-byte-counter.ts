@@ -6,6 +6,14 @@ export function pipeThroughByteCounter(
     onFlush: (streamedBytes: number) => void,
 ): Readable {
     let streamedBytes = 0;
+    let reported = false;
+
+    const report = () => {
+        if (!reported) {
+            reported = true;
+            onFlush(streamedBytes);
+        }
+    };
 
     const counter = new Transform({
         transform(chunk, encoding, cb) {
@@ -21,11 +29,12 @@ export function pipeThroughByteCounter(
             cb(null, chunk);
         },
         flush(cb) {
-            onFlush(streamedBytes);
+            report();
             cb();
         },
     });
 
-    // Unlike .pipe, pipeline forwards source errors to counter; the consumer handles them
-    return pipeline(source, counter, () => {});
+    // Unlike .pipe, pipeline forwards source errors to counter. flush does not run
+    // after an error, so the callback reports stats for failed streams
+    return pipeline(source, counter, report);
 }

@@ -780,6 +780,49 @@ describe('getGatewayControllers', () => {
             expect(chunks.join('')).toBe('chunk1chunk2');
         });
 
+        test('does not log client disconnect during stream as error', async () => {
+            const upstream = new Readable({read() {}});
+            mock.onGet('https://example.com/stream').replyOnce(() => [200, upstream]);
+
+            const rootSchema = {
+                rootService: {
+                    serviceName: 'rootService',
+                    actions: {
+                        getStream: {
+                            path: () => '/stream',
+                            method: 'GET' as const,
+                            responseType: 'stream' as const,
+                        },
+                    },
+                    endpoints,
+                },
+            };
+
+            const res: any = new PassThrough();
+            res.set = jest.fn();
+            res.resume();
+
+            const ctx = generateContext();
+            const logError = jest.spyOn(ctx, 'logError');
+
+            const {controller} = getGatewayControllers({root: rootSchema as any}, config);
+
+            await controller(
+                {
+                    params: {service: 'rootService', action: 'getStream'},
+                    headers: {},
+                    ctx,
+                    connection: mockConnection(),
+                } as any,
+                res,
+            );
+            res.destroy();
+            await sleep(0);
+
+            expect(upstream.destroyed).toBe(true);
+            expect(logError).not.toHaveBeenCalled();
+        });
+
         test('abort rest abortOnClientDisconnect=false', async () => {
             const connection = new EventEmitter();
 
