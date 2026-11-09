@@ -1,3 +1,5 @@
+import {pipeline} from 'stream/promises';
+
 import _ from 'lodash';
 
 import createGrpcAction, {GrpcContext, createRoot, getCredentialsMap} from './components/grpc';
@@ -278,9 +280,9 @@ function generateGatewayApiController<
             req.connection.once('close', handleCloseConnection);
 
             const apiAction = Api[scope][service][action];
+            const actionConfig = schemasByScope[scope]?.[service]?.actions?.[action];
 
             if (onBeforeAction) {
-                const actionConfig = schemasByScope[scope]?.[service]?.actions?.[action];
                 try {
                     await onBeforeAction(req, res, scope, service, action, actionConfig);
                 } catch (error) {
@@ -320,6 +322,19 @@ function generateGatewayApiController<
 
             if (onRequestSuccess) {
                 return onRequestSuccess(req, res, responseData);
+            } else if (
+                _.get(actionConfig, 'responseType') === 'stream' &&
+                typeof responseData?.pipe === 'function'
+            ) {
+                // Awaited so that finally keeps the client disconnect listener until the stream ends
+                await pipeline(responseData, res).catch((error) => {
+                    if (error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+                        req.ctx.log('Client disconnected during response stream');
+                    } else {
+                        req.ctx.logError('Response stream failed', error);
+                    }
+                });
+                return undefined;
             } else {
                 return res.send(responseData);
             }

@@ -1,4 +1,4 @@
-import {Transform} from 'stream';
+import {Transform, pipeline} from 'stream';
 import type {Readable} from 'stream';
 
 export function pipeThroughByteCounter(
@@ -6,6 +6,14 @@ export function pipeThroughByteCounter(
     onFlush: (streamedBytes: number) => void,
 ): Readable {
     let streamedBytes = 0;
+    let reported = false;
+
+    const report = () => {
+        if (!reported) {
+            reported = true;
+            onFlush(streamedBytes);
+        }
+    };
 
     const counter = new Transform({
         transform(chunk, encoding, cb) {
@@ -21,10 +29,11 @@ export function pipeThroughByteCounter(
             cb(null, chunk);
         },
         flush(cb) {
-            onFlush(streamedBytes);
+            report();
             cb();
         },
     });
 
-    return source.pipe(counter);
+    // flush does not run after a source error, so the pipeline callback reports failed streams
+    return pipeline(source, counter, report);
 }
