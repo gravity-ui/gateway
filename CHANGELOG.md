@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.18.0](https://github.com/gravity-ui/gateway/compare/v4.17.5...v4.18.0) (2026-11-09)
+
+
+### Features
+
+* pipe REST stream responses to client ([#216](https://github.com/gravity-ui/gateway/issues/216)) ([ac2cd51](https://github.com/gravity-ui/gateway/commit/ac2cd511d15a36e3b3fe5ae0ea28a365646d9420))
+
 ## [4.17.5](https://github.com/gravity-ui/gateway/compare/v4.17.4...v4.17.5) (2026-10-30)
 
 
