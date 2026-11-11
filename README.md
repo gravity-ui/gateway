@@ -19,6 +19,7 @@ A flexible and powerful Express controller for working with REST and gRPC APIs i
     - [REST-actions](#rest-actions)
     - [gRPC-actions](#grpc-actions)
   - [Request Cancellation](#request-cancellation)
+  - [Responding from `onBeforeAction`](#responding-from-onbeforeaction)
   - [Response Content Type Validation](#response-content-type-validation)
   - [Streaming REST Responses](#streaming-rest-responses)
   - [gRPC Response Size Calculation](#grpc-response-size-calculation)
@@ -161,6 +162,9 @@ interface GatewayConfig {
   onUnknownAction?: (req: Request, res: Response, data: OnUnknownActionData) => any;
 
   // Called before the request is executed.
+  // Return {responseData, responseHeaders?, debugHeaders?} to skip the action and send responseData
+  // as a regular successful response (onRequestSuccess is still called). Throw to fail the request:
+  // the thrown value is sent as the error body with its `status` (500 by default).
   onBeforeAction?: (
     req: Request,
     res: Response,
@@ -688,6 +692,33 @@ const schema = {
         abortOnClientDisconnect: true, // Enable cancellation for this action
       },
     },
+  },
+};
+```
+
+### Responding from `onBeforeAction`
+
+`onBeforeAction` can answer a request instead of the action, for example to serve mocks. Return an object with `responseData` (optionally `responseHeaders` and `debugHeaders`): the action is not called, and the data goes through the regular success path - headers are set, `onRequestSuccess` is called if configured, otherwise the data is sent with status 200. Any other return value, including `undefined`, keeps the default behavior.
+
+To fail the request, throw: the thrown value goes through the regular error path and is sent as the response body with its `status` (500 by default), or passed to `onRequestFailed`.
+
+```javascript
+const config = {
+  onBeforeAction: (req, res, scope, service, action) => {
+    if (service === 'users' && action === 'getUser') {
+      return {responseData: {id: '1', name: 'Mock'}, responseHeaders: {'x-mock': 'users.getUser'}};
+    }
+
+    if (service === 'users' && action === 'deleteUser') {
+      throw {
+        status: 403,
+        code: 'GATEWAY_REQUEST_ERROR',
+        message: 'Permission denied',
+        details: {grpcCode: 7},
+      };
+    }
+
+    return undefined;
   },
 };
 ```

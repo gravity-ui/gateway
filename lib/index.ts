@@ -14,6 +14,7 @@ import {
     ApiWithRoot,
     BaseSchema,
     GatewayApi,
+    GatewayBeforeActionResponse,
     GatewayConfig,
     GatewayRequest,
     GatewayResponse,
@@ -192,6 +193,10 @@ function generateGatewayApi<
     }, {} as GatewayApi<TSchema, Context, Req, Res>);
 }
 
+function isBeforeActionResponse(value: unknown): value is GatewayBeforeActionResponse {
+    return typeof value === 'object' && value !== null && 'responseData' in value;
+}
+
 function generateGatewayApiController<
     TSchema extends SchemasByScope,
     Context extends GatewayContext,
@@ -282,9 +287,22 @@ function generateGatewayApiController<
             const apiAction = Api[scope][service][action];
             const actionConfig = schemasByScope[scope]?.[service]?.actions?.[action];
 
+            let beforeActionResponse: GatewayBeforeActionResponse | undefined;
+
             if (onBeforeAction) {
                 try {
-                    await onBeforeAction(req, res, scope, service, action, actionConfig);
+                    const result = await onBeforeAction(
+                        req,
+                        res,
+                        scope,
+                        service,
+                        action,
+                        actionConfig,
+                    );
+
+                    if (isBeforeActionResponse(result)) {
+                        beforeActionResponse = {debugHeaders: {}, ...result};
+                    }
                 } catch (error) {
                     handleError(
                         config.ErrorConstructor,
@@ -298,17 +316,19 @@ function generateGatewayApiController<
 
             const serviceSchema = schemasByScope[scope]?.[service];
 
-            const response = await apiAction({
-                requestId: req.id,
-                headers: req.headers,
-                ctx: req.ctx,
-                args,
-                authArgs: serviceSchema?.getAuthArgs
-                    ? serviceSchema.getAuthArgs(req, res)
-                    : config.getAuthArgs(req, res),
-                userId,
-                abortSignal: abortController.signal,
-            });
+            const response =
+                beforeActionResponse ??
+                (await apiAction({
+                    requestId: req.id,
+                    headers: req.headers,
+                    ctx: req.ctx,
+                    args,
+                    authArgs: serviceSchema?.getAuthArgs
+                        ? serviceSchema.getAuthArgs(req, res)
+                        : config.getAuthArgs(req, res),
+                    userId,
+                    abortSignal: abortController.signal,
+                }));
             const {debugHeaders} = response;
             const {responseData, responseHeaders} = 'responseData' in response ? response : {};
 
