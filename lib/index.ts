@@ -301,7 +301,11 @@ function generateGatewayApiController<
                     );
 
                     if (isBeforeActionResponse(result)) {
-                        beforeActionResponse = {debugHeaders: {}, ...result};
+                        beforeActionResponse = {
+                            responseData: result.responseData,
+                            responseHeaders: result.responseHeaders,
+                            debugHeaders: result.debugHeaders ?? {},
+                        };
                     }
                 } catch (error) {
                     handleError(
