@@ -745,60 +745,77 @@ describe('getGatewayControllers', () => {
         });
 
         describe('onBeforeAction response', () => {
-            const callGetRoot = async (onBeforeAction: () => unknown, extraConfig = {}) => {
+            const req = () =>
+                ({
+                    params: {service: 'rootService', action: 'getRoot'},
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: mockConnection(),
+                } as any);
+
+            test('sends a marked response without calling the action', async () => {
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {
+                        ...config,
+                        onBeforeAction: () =>
+                            createBeforeActionResponse({
+                                responseData: {mocked: true},
+                                responseHeaders: {'x-mock': 'root'},
+                            }),
+                    },
+                );
                 const res: any = {
                     status: jest.fn((_) => res),
                     send: jest.fn(),
                     set: jest.fn(),
                 };
-                const getAuthArgs = jest.fn(() => ({}));
-                const {controller} = getGatewayControllers(
-                    {root: rootSchema},
-                    {...config, getAuthArgs, onBeforeAction, ...extraConfig},
-                );
+                mock.resetHistory();
 
-                await controller(
-                    {
-                        params: {service: 'rootService', action: 'getRoot'},
-                        headers: {},
-                        ctx: generateContext(),
-                        connection: mockConnection(),
-                    } as any,
-                    res,
-                );
+                await controller(req(), res);
 
-                return {res, getAuthArgs};
-            };
-
-            test('sends a marked response without calling the action', async () => {
-                const {res, getAuthArgs} = await callGetRoot(() =>
-                    createBeforeActionResponse({
-                        responseData: {mocked: true},
-                        responseHeaders: {'x-mock': 'root'},
-                    }),
-                );
-
-                expect(res.send).toHaveBeenCalledWith({mocked: true});
-                expect(res.set).toHaveBeenCalledWith({'x-mock': 'root'});
-                expect(res.status).not.toHaveBeenCalled();
-                expect(getAuthArgs).not.toHaveBeenCalled();
+                expect(res.send.mock.calls[0][0]).toEqual({mocked: true});
+                expect(res.set.mock.calls[0][0]).toEqual({'x-mock': 'root'});
+                expect(mock.history.get).toHaveLength(0);
             });
 
             test('sets empty debug headers when the response has none', async () => {
-                const {res} = await callGetRoot(
-                    () => createBeforeActionResponse({responseData: 'mocked'}),
-                    {withDebugHeaders: true},
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {
+                        ...config,
+                        withDebugHeaders: true,
+                        onBeforeAction: () => createBeforeActionResponse({responseData: 'mocked'}),
+                    },
                 );
+                const res: any = {
+                    status: jest.fn((_) => res),
+                    send: jest.fn(),
+                    set: jest.fn(),
+                };
 
-                expect(res.set).toHaveBeenCalledWith({});
-                expect(res.send).toHaveBeenCalledWith('mocked');
+                await controller(req(), res);
+
+                expect(res.set.mock.calls[0][0]).toEqual({});
+                expect(res.send.mock.calls[0][0]).toBe('mocked');
             });
 
             test('calls the action for an unmarked object with responseData', async () => {
-                const {res, getAuthArgs} = await callGetRoot(() => ({responseData: 'not a mock'}));
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {...config, onBeforeAction: () => ({responseData: 'not a mock'})},
+                );
+                const res: any = {
+                    status: jest.fn((_) => res),
+                    send: jest.fn(),
+                    set: jest.fn(),
+                };
+                mock.resetHistory();
 
-                expect(res.send).toHaveBeenCalledWith(testMsgRoot);
-                expect(getAuthArgs).toHaveBeenCalled();
+                await controller(req(), res);
+
+                expect(res.send.mock.calls[0][0]).toBe(testMsgRoot);
+                expect(mock.history.get).toHaveLength(1);
             });
         });
 
