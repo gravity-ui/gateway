@@ -14,18 +14,21 @@ import {
     ApiWithRoot,
     BaseSchema,
     GatewayApi,
+    GatewayBeforeActionResponse,
     GatewayConfig,
     GatewayRequest,
     GatewayResponse,
     SchemasByScope,
 } from './models/common';
 import {GatewayContext} from './models/context';
+import {isBeforeActionResponse} from './utils/before-action';
 import {getKeys, handleError} from './utils/common';
 import overrideEndpoints from './utils/overrideEndpoints';
 
 export * from './utils/typed-api';
 export * from './utils/grpc-reflection';
 export {isRetryableGrpcError} from './utils/grpc';
+export {createBeforeActionResponse} from './utils/before-action';
 export * from './models/common';
 export * from './models/context';
 export * from './models/error';
@@ -282,9 +285,26 @@ function generateGatewayApiController<
             const apiAction = Api[scope][service][action];
             const actionConfig = schemasByScope[scope]?.[service]?.actions?.[action];
 
+            let beforeActionResponse: GatewayBeforeActionResponse | undefined;
+
             if (onBeforeAction) {
                 try {
-                    await onBeforeAction(req, res, scope, service, action, actionConfig);
+                    const result = await onBeforeAction(
+                        req,
+                        res,
+                        scope,
+                        service,
+                        action,
+                        actionConfig,
+                    );
+
+                    if (isBeforeActionResponse(result)) {
+                        beforeActionResponse = {
+                            responseData: result.responseData,
+                            responseHeaders: result.responseHeaders,
+                            debugHeaders: result.debugHeaders ?? {},
+                        };
+                    }
                 } catch (error) {
                     handleError(
                         config.ErrorConstructor,
@@ -298,17 +318,19 @@ function generateGatewayApiController<
 
             const serviceSchema = schemasByScope[scope]?.[service];
 
-            const response = await apiAction({
-                requestId: req.id,
-                headers: req.headers,
-                ctx: req.ctx,
-                args,
-                authArgs: serviceSchema?.getAuthArgs
-                    ? serviceSchema.getAuthArgs(req, res)
-                    : config.getAuthArgs(req, res),
-                userId,
-                abortSignal: abortController.signal,
-            });
+            const response =
+                beforeActionResponse ??
+                (await apiAction({
+                    requestId: req.id,
+                    headers: req.headers,
+                    ctx: req.ctx,
+                    args,
+                    authArgs: serviceSchema?.getAuthArgs
+                        ? serviceSchema.getAuthArgs(req, res)
+                        : config.getAuthArgs(req, res),
+                    userId,
+                    abortSignal: abortController.signal,
+                }));
             const {debugHeaders} = response;
             const {responseData, responseHeaders} = 'responseData' in response ? response : {};
 

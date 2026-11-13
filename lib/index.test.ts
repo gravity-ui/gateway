@@ -8,7 +8,12 @@ import MockAdapter from 'axios-mock-adapter';
 
 import {DEFAULT_AXIOS_OPTIONS, GatewayErrorCode} from './constants';
 
-import {GetAuthHeadersParams, ProxyHeadersFunction, getGatewayControllers} from './index';
+import {
+    GetAuthHeadersParams,
+    ProxyHeadersFunction,
+    createBeforeActionResponse,
+    getGatewayControllers,
+} from './index';
 
 const mock = new MockAdapter(axios);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -736,6 +741,81 @@ describe('getGatewayControllers', () => {
                 status: 499,
                 code: 'ERR_CANCELED',
                 message: 'Запрос был отменен.',
+            });
+        });
+
+        describe('onBeforeAction response', () => {
+            const req = () =>
+                ({
+                    params: {service: 'rootService', action: 'getRoot'},
+                    headers: {},
+                    ctx: generateContext(),
+                    connection: mockConnection(),
+                } as any);
+
+            test('sends a marked response without calling the action', async () => {
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {
+                        ...config,
+                        onBeforeAction: () =>
+                            createBeforeActionResponse({
+                                responseData: {mocked: true},
+                                responseHeaders: {'x-mock': 'root'},
+                            }),
+                    },
+                );
+                const res: any = {
+                    status: jest.fn((_) => res),
+                    send: jest.fn(),
+                    set: jest.fn(),
+                };
+                mock.resetHistory();
+
+                await controller(req(), res);
+
+                expect(res.send.mock.calls[0][0]).toEqual({mocked: true});
+                expect(res.set.mock.calls[0][0]).toEqual({'x-mock': 'root'});
+                expect(mock.history.get).toHaveLength(0);
+            });
+
+            test('sets empty debug headers when the response has none', async () => {
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {
+                        ...config,
+                        withDebugHeaders: true,
+                        onBeforeAction: () => createBeforeActionResponse({responseData: 'mocked'}),
+                    },
+                );
+                const res: any = {
+                    status: jest.fn((_) => res),
+                    send: jest.fn(),
+                    set: jest.fn(),
+                };
+
+                await controller(req(), res);
+
+                expect(res.set.mock.calls[0][0]).toEqual({});
+                expect(res.send.mock.calls[0][0]).toBe('mocked');
+            });
+
+            test('calls the action for an unmarked object with responseData', async () => {
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {...config, onBeforeAction: () => ({responseData: 'not a mock'})},
+                );
+                const res: any = {
+                    status: jest.fn((_) => res),
+                    send: jest.fn(),
+                    set: jest.fn(),
+                };
+                mock.resetHistory();
+
+                await controller(req(), res);
+
+                expect(res.send.mock.calls[0][0]).toBe(testMsgRoot);
+                expect(mock.history.get).toHaveLength(1);
             });
         });
 

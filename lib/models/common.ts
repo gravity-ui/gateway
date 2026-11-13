@@ -382,6 +382,13 @@ export interface GatewayActionUnaryResponse<TAction> extends GatewayActionHeader
     responseHeaders?: Headers;
 }
 
+// Response returned from onBeforeAction via createBeforeActionResponse to answer the request without calling the action.
+export interface GatewayBeforeActionResponse<TData = unknown> {
+    responseData: TData;
+    responseHeaders?: Headers;
+    debugHeaders?: Headers;
+}
+
 export interface GatewayActionClientStreamResponse<TAction> extends GatewayActionHeaders {
     stream: ClientWritableStream<ApiActionResponseType<TAction>>;
 }
@@ -491,6 +498,7 @@ export interface GatewayConfig<
     axiosConfig?: AxiosRequestConfig;
     axiosInterceptors?: AxiosInterceptorsConfig;
     onUnknownAction?: (req: Req, res: Res, data: OnUnknownActionData) => any;
+    // Return createBeforeActionResponse(...) to skip the action and send its responseData instead.
     onBeforeAction?: (
         req: Req,
         res: Res,
