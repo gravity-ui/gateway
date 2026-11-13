@@ -700,7 +700,7 @@ const schema = {
 
 `onBeforeAction` can answer a request instead of the action, for example to serve mocks. Return `createBeforeActionResponse({responseData, responseHeaders?, debugHeaders?})`: the action is not called, and the data goes through the regular success path - headers are set, `onRequestSuccess` is called if configured, otherwise the data is sent with status 200. Any other return value, including `undefined` or a plain object with `responseData`, keeps the default behavior.
 
-The backend is not called in this case, so its authorization and ownership checks do not run either. Decide in the hook who may get such a response, for example serve mocks only to staff users or only outside production.
+The backend is not called in this case, so the action's args validation, `getAuthArgs`, `sendStats` and the backend's own authorization and ownership checks do not run either. Access checks are up to the hook: decide there who may get such a response, for example serve mocks only to staff users or only outside production.
 
 To fail the request, throw: the thrown value goes through the regular error path and is sent as the response body with its `status` (500 by default), or passed to `onRequestFailed`.
 
