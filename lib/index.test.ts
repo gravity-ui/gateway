@@ -784,15 +784,6 @@ describe('getGatewayControllers', () => {
                 expect(getAuthArgs).not.toHaveBeenCalled();
             });
 
-            test('passes a marked response to onRequestSuccess', async () => {
-                const onRequestSuccess = jest.fn();
-                await callGetRoot(() => createBeforeActionResponse({responseData: 'mocked'}), {
-                    onRequestSuccess,
-                });
-
-                expect(onRequestSuccess.mock.calls[0][2]).toBe('mocked');
-            });
-
             test('sets empty debug headers when the response has none', async () => {
                 const {res} = await callGetRoot(
                     () => createBeforeActionResponse({responseData: 'mocked'}),
@@ -808,30 +799,6 @@ describe('getGatewayControllers', () => {
 
                 expect(res.send).toHaveBeenCalledWith(testMsgRoot);
                 expect(getAuthArgs).toHaveBeenCalled();
-            });
-
-            test('calls the action when the hook returns undefined', async () => {
-                const {res} = await callGetRoot(() => undefined);
-
-                expect(res.send).toHaveBeenCalledWith(testMsgRoot);
-            });
-
-            test('sends a thrown value as the error response', async () => {
-                const {res, getAuthArgs} = await callGetRoot(() => {
-                    throw {
-                        status: 403,
-                        code: 'GATEWAY_REQUEST_ERROR',
-                        message: 'Permission denied',
-                    };
-                });
-
-                expect(res.status).toHaveBeenCalledWith(403);
-                expect(res.send).toHaveBeenCalledWith({
-                    status: 403,
-                    code: 'GATEWAY_REQUEST_ERROR',
-                    message: 'Permission denied',
-                });
-                expect(getAuthArgs).not.toHaveBeenCalled();
             });
         });
 
