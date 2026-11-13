@@ -21,12 +21,14 @@ import {
     SchemasByScope,
 } from './models/common';
 import {GatewayContext} from './models/context';
+import {isBeforeActionResponse} from './utils/before-action';
 import {getKeys, handleError} from './utils/common';
 import overrideEndpoints from './utils/overrideEndpoints';
 
 export * from './utils/typed-api';
 export * from './utils/grpc-reflection';
 export {isRetryableGrpcError} from './utils/grpc';
+export {createBeforeActionResponse} from './utils/before-action';
 export * from './models/common';
 export * from './models/context';
 export * from './models/error';
@@ -191,10 +193,6 @@ function generateGatewayApi<
             ),
         );
     }, {} as GatewayApi<TSchema, Context, Req, Res>);
-}
-
-function isBeforeActionResponse(value: unknown): value is GatewayBeforeActionResponse {
-    return typeof value === 'object' && value !== null && 'responseData' in value;
 }
 
 function generateGatewayApiController<
