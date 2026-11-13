@@ -8,7 +8,12 @@ import MockAdapter from 'axios-mock-adapter';
 
 import {DEFAULT_AXIOS_OPTIONS, GatewayErrorCode} from './constants';
 
-import {GetAuthHeadersParams, ProxyHeadersFunction, getGatewayControllers} from './index';
+import {
+    GetAuthHeadersParams,
+    ProxyHeadersFunction,
+    createBeforeActionResponse,
+    getGatewayControllers,
+} from './index';
 
 const mock = new MockAdapter(axios);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -736,6 +741,97 @@ describe('getGatewayControllers', () => {
                 status: 499,
                 code: 'ERR_CANCELED',
                 message: 'Запрос был отменен.',
+            });
+        });
+
+        describe('onBeforeAction response', () => {
+            const callGetRoot = async (onBeforeAction: () => unknown, extraConfig = {}) => {
+                const res: any = {
+                    status: jest.fn((_) => res),
+                    send: jest.fn(),
+                    set: jest.fn(),
+                };
+                const getAuthArgs = jest.fn(() => ({}));
+                const {controller} = getGatewayControllers(
+                    {root: rootSchema},
+                    {...config, getAuthArgs, onBeforeAction, ...extraConfig},
+                );
+
+                await controller(
+                    {
+                        params: {service: 'rootService', action: 'getRoot'},
+                        headers: {},
+                        ctx: generateContext(),
+                        connection: mockConnection(),
+                    } as any,
+                    res,
+                );
+
+                return {res, getAuthArgs};
+            };
+
+            test('sends a marked response without calling the action', async () => {
+                const {res, getAuthArgs} = await callGetRoot(() =>
+                    createBeforeActionResponse({
+                        responseData: {mocked: true},
+                        responseHeaders: {'x-mock': 'root'},
+                    }),
+                );
+
+                expect(res.send).toHaveBeenCalledWith({mocked: true});
+                expect(res.set).toHaveBeenCalledWith({'x-mock': 'root'});
+                expect(res.status).not.toHaveBeenCalled();
+                expect(getAuthArgs).not.toHaveBeenCalled();
+            });
+
+            test('passes a marked response to onRequestSuccess', async () => {
+                const onRequestSuccess = jest.fn();
+                await callGetRoot(() => createBeforeActionResponse({responseData: 'mocked'}), {
+                    onRequestSuccess,
+                });
+
+                expect(onRequestSuccess.mock.calls[0][2]).toBe('mocked');
+            });
+
+            test('sets empty debug headers when the response has none', async () => {
+                const {res} = await callGetRoot(
+                    () => createBeforeActionResponse({responseData: 'mocked'}),
+                    {withDebugHeaders: true},
+                );
+
+                expect(res.set).toHaveBeenCalledWith({});
+                expect(res.send).toHaveBeenCalledWith('mocked');
+            });
+
+            test('calls the action for an unmarked object with responseData', async () => {
+                const {res, getAuthArgs} = await callGetRoot(() => ({responseData: 'not a mock'}));
+
+                expect(res.send).toHaveBeenCalledWith(testMsgRoot);
+                expect(getAuthArgs).toHaveBeenCalled();
+            });
+
+            test('calls the action when the hook returns undefined', async () => {
+                const {res} = await callGetRoot(() => undefined);
+
+                expect(res.send).toHaveBeenCalledWith(testMsgRoot);
+            });
+
+            test('sends a thrown value as the error response', async () => {
+                const {res, getAuthArgs} = await callGetRoot(() => {
+                    throw {
+                        status: 403,
+                        code: 'GATEWAY_REQUEST_ERROR',
+                        message: 'Permission denied',
+                    };
+                });
+
+                expect(res.status).toHaveBeenCalledWith(403);
+                expect(res.send).toHaveBeenCalledWith({
+                    status: 403,
+                    code: 'GATEWAY_REQUEST_ERROR',
+                    message: 'Permission denied',
+                });
+                expect(getAuthArgs).not.toHaveBeenCalled();
             });
         });
 
