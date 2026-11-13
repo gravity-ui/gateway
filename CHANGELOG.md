@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.19.0](https://github.com/gravity-ui/gateway/compare/v4.18.0...v4.19.0) (2026-11-13)
+
+
+### Features
+
+* allow onBeforeAction to return a response ([#219](https://github.com/gravity-ui/gateway/issues/219)) ([69921b6](https://github.com/gravity-ui/gateway/commit/69921b667a1a779ca205712f32e29aa8ab500560))
+
 ## [4.18.0](https://github.com/gravity-ui/gateway/compare/v4.17.5...v4.18.0) (2026-11-09)
 
 
