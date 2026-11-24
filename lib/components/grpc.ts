@@ -41,6 +41,7 @@ import {
     GRPCActionData,
     GatewayActionResponseData,
     GatewayApiOptions,
+    GatewayError,
     GrpcReflection,
     Headers,
     ParamsOutput,
@@ -970,6 +971,24 @@ export default function createGrpcAction<Context extends GatewayContext>(
             }
         };
 
+        async function transformError(gatewayError: GatewayError) {
+            if (!config.transformResponseError) {
+                return gatewayError;
+            }
+
+            try {
+                const transformedError = await config.transformResponseError(gatewayError, {
+                    args,
+                    ctx,
+                });
+                ctx.log('Transformed response error');
+                return transformedError;
+            } catch (error) {
+                handleError(ErrorConstructor, error, ctx, 'Transform response error failed');
+                return gatewayError;
+            }
+        }
+
         function processError(grpcError: GrpcError) {
             const restStatus = _.get(grpcError.getGatewayError(), 'status', 500);
 
@@ -1470,13 +1489,14 @@ export default function createGrpcAction<Context extends GatewayContext>(
                     callAction();
                 }
             }
-        }).catch((error: Error | GrpcError) => {
+        }).catch(async (error: Error | GrpcError) => {
             const grpcError = isGrpcError(error) ? error : grpcErrorFactory(error);
+            const gatewayError = await transformError(grpcError.getGatewayError());
             processError(grpcError);
 
             stopListeningForAbort?.();
 
-            return Promise.reject({error: grpcError.getGatewayError(), debugHeaders});
+            return Promise.reject({error: gatewayError, debugHeaders});
         });
     };
 }

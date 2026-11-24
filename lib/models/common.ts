@@ -192,10 +192,6 @@ export interface ApiServiceBaseActionConfig<
         data: TOutput,
         config: ApiTransformResponseDataConfig<TParams, Context>,
     ) => Promise<TTransformed> | TTransformed;
-    transformResponseError?: (
-        error: ResponseError,
-        config: ApiTransformResponseErrorConfig<TParams, Context>,
-    ) => Promise<GatewayError> | GatewayError;
     validationSchema?: object;
     timeout?: number;
     retries?: number;
@@ -214,6 +210,10 @@ export interface ApiServiceRestActionConfig<
 > extends ApiServiceBaseActionConfig<Context, TOutput, TParams, TTransformed> {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
     path: (args: TParams) => string;
+    transformResponseError?: (
+        error: ResponseError,
+        config: ApiTransformResponseErrorConfig<TParams, Context>,
+    ) => Promise<GatewayError> | GatewayError;
     paramsSerializer?: AxiosRequestConfig['paramsSerializer'];
     responseType?: AxiosRequestConfig['responseType'];
     expectedResponseContentType?: ResponseContentType | ResponseContentType[];
@@ -229,6 +229,11 @@ export interface ApiServiceBaseGrpcActionConfig<
 > extends ApiServiceBaseActionConfig<Context, TOutput, TParams, TTransformed> {
     action: string;
     protoKey: string;
+    /** Transform the gateway error of a failed unary request before it is returned. */
+    transformResponseError?: (
+        error: GatewayError,
+        config: ApiTransformResponseErrorConfig<TParams, Context>,
+    ) => Promise<GatewayError> | GatewayError;
     /** Calculate the size of successful unary responses for statistics. Defaults to true. */
     calculateResponseSize?: boolean;
     insecure?: boolean;

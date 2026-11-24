@@ -31,6 +31,7 @@ const mockGrpcRetryCondition = jest.fn((error) => {
 function getControllers(
     actionOptions: {calculateResponseSize?: boolean} = {},
     sendStats?: ReturnType<typeof jest.fn>,
+    actionsOverrides: Partial<typeof schema.meta.actions> = {},
 ) {
     return getGatewayControllers(
         {
@@ -44,6 +45,7 @@ function getControllers(
                             ...schema.meta.actions.getFolderStats,
                             ...actionOptions,
                         },
+                        ...actionsOverrides,
                     },
                 },
             },
@@ -654,5 +656,58 @@ describe('Reflection options tests', () => {
             result: 'response-123',
         });
         await expectStatsToSendOk();
+    });
+});
+
+describe('Transform response error tests', () => {
+    it('should return the error from transformResponseError', async () => {
+        const transformResponseError = jest.fn(() => ({
+            status: 429,
+            code: 'TRANSFORMED',
+            message: 'Transformed error',
+        }));
+        const transformControllers = getControllers({}, undefined, {
+            methodWithError: {
+                ...schema.meta.actions.methodWithError,
+                transformResponseError,
+            } as typeof schema.meta.actions.methodWithError,
+        });
+        const actionConfig = getApiActionConfig({query: '123'});
+
+        await expect(
+            transformControllers.api.local.meta.methodWithError(actionConfig),
+        ).rejects.toMatchObject({
+            error: {status: 429, code: 'TRANSFORMED', message: 'Transformed error'},
+        });
+        expect(transformResponseError).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
+                details: expect.objectContaining({grpcCode: 15}),
+            }),
+            expect.objectContaining({args: {query: '123'}}),
+        );
+        await expectStatsToSendError();
+    });
+
+    it('should return the original error when transformResponseError throws', async () => {
+        const transformControllers = getControllers({}, undefined, {
+            methodWithError: {
+                ...schema.meta.actions.methodWithError,
+                transformResponseError: () => {
+                    throw new Error('transform failed');
+                },
+            } as typeof schema.meta.actions.methodWithError,
+        });
+
+        await expect(
+            transformControllers.api.local.meta.methodWithError(getApiActionConfig()),
+        ).rejects.toMatchObject({
+            error: {
+                code: GatewayErrorCode.GATEWAY_REQUEST_ERROR,
+                status: 500,
+                details: {grpcCode: 15},
+            },
+        });
+        await expectStatsToSendError();
     });
 });
